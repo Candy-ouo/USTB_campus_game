@@ -1,0 +1,19 @@
+{
+  "player": {
+    "attributes": {
+      "health": 100,
+      "mood": 100,
+      "intelligence": 50,
+      "physical": 50,
+      "charm": 50,
+      "gold": 1000
+    },
+    "action_points": 3
+  },
+  "time_system": {
+    "day": 1,
+    "week": 1,
+    "weekday_index": 0,
+    "ended": false
+  }
+}
