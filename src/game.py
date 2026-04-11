@@ -10,6 +10,7 @@ from data.config import (
 )
 from src.player import Player
 from src.time_system import TimeSystem
+from src.map import MapSystem
 
 
 class Game:
@@ -52,9 +53,21 @@ class Game:
         
         self.player = Player()
         self.time_system = TimeSystem()
+        self.map_system = MapSystem()
         self.running = True
         self.message = ""
         self.message_timer = 0
+        
+        # 加载地图背景图片
+        self.map_background = None
+        map_image_path = os.path.join(os.path.dirname(__file__), '..', 'map_background.jpg')
+        if os.path.exists(map_image_path):
+            try:
+                self.map_background = pygame.image.load(map_image_path)
+                # 调整图片大小以适应屏幕
+                self.map_background = pygame.transform.scale(self.map_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+            except Exception as e:
+                print(f"加载地图背景图片失败: {e}")
         
         self.player.action_points = DAILY_ACTION_POINTS
     
@@ -123,21 +136,44 @@ class Game:
                 if event.key == pygame.K_q:
                     self.running = False
                 elif event.key == pygame.K_SPACE:
-                    self.advance_day()
+                    if not self.map_system.is_map_showing():
+                        self.advance_day()
                 elif event.key == pygame.K_s:
-                    self.save_game()
+                    if not self.map_system.is_map_showing():
+                        self.save_game()
                 elif event.key == pygame.K_l:
-                    self.load_game()
+                    if not self.map_system.is_map_showing():
+                        self.load_game()
+                elif event.key == pygame.K_m:
+                    self.map_system.toggle_map()
+                    self.map_system.clear_active_area()
                 elif event.key == pygame.K_1:
-                    self.do_action("学习")
+                    if not self.map_system.is_map_showing():
+                        self.do_action("学习")
+                    else:
+                        self.handle_map_action(0)
                 elif event.key == pygame.K_2:
-                    self.do_action("运动")
+                    if not self.map_system.is_map_showing():
+                        self.do_action("运动")
+                    else:
+                        self.handle_map_action(1)
                 elif event.key == pygame.K_3:
-                    self.do_action("休息")
+                    if not self.map_system.is_map_showing():
+                        self.do_action("休息")
                 elif event.key == pygame.K_4:
-                    self.do_action("打工")
+                    if not self.map_system.is_map_showing():
+                        self.do_action("打工")
                 elif event.key == pygame.K_5:
-                    self.do_action("社交")
+                    if not self.map_system.is_map_showing():
+                        self.do_action("社交")
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if self.map_system.is_map_showing():
+                    pos = pygame.mouse.get_pos()
+                    area_id = self.map_system.get_area_at(pos)
+                    if area_id:
+                        self.map_system.set_active_area(area_id)
+                    else:
+                        self.map_system.clear_active_area()
     
     def do_action(self, action_name):
         if self.player.action_points <= 0:
@@ -175,13 +211,72 @@ class Game:
         
         self.message_timer = 90
     
+    def handle_map_action(self, action_index):
+        if self.player.action_points <= 0:
+            self.message = "行动点不足！"
+            self.message_timer = 60
+            return
+        
+        active_area = self.map_system.active_area
+        if not active_area:
+            return
+        
+        area = self.map_system.get_area(active_area)
+        if not area or action_index >= len(area['actions']):
+            return
+        
+        action = area['actions'][action_index]
+        self.player.action_points -= 1
+        
+        # 应用行动效果
+        effects = action['effects']
+        effect_messages = []
+        for attr, value in effects.items():
+            self.player.change_attribute(attr, value)
+            effect_messages.append(f"{attr}: {value:+d}")
+        
+        self.message = f"{area['name']}: {action['name']} - {', '.join(effect_messages)}"
+        self.message_timer = 90
+    
     def draw_text(self, text, x, y, color=WHITE, font=None):
         if font is None:
             font = self.font
         text_surface = font.render(text, True, color)
         self.screen.blit(text_surface, (x, y))
     
+    def draw_map(self):
+        # 绘制地图背景图片
+        if self.map_background:
+            self.screen.blit(self.map_background, (0, 0))
+        else:
+            # 如果没有背景图片，使用默认背景色
+            self.screen.fill((50, 50, 50))
+        
+        # 绘制地图标题
+        self.draw_text("校园地图", SCREEN_WIDTH // 2 - 100, 30, (80, 40, 0), self.large_font)  # 深棕色文字
+        
+        # 绘制各个区域（带背景色和文字）
+        for area_id, area in self.map_system.areas.items():
+            # 绘制区域背景
+            pygame.draw.rect(self.screen, area['bg_color'], area['rect'])
+            # 绘制区域边框
+            pygame.draw.rect(self.screen, area['border_color'], area['rect'], 2)
+            
+            # 绘制区域名称
+            name_text = self.font.render(area['name'], True, area['text_color'])
+            text_rect = name_text.get_rect(center=area['rect'].center)
+            self.screen.blit(name_text, text_rect)
+        
+        # 绘制操作说明
+        self.draw_text("点击区域查看详情，按M返回主界面", 20, SCREEN_HEIGHT - 50, (80, 40, 0))  # 深棕色文字
+        
+        pygame.display.flip()
+    
     def draw(self):
+        if self.map_system.is_map_showing():
+            self.draw_map()
+            return
+        
         self.screen.fill(BLACK)
         
         self.draw_text(self.time_system.get_time_display(), 20, 20, WHITE, self.large_font)
@@ -221,7 +316,7 @@ class Game:
         y_offset += 20
         self.draw_text("操作说明:", 20, y_offset)
         y_offset += 30
-        self.draw_text("[空格] 推进一天  [S] 存档  [L] 读档  [Q] 退出", 40, y_offset)
+        self.draw_text("[空格] 推进一天  [S] 存档  [L] 读档  [M] 打开地图  [Q] 退出", 40, y_offset)
         
         if self.message_timer > 0:
             self.draw_text(self.message, SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT - 80, WHITE, self.large_font)
