@@ -59,9 +59,9 @@ class Character:
     
     @staticmethod
     def get_major_by_college(college: str) -> str:
-        """根据学院获取默认专业"""
+        """根据学院随机获取一个专业"""
         majors = COLLEGE_MAJORS.get(college, ["未知专业"])
-        return majors[0] if majors else "未知专业"
+        return random.choice(majors) if majors else "未知专业"
     
     def to_dict(self) -> Dict:
         """转换为字典，用于存档"""

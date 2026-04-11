@@ -53,6 +53,7 @@ class CreateCharacterScene:
         self.birth_day = 1
         self.college_index = 0
         self.college_list = list(COLLEGE_MAJORS.keys())
+        self.major = Character.get_major_by_college(self.college_list[self.college_index])
         self.hair_style = 0
         self.top_style = 0
         self.pants_style = 0
@@ -180,8 +181,10 @@ class CreateCharacterScene:
         elif self.active_field == "college":
             if key == pygame.K_UP and self.college_index > 0:
                 self.college_index -= 1
+                self.major = Character.get_major_by_college(self.college_list[self.college_index])
             elif key == pygame.K_DOWN and self.college_index < len(self.college_list) - 1:
                 self.college_index += 1
+                self.major = Character.get_major_by_college(self.college_list[self.college_index])
         
         elif self.active_field == "hair":
             if key == pygame.K_LEFT and self.hair_style > 0:
@@ -303,6 +306,7 @@ class CreateCharacterScene:
                 option_rect = pygame.Rect(editor_start_x + 90, dropdown_y + 2 + i * 30, min(180, editor_width - 100), 30)
                 if option_rect.collidepoint(pos):
                     self.college_index = i
+                    self.major = Character.get_major_by_college(self.college_list[self.college_index])
                     self.college_dropdown_open = False
         
         # 形象编辑 - 发型
@@ -372,7 +376,7 @@ class CreateCharacterScene:
             weight=self.weight,
             birthday=birthday,
             college=college,
-            major=Character.get_major_by_college(college),
+            major=self.major,
             hair_style=self.hair_style,
             top_style=self.top_style,
             pants_style=self.pants_style,
@@ -499,7 +503,7 @@ class CreateCharacterScene:
         self._draw_text(f"姓名: {self.name}", 30 + preview_width // 2, info_y, font=self.font)
         self._draw_text(f"性别: {self.gender}", 30 + preview_width // 2, info_y + 35, font=self.font)  # 增加行间距
         self._draw_text(f"学院: {self.college_list[self.college_index]}", 30 + preview_width // 2, info_y + 70, font=self.font)  # 增加行间距
-        self._draw_text(f"专业: {Character.get_major_by_college(self.college_list[self.college_index])}", 30 + preview_width // 2, info_y + 105, font=self.font)  # 增加行间距
+        self._draw_text(f"专业: {self.major}", 30 + preview_width // 2, info_y + 105, font=self.font)  # 增加行间距
     
     def _draw_pixel_character(self, x, y, hair_color, top_color, pants_color):
         """绘制像素风格角色"""
