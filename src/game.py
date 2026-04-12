@@ -11,14 +11,23 @@ from data.config import (
 from src.player import Player
 from src.time_system import TimeSystem
 from src.map import MapSystem
+from src.character import Character
+from src.create_character_scene import CreateCharacterScene
 
+# 游戏状态
+STATE_CREATE_CHARACTER = "CREATE_CHARACTER"
+STATE_MAIN_GAME = "MAIN_GAME"
+STATE_MENU = "MENU"
 
 class Game:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-        pygame.display.set_caption("USTB校园养成游戏")
+        # 创建可调整大小的窗口
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
+        pygame.display.set_caption("北科校园物语")
         self.clock = pygame.time.Clock()
+        # 存储当前窗口大小
+        self.width, self.height = SCREEN_WIDTH, SCREEN_HEIGHT
         # 尝试使用本地字体文件
         font_path = os.path.join(os.path.dirname(__file__), '..', 'fonts', 'msyh.ttf')
         self.font = None
@@ -26,8 +35,8 @@ class Game:
         
         try:
             if os.path.exists(font_path):
-                self.font = pygame.font.Font(font_path, 24)
-                self.large_font = pygame.font.Font(font_path, 36)
+                self.font = pygame.font.Font(font_path, 18)  # 增大字体大小
+                self.large_font = pygame.font.Font(font_path, 24)  # 增大字体大小
         except:
             pass
         
@@ -37,9 +46,9 @@ class Game:
             for font_name in font_names:
                 try:
                     if self.font is None:
-                        self.font = pygame.font.SysFont(font_name, 24)
+                        self.font = pygame.font.SysFont(font_name, 18)  # 增大字体大小
                     if self.large_font is None:
-                        self.large_font = pygame.font.SysFont(font_name, 36)
+                        self.large_font = pygame.font.SysFont(font_name, 24)  # 增大字体大小
                     if self.font and self.large_font:
                         break
                 except:
@@ -47,13 +56,23 @@ class Game:
         
         # 如果所有字体都失败，使用默认字体
         if self.font is None:
-            self.font = pygame.font.Font(None, 24)
+            self.font = pygame.font.Font(None, 18)  # 增大字体大小
         if self.large_font is None:
-            self.large_font = pygame.font.Font(None, 36)
+            self.large_font = pygame.font.Font(None, 24)  # 增大字体大小
         
+        # 游戏状态
+        self.current_state = STATE_CREATE_CHARACTER
+        
+        # 角色和场景
+        self.character = None
+        self.create_character_scene = None
+        
+        # 其他游戏对象
         self.player = Player()
         self.time_system = TimeSystem()
         self.map_system = MapSystem()
+        
+        # 游戏状态
         self.running = True
         self.message = ""
         self.message_timer = 0
@@ -129,7 +148,9 @@ class Game:
             self.message_timer = 120
     
     def handle_events(self):
-        for event in pygame.event.get():
+        events = pygame.event.get()
+        
+        for event in events:
             if event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
@@ -138,6 +159,45 @@ class Game:
                 elif event.key == pygame.K_SPACE:
                     if not self.map_system.is_map_showing():
                         self.advance_day()
+            elif event.type == pygame.VIDEORESIZE:
+                # 处理窗口大小变化
+                self.width, self.height = event.size
+                self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
+        
+        # 根据状态处理事件
+        if self.current_state == STATE_CREATE_CHARACTER:
+            self._handle_create_character(events)
+            # 更新角色创建场景的窗口大小
+            if self.create_character_scene is not None:
+                self.create_character_scene.width = self.width
+                self.create_character_scene.height = self.height
+        elif self.current_state == STATE_MAIN_GAME:
+            self._handle_main_game(events)
+    
+    def _handle_create_character(self, events):
+        """处理角色创建"""
+        if self.create_character_scene is None:
+            self.create_character_scene = CreateCharacterScene(self.screen, self.font, self.large_font)
+        
+        # 处理事件
+        result = self.create_character_scene.handle_events(events)
+        
+        # 检查是否完成创建
+        if result is not None:
+            if isinstance(result, Character):
+                self.character = result
+                self.current_state = STATE_MAIN_GAME
+                self.create_character_scene = None
+            else:
+                # 取消创建，退出游戏
+                self.running = False
+    
+    def _handle_main_game(self, events):
+        """处理主游戏事件"""
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    self.advance_day()
                 elif event.key == pygame.K_s:
                     if not self.map_system.is_map_showing():
                         self.save_game()
@@ -277,11 +337,35 @@ class Game:
             self.draw_map()
             return
         
+        # 根据状态绘制
+        if self.current_state == STATE_CREATE_CHARACTER:
+            self._draw_create_character()
+        elif self.current_state == STATE_MAIN_GAME:
+            self._draw_main_game()
+        
+        pygame.display.flip()
+    
+    def _draw_create_character(self):
+        """绘制角色创建场景"""
+        if self.create_character_scene is not None:
+            self.create_character_scene.update()
+            self.create_character_scene.draw()
+    
+    def _draw_main_game(self):
+        """绘制主游戏场景"""
         self.screen.fill(BLACK)
         
-        self.draw_text(self.time_system.get_time_display(), 20, 20, WHITE, self.large_font)
+        # 绘制角色信息（左上角）
+        if self.character:
+            self._draw_character_info()
         
-        y_offset = 80
+        # 调整时间显示位置，避免与角色信息重叠
+        if self.character:
+            self.draw_text(self.time_system.get_time_display(), 20, 180, WHITE, self.large_font)
+            y_offset = 220
+        else:
+            self.draw_text(self.time_system.get_time_display(), 20, 20, WHITE, self.large_font)
+            y_offset = 80
         attr_names = {
             'health': '健康',
             'mood': '心情',
@@ -319,10 +403,35 @@ class Game:
         self.draw_text("[空格] 推进一天  [S] 存档  [L] 读档  [M] 打开地图  [Q] 退出", 40, y_offset)
         
         if self.message_timer > 0:
-            self.draw_text(self.message, SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT - 80, WHITE, self.large_font)
+            self.draw_text(self.message, self.width // 2 - 150, self.height - 80, WHITE, self.large_font)
             self.message_timer -= 1
+    
+    def _draw_character_info(self):
+        """绘制角色信息面板"""
+        # 面板背景
+        panel_rect = pygame.Rect(20, 20, 280, 150)
+        pygame.draw.rect(self.screen, (50, 50, 60), panel_rect)
+        pygame.draw.rect(self.screen, (150, 150, 150), panel_rect, 2)
         
-        pygame.display.flip()
+        # 内边框
+        inner_rect = panel_rect.inflate(-4, -4)
+        pygame.draw.rect(self.screen, (70, 70, 80), inner_rect, 1)
+        
+        # 角色名称
+        name_text = self.large_font.render(f"姓名: {self.character.name}", True, (240, 240, 240))
+        self.screen.blit(name_text, (35, 35))
+        
+        # 学院
+        college_text = self.font.render(f"学院: {self.character.college}学院", True, (100, 200, 255))
+        self.screen.blit(college_text, (35, 70))
+        
+        # 专业
+        major_text = self.font.render(f"专业: {self.character.major}", True, (240, 240, 240))
+        self.screen.blit(major_text, (35, 95))
+        
+        # 绩点
+        gpa_text = self.font.render(f"绩点: {self.character.gpa}", True, (255, 200, 100))
+        self.screen.blit(gpa_text, (35, 120))
     
     def run(self):
         while self.running:
