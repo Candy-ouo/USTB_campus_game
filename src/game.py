@@ -79,14 +79,14 @@ class Game:
         
         # 加载地图背景图片
         self.map_background = None
-        map_image_path = os.path.join(os.path.dirname(__file__), '..', 'map_background.jpg')
-        if os.path.exists(map_image_path):
-            try:
+        map_image_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'map_background.jpg')
+        try:
+            if os.path.exists(map_image_path):
                 self.map_background = pygame.image.load(map_image_path)
-                # 调整图片大小以适应屏幕
+                # 缩放到屏幕大小
                 self.map_background = pygame.transform.scale(self.map_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
-            except Exception as e:
-                print(f"加载地图背景图片失败: {e}")
+        except Exception as e:
+            print(f"加载地图背景失败: {e}")
         
         self.player.action_points = DAILY_ACTION_POINTS
     
