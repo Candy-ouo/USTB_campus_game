@@ -20,7 +20,7 @@ STATE_MAIN_GAME = "MAIN_GAME"
 STATE_MENU = "MENU"
 
 class Game:
-    def __init__(self):
+    def __init__(self, character=None):
         pygame.init()
         # 创建可调整大小的窗口
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
@@ -61,10 +61,10 @@ class Game:
             self.large_font = pygame.font.Font(None, 24)  # 增大字体大小
         
         # 游戏状态
-        self.current_state = STATE_CREATE_CHARACTER
+        self.current_state = STATE_MAIN_GAME if character else STATE_CREATE_CHARACTER
         
         # 角色和场景
-        self.character = None
+        self.character = character
         self.create_character_scene = None
         
         # 其他游戏对象
