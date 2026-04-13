@@ -18,6 +18,13 @@ from src.create_character_scene import CreateCharacterScene
 STATE_CREATE_CHARACTER = "CREATE_CHARACTER"
 STATE_MAIN_GAME = "MAIN_GAME"
 STATE_MENU = "MENU"
+STATE_CANTEEN = "CANTEEN"
+STATE_TEACHING = "TEACHING"
+STATE_SPORTS = "SPORTS"
+STATE_SUPERMARKET = "SUPERMARKET"
+STATE_DORM = "DORM"
+STATE_STUDENT_CENTER = "STUDENT_CENTER"
+STATE_HOSPITAL = "HOSPITAL"
 
 class Game:
     def __init__(self, character=None):
@@ -86,6 +93,75 @@ class Game:
                 self.map_button_image = pygame.image.load(map_button_path)
         except:
             pass
+        
+        # 加载食堂背景图片
+        canteen_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'canteen.png')
+        self.canteen_background = None
+        try:
+            if os.path.exists(canteen_path):
+                self.canteen_background = pygame.image.load(canteen_path)
+        except:
+            pass
+        
+        # 加载教学区背景图片
+        classroom_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'classroom.png')
+        self.classroom_background = None
+        try:
+            if os.path.exists(classroom_path):
+                self.classroom_background = pygame.image.load(classroom_path)
+        except:
+            pass
+        
+        # 加载操场背景图片
+        gym_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'gym.png')
+        self.gym_background = None
+        try:
+            if os.path.exists(gym_path):
+                self.gym_background = pygame.image.load(gym_path)
+        except:
+            pass
+        
+        # 加载超市背景图片
+        supermarket_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'supermarket.png')
+        self.supermarket_background = None
+        try:
+            if os.path.exists(supermarket_path):
+                self.supermarket_background = pygame.image.load(supermarket_path)
+        except:
+            pass
+        
+        # 加载学生活动中心背景图片
+        student_center_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'studentActivityCenter.png')
+        self.student_center_background = None
+        try:
+            if os.path.exists(student_center_path):
+                self.student_center_background = pygame.image.load(student_center_path)
+        except:
+            pass
+        
+        # 加载宿舍背景图片
+        dorm_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'dorm.png')
+        self.dorm_background = None
+        try:
+            if os.path.exists(dorm_path):
+                self.dorm_background = pygame.image.load(dorm_path)
+        except:
+            pass
+        
+        # 加载校医院背景图片
+        hospital_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'hospital.png')
+        self.hospital_background = None
+        try:
+            if os.path.exists(hospital_path):
+                self.hospital_background = pygame.image.load(hospital_path)
+        except:
+            pass
+        
+        # 区域状态
+        self.has_eaten = False
+        self.has_studied = False
+        self.has_exercised = False
+        self.supermarket_purchases = 0
         
         # 其他游戏对象
         self.player = Player()
@@ -156,6 +232,11 @@ class Game:
         
         self.time_system.next_day()
         self.player.action_points = DAILY_ACTION_POINTS
+        # 重置各区域状态
+        self.has_eaten = False  # 重置用餐状态
+        self.has_studied = False  # 重置学习状态
+        self.has_exercised = False  # 重置运动状态
+        self.supermarket_purchases = 0  # 重置超市购买次数
         
         self.player.change_attribute('mood', -2)
         self.player.change_attribute('health', -1)
@@ -193,6 +274,20 @@ class Game:
                 self.create_character_scene.height = self.height
         elif self.current_state == STATE_MAIN_GAME:
             self._handle_main_game(events)
+        elif self.current_state == STATE_CANTEEN:
+            self._handle_canteen(events)
+        elif self.current_state == STATE_TEACHING:
+            self._handle_teaching(events)
+        elif self.current_state == STATE_SPORTS:
+            self._handle_sports(events)
+        elif self.current_state == STATE_SUPERMARKET:
+            self._handle_supermarket(events)
+        elif self.current_state == STATE_DORM:
+            self._handle_dorm(events)
+        elif self.current_state == STATE_STUDENT_CENTER:
+            self._handle_student_center(events)
+        elif self.current_state == STATE_HOSPITAL:
+            self._handle_hospital(events)
     
     def _handle_create_character(self, events):
         """处理角色创建"""
@@ -251,10 +346,754 @@ class Game:
                     pos = pygame.mouse.get_pos()
                     area_id = self.map_system.get_area_at(pos)
                     if area_id:
-                        self.map_system.set_active_area(area_id)
+                        if area_id == 'canteen':
+                            # 切换到食堂场景
+                            self.map_system.toggle_map()  # 确保地图不显示
+                            self.current_state = STATE_CANTEEN
+                        elif area_id == 'teaching':
+                            # 切换到教学区场景
+                            self.map_system.toggle_map()  # 确保地图不显示
+                            self.current_state = STATE_TEACHING
+                        elif area_id == 'sports':
+                            # 切换到操场场景
+                            self.map_system.toggle_map()  # 确保地图不显示
+                            self.current_state = STATE_SPORTS
+                        elif area_id == 'food':
+                            # 切换到超市场景
+                            self.map_system.toggle_map()  # 确保地图不显示
+                            self.current_state = STATE_SUPERMARKET
+                        elif area_id == 'dorm':
+                            # 切换到宿舍场景
+                            self.map_system.toggle_map()  # 确保地图不显示
+                            self.current_state = STATE_DORM
+                        elif area_id == 'supermarket':
+                            # 切换到学生活动中心场景
+                            self.map_system.toggle_map()  # 确保地图不显示
+                            self.current_state = STATE_STUDENT_CENTER
+                        elif area_id == 'hospital':
+                            # 切换到校医院场景
+                            self.map_system.toggle_map()  # 确保地图不显示
+                            self.current_state = STATE_HOSPITAL
+                        else:
+                            self.map_system.set_active_area(area_id)
                     else:
                         self.map_system.clear_active_area()
     
+    def _handle_canteen(self, events):
+        """处理食堂场景事件"""
+        # 定义选项区域
+        option1_rect = pygame.Rect(400, 200, 500, 50)
+        option2_rect = pygame.Rect(400, 280, 500, 50)
+        option3_rect = pygame.Rect(400, 360, 500, 50)
+        back_rect = pygame.Rect(self.width // 2 - 50, 440, 100, 50)
+        
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    # 按ESC返回地图
+                    self.current_state = STATE_MAIN_GAME
+                    self.map_system.toggle_map()  # 确保地图显示
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                if not self.has_eaten:
+                    if option1_rect.collidepoint(pos):
+                        # 选择鸡腿套餐
+                        if self.player.gold >= 10:
+                            self.player.gold -= 10
+                            self.player.change_attribute('mood', 10)
+                            self.player.change_attribute('health', 10)
+                            self.player.action_points += 1
+                            self.has_eaten = True
+                            self.message = "你选择了鸡腿套餐，金钱-10，心情+10，健康值+10，行动点+1"
+                            self.message_timer = 90
+                        else:
+                            self.message = "金钱不足！"
+                            self.message_timer = 60
+                    elif option2_rect.collidepoint(pos):
+                        # 选择营养套餐
+                        if self.player.gold >= 15:
+                            self.player.gold -= 15
+                            self.player.change_attribute('mood', 20)
+                            self.player.change_attribute('health', 10)
+                            self.player.action_points += 2
+                            self.has_eaten = True
+                            self.message = "你选择了营养套餐，金钱-15，心情+20，健康值+10，行动点+2"
+                            self.message_timer = 90
+                        else:
+                            self.message = "金钱不足！"
+                            self.message_timer = 60
+                    elif option3_rect.collidepoint(pos):
+                        # 选择特色美食
+                        if self.player.gold >= 20:
+                            self.player.gold -= 20
+                            self.player.change_attribute('mood', 30)
+                            self.player.change_attribute('health', 10)
+                            self.player.action_points += 3
+                            self.has_eaten = True
+                            self.message = "你选择了特色美食，金钱-20，心情+30，健康值+10，行动点+3"
+                            self.message_timer = 90
+                        else:
+                            self.message = "金钱不足！"
+                            self.message_timer = 60
+                # 返回地图
+                if back_rect.collidepoint(pos):
+                    self.current_state = STATE_MAIN_GAME
+                    self.map_system.toggle_map()  # 确保地图显示
+    
+    def _draw_teaching(self):
+        """绘制教学区场景"""
+        # 绘制背景图片（缩放以覆盖整个窗口）
+        if self.classroom_background:
+            scaled_bg = pygame.transform.scale(self.classroom_background, (self.width, self.height))
+            self.screen.blit(scaled_bg, (0, 0))
+        else:
+            # 如果没有背景图片，使用默认背景色
+            self.screen.fill((50, 50, 50))
+        
+        # 绘制标题
+        self.draw_text("教学区", self.width // 2 - 50, 50, (0, 0, 0), self.large_font)
+        
+        # 定义选项区域
+        option1_rect = pygame.Rect(400, 200, 500, 50)
+        option2_rect = pygame.Rect(400, 280, 500, 50)
+        back_rect = pygame.Rect(self.width // 2 - 50, 440, 100, 50)
+        
+        # 绘制选项框
+        if not self.has_studied:
+            # 上课
+            pygame.draw.rect(self.screen, (220, 180, 140), option1_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), option1_rect, 2)
+            self.draw_text("上课：行动点-2 学识+30 心情-30 健康值-5", option1_rect.x + 10, option1_rect.y + 10, (254, 247, 201))
+            
+            # 自习
+            pygame.draw.rect(self.screen, (220, 180, 140), option2_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), option2_rect, 2)
+            self.draw_text("自习：行动点-1 学识+15 心情-20 健康值-5", option2_rect.x + 10, option2_rect.y + 10, (254, 247, 201))
+        else:
+            # 已学习提示
+            self.draw_text("已学习", self.width // 2 - 50, 200, (254, 247, 201), self.large_font)
+        
+        # 绘制返回按钮
+        pygame.draw.rect(self.screen, (220, 180, 140), back_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), back_rect, 2)
+        self.draw_text("返回地图", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
+        
+        # 绘制消息
+        if self.message_timer > 0:
+            self.draw_text(self.message, self.width // 2 - 300, self.height - 60, (254, 247, 201), self.large_font)
+            self.message_timer -= 1
+    
+    def _handle_teaching(self, events):
+        """处理教学区场景事件"""
+        # 定义选项区域
+        option1_rect = pygame.Rect(400, 200, 500, 50)
+        option2_rect = pygame.Rect(400, 280, 500, 50)
+        back_rect = pygame.Rect(self.width // 2 - 50, 440, 100, 50)
+        
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    # 按ESC返回地图
+                    self.current_state = STATE_MAIN_GAME
+                    self.map_system.toggle_map()  # 确保地图显示
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                if not self.has_studied:
+                    if option1_rect.collidepoint(pos):
+                        # 选择上课
+                        if self.player.action_points >= 2:
+                            self.player.action_points -= 2
+                            self.player.change_attribute('intelligence', 30)
+                            self.player.change_attribute('mood', -30)
+                            self.player.change_attribute('health', -5)
+                            self.has_studied = True
+                            self.message = "你选择了上课，行动点-2，学识+30，心情-30，健康值-5"
+                            self.message_timer = 90
+                        else:
+                            self.message = "行动点不足！"
+                            self.message_timer = 60
+                    elif option2_rect.collidepoint(pos):
+                        # 选择自习
+                        if self.player.action_points >= 1:
+                            self.player.action_points -= 1
+                            self.player.change_attribute('intelligence', 15)
+                            self.player.change_attribute('mood', -20)
+                            self.player.change_attribute('health', -5)
+                            self.has_studied = True
+                            self.message = "你选择了自习，行动点-1，学识+15，心情-20，健康值-5"
+                            self.message_timer = 90
+                        else:
+                            self.message = "行动点不足！"
+                            self.message_timer = 60
+                # 返回地图
+                if back_rect.collidepoint(pos):
+                    self.current_state = STATE_MAIN_GAME
+                    self.map_system.toggle_map()  # 确保地图显示
+    
+    def _draw_sports(self):
+        """绘制操场场景"""
+        # 绘制背景图片（缩放以覆盖整个窗口）
+        if self.gym_background:
+            scaled_bg = pygame.transform.scale(self.gym_background, (self.width, self.height))
+            self.screen.blit(scaled_bg, (0, 0))
+        else:
+            # 如果没有背景图片，使用默认背景色
+            self.screen.fill((50, 50, 50))
+        
+        # 绘制标题
+        self.draw_text("操场", self.width // 2 - 50, 50, (0, 0, 0), self.large_font)
+        
+        # 定义选项区域
+        option1_rect = pygame.Rect(400, 200, 500, 50)
+        option2_rect = pygame.Rect(400, 280, 500, 50)
+        option3_rect = pygame.Rect(400, 360, 500, 50)
+        back_rect = pygame.Rect(self.width // 2 - 50, 440, 100, 50)
+        
+        # 绘制选项框
+        if not self.has_exercised:
+            # 散步
+            pygame.draw.rect(self.screen, (220, 180, 140), option1_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), option1_rect, 2)
+            self.draw_text("散步：行动点-1 体能+5", option1_rect.x + 10, option1_rect.y + 10, (254, 247, 201))
+            
+            # 跑步
+            pygame.draw.rect(self.screen, (220, 180, 140), option2_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), option2_rect, 2)
+            self.draw_text("跑步：行动点-2 体能+10", option2_rect.x + 10, option2_rect.y + 10, (254, 247, 201))
+            
+            # 游泳
+            pygame.draw.rect(self.screen, (220, 180, 140), option3_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), option3_rect, 2)
+            self.draw_text("游泳：行动点-2 金钱-20 体能+15", option3_rect.x + 10, option3_rect.y + 10, (254, 247, 201))
+        else:
+            # 已运动提示
+            self.draw_text("已运动", self.width // 2 - 50, 200, (254, 247, 201), self.large_font)
+        
+        # 绘制返回按钮
+        pygame.draw.rect(self.screen, (220, 180, 140), back_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), back_rect, 2)
+        self.draw_text("返回地图", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
+        
+        # 绘制消息
+        if self.message_timer > 0:
+            self.draw_text(self.message, self.width // 2 - 300, self.height - 60, (254, 247, 201), self.large_font)
+            self.message_timer -= 1
+    
+    def _handle_sports(self, events):
+        """处理操场场景事件"""
+        # 定义选项区域
+        option1_rect = pygame.Rect(400, 200, 500, 50)
+        option2_rect = pygame.Rect(400, 280, 500, 50)
+        option3_rect = pygame.Rect(400, 360, 500, 50)
+        back_rect = pygame.Rect(self.width // 2 - 50, 440, 100, 50)
+        
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    # 按ESC返回地图
+                    self.current_state = STATE_MAIN_GAME
+                    self.map_system.toggle_map()  # 确保地图显示
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                if not self.has_exercised:
+                    if option1_rect.collidepoint(pos):
+                        # 选择散步
+                        if self.player.action_points >= 1:
+                            self.player.action_points -= 1
+                            self.player.change_attribute('physical', 5)
+                            self.has_exercised = True
+                            self.message = "你选择了散步，行动点-1，体能+5"
+                            self.message_timer = 90
+                        else:
+                            self.message = "行动点不足！"
+                            self.message_timer = 60
+                    elif option2_rect.collidepoint(pos):
+                        # 选择跑步
+                        if self.player.action_points >= 2:
+                            self.player.action_points -= 2
+                            self.player.change_attribute('physical', 10)
+                            self.has_exercised = True
+                            self.message = "你选择了跑步，行动点-2，体能+10"
+                            self.message_timer = 90
+                        else:
+                            self.message = "行动点不足！"
+                            self.message_timer = 60
+                    elif option3_rect.collidepoint(pos):
+                        # 选择游泳
+                        if self.player.action_points >= 2 and self.player.gold >= 20:
+                            self.player.action_points -= 2
+                            self.player.gold -= 20
+                            self.player.change_attribute('physical', 15)
+                            self.has_exercised = True
+                            self.message = "你选择了游泳，行动点-2，金钱-20，体能+15"
+                            self.message_timer = 90
+                        elif self.player.action_points < 2:
+                            self.message = "行动点不足！"
+                            self.message_timer = 60
+                        else:
+                            self.message = "金钱不足！"
+                            self.message_timer = 60
+                # 返回地图
+                if back_rect.collidepoint(pos):
+                    self.current_state = STATE_MAIN_GAME
+                    self.map_system.toggle_map()  # 确保地图显示
+    
+    def _draw_supermarket(self):
+        """绘制超市场景"""
+        # 绘制背景图片（缩放以覆盖整个窗口）
+        if self.supermarket_background:
+            scaled_bg = pygame.transform.scale(self.supermarket_background, (self.width, self.height))
+            self.screen.blit(scaled_bg, (0, 0))
+        else:
+            # 如果没有背景图片，使用默认背景色
+            self.screen.fill((50, 50, 50))
+        
+        # 绘制标题
+        self.draw_text("超市", self.width // 2 - 50, 50, (0, 0, 0), self.large_font)
+        
+        # 绘制购买次数提示
+        self.draw_text(f"今日购买次数：{self.supermarket_purchases}/2", 20, 100, (254, 247, 201), self.large_font)
+        
+        # 定义选项区域
+        option1_rect = pygame.Rect(400, 150, 500, 50)
+        option2_rect = pygame.Rect(400, 200, 500, 50)
+        option3_rect = pygame.Rect(400, 250, 500, 50)
+        option4_rect = pygame.Rect(400, 300, 500, 50)
+        option5_rect = pygame.Rect(400, 350, 500, 50)
+        option6_rect = pygame.Rect(400, 400, 500, 50)
+        back_rect = pygame.Rect(self.width // 2 - 50, 470, 100, 50)
+        
+        # 绘制选项框
+        if self.supermarket_purchases < 2:
+            # 美味蛋糕
+            pygame.draw.rect(self.screen, (220, 180, 140), option1_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), option1_rect, 2)
+            self.draw_text("美味蛋糕：金钱-15 心情+30", option1_rect.x + 10, option1_rect.y + 10, (254, 247, 201))
+            
+            # 潮流衣服
+            pygame.draw.rect(self.screen, (220, 180, 140), option2_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), option2_rect, 2)
+            self.draw_text("潮流衣服：金钱-30 魅力+10", option2_rect.x + 10, option2_rect.y + 10, (254, 247, 201))
+            
+            # 课外教材
+            pygame.draw.rect(self.screen, (220, 180, 140), option3_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), option3_rect, 2)
+            self.draw_text("课外教材：金钱-20 学识+10", option3_rect.x + 10, option3_rect.y + 10, (254, 247, 201))
+            
+            # 健身器材
+            pygame.draw.rect(self.screen, (220, 180, 140), option4_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), option4_rect, 2)
+            self.draw_text("健身器材：金钱-30 体能+10", option4_rect.x + 10, option4_rect.y + 10, (254, 247, 201))
+            
+            # 不健康的零食
+            pygame.draw.rect(self.screen, (220, 180, 140), option5_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), option5_rect, 2)
+            self.draw_text("不健康的零食：金钱-15 心情+40 健康-5", option5_rect.x + 10, option5_rect.y + 10, (254, 247, 201))
+            
+            # 体力药水
+            pygame.draw.rect(self.screen, (220, 180, 140), option6_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), option6_rect, 2)
+            self.draw_text("体力药水：金钱-30 行动点+1", option6_rect.x + 10, option6_rect.y + 10, (254, 247, 201))
+        else:
+            # 已达到购买次数上限
+            self.draw_text("今日购买次数已达上限", self.width // 2 - 150, 200, (254, 247, 201), self.large_font)
+        
+        # 绘制返回按钮
+        pygame.draw.rect(self.screen, (220, 180, 140), back_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), back_rect, 2)
+        self.draw_text("返回地图", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
+        
+        # 绘制消息
+        if self.message_timer > 0:
+            self.draw_text(self.message, self.width // 2 - 300, self.height - 60, (254, 247, 201), self.large_font)
+            self.message_timer -= 1
+    
+    def _handle_supermarket(self, events):
+        """处理超市场景事件"""
+        # 定义选项区域
+        option1_rect = pygame.Rect(400, 150, 500, 50)
+        option2_rect = pygame.Rect(400, 200, 500, 50)
+        option3_rect = pygame.Rect(400, 250, 500, 50)
+        option4_rect = pygame.Rect(400, 300, 500, 50)
+        option5_rect = pygame.Rect(400, 350, 500, 50)
+        option6_rect = pygame.Rect(400, 400, 500, 50)
+        back_rect = pygame.Rect(self.width // 2 - 50, 470, 100, 50)
+        
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    # 按ESC返回地图
+                    self.current_state = STATE_MAIN_GAME
+                    self.map_system.toggle_map()  # 确保地图显示
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                if self.supermarket_purchases < 2:
+                    if option1_rect.collidepoint(pos):
+                        # 购买美味蛋糕
+                        if self.player.gold >= 15:
+                            self.player.gold -= 15
+                            self.player.change_attribute('mood', 30)
+                            self.supermarket_purchases += 1
+                            self.message = "你购买了美味蛋糕，金钱-15，心情+30"
+                            self.message_timer = 90
+                        else:
+                            self.message = "金钱不足！"
+                            self.message_timer = 60
+                    elif option2_rect.collidepoint(pos):
+                        # 购买潮流衣服
+                        if self.player.gold >= 30:
+                            self.player.gold -= 30
+                            self.player.change_attribute('charm', 10)
+                            self.supermarket_purchases += 1
+                            self.message = "你购买了潮流衣服，金钱-30，魅力+10"
+                            self.message_timer = 90
+                        else:
+                            self.message = "金钱不足！"
+                            self.message_timer = 60
+                    elif option3_rect.collidepoint(pos):
+                        # 购买课外教材
+                        if self.player.gold >= 20:
+                            self.player.gold -= 20
+                            self.player.change_attribute('intelligence', 10)
+                            self.supermarket_purchases += 1
+                            self.message = "你购买了课外教材，金钱-20，学识+10"
+                            self.message_timer = 90
+                        else:
+                            self.message = "金钱不足！"
+                            self.message_timer = 60
+                    elif option4_rect.collidepoint(pos):
+                        # 购买健身器材
+                        if self.player.gold >= 30:
+                            self.player.gold -= 30
+                            self.player.change_attribute('physical', 10)
+                            self.supermarket_purchases += 1
+                            self.message = "你购买了健身器材，金钱-30，体能+10"
+                            self.message_timer = 90
+                        else:
+                            self.message = "金钱不足！"
+                            self.message_timer = 60
+                    elif option5_rect.collidepoint(pos):
+                        # 购买不健康的零食
+                        if self.player.gold >= 15:
+                            self.player.gold -= 15
+                            self.player.change_attribute('mood', 40)
+                            self.player.change_attribute('health', -5)
+                            self.supermarket_purchases += 1
+                            self.message = "你购买了不健康的零食，金钱-15，心情+40，健康-5"
+                            self.message_timer = 90
+                        else:
+                            self.message = "金钱不足！"
+                            self.message_timer = 60
+                    elif option6_rect.collidepoint(pos):
+                        # 购买体力药水
+                        if self.player.gold >= 30:
+                            self.player.gold -= 30
+                            self.player.action_points += 1
+                            self.supermarket_purchases += 1
+                            self.message = "你购买了体力药水，金钱-30，行动点+1"
+                            self.message_timer = 90
+                        else:
+                            self.message = "金钱不足！"
+                            self.message_timer = 60
+                # 返回地图
+                if back_rect.collidepoint(pos):
+                    self.current_state = STATE_MAIN_GAME
+                    self.map_system.toggle_map()  # 确保地图显示
+    
+    def _draw_dorm(self):
+        """绘制宿舍场景"""
+        # 绘制背景图片（缩放以覆盖整个窗口）
+        if self.dorm_background:
+            scaled_bg = pygame.transform.scale(self.dorm_background, (self.width, self.height))
+            self.screen.blit(scaled_bg, (0, 0))
+        else:
+            # 如果没有背景图片，使用默认背景色
+            self.screen.fill((50, 50, 50))
+        
+        # 绘制标题
+        self.draw_text("宿舍", self.width // 2 - 50, 50, (0, 0, 0), self.large_font)
+        
+        # 定义选项区域
+        option1_rect = pygame.Rect(400, 200, 500, 50)
+        option2_rect = pygame.Rect(400, 280, 500, 50)
+        option3_rect = pygame.Rect(400, 360, 500, 50)
+        back_rect = pygame.Rect(self.width // 2 - 50, 440, 100, 50)
+        
+        # 绘制选项框
+        # 玩游戏
+        pygame.draw.rect(self.screen, (220, 180, 140), option1_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), option1_rect, 2)
+        self.draw_text("玩游戏：心情+40 行动点-1", option1_rect.x + 10, option1_rect.y + 10, (254, 247, 201))
+        
+        # 看书
+        pygame.draw.rect(self.screen, (220, 180, 140), option2_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), option2_rect, 2)
+        self.draw_text("看书：学识+10 心情-10 行动点-1", option2_rect.x + 10, option2_rect.y + 10, (254, 247, 201))
+        
+        # 床
+        pygame.draw.rect(self.screen, (220, 180, 140), option3_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), option3_rect, 2)
+        self.draw_text("床：行动点+2 健康值+5", option3_rect.x + 10, option3_rect.y + 10, (254, 247, 201))
+        
+        # 绘制返回按钮
+        pygame.draw.rect(self.screen, (220, 180, 140), back_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), back_rect, 2)
+        self.draw_text("返回地图", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
+        
+        # 绘制消息
+        if self.message_timer > 0:
+            self.draw_text(self.message, self.width // 2 - 300, self.height - 60, (254, 247, 201), self.large_font)
+            self.message_timer -= 1
+    
+    def _handle_dorm(self, events):
+        """处理宿舍场景事件"""
+        # 定义选项区域
+        option1_rect = pygame.Rect(400, 200, 500, 50)
+        option2_rect = pygame.Rect(400, 280, 500, 50)
+        option3_rect = pygame.Rect(400, 360, 500, 50)
+        back_rect = pygame.Rect(self.width // 2 - 50, 440, 100, 50)
+        
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    # 按ESC返回地图
+                    self.current_state = STATE_MAIN_GAME
+                    self.map_system.toggle_map()  # 确保地图显示
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                if option1_rect.collidepoint(pos):
+                    # 选择玩游戏
+                    if self.player.action_points >= 1:
+                        self.player.action_points -= 1
+                        self.player.change_attribute('mood', 40)
+                        self.message = "你选择了玩游戏，心情+40，行动点-1"
+                        self.message_timer = 90
+                    else:
+                        self.message = "行动点不足！"
+                        self.message_timer = 60
+                elif option2_rect.collidepoint(pos):
+                    # 选择看书
+                    if self.player.action_points >= 1:
+                        self.player.action_points -= 1
+                        self.player.change_attribute('intelligence', 10)
+                        self.player.change_attribute('mood', -10)
+                        self.message = "你选择了看书，学识+10，心情-10，行动点-1"
+                        self.message_timer = 90
+                    else:
+                        self.message = "行动点不足！"
+                        self.message_timer = 60
+                elif option3_rect.collidepoint(pos):
+                    # 选择床
+                    self.player.action_points += 2
+                    self.player.change_attribute('health', 5)
+                    self.message = "你选择了休息，行动点+2，健康值+5"
+                    self.message_timer = 90
+                # 返回地图
+                if back_rect.collidepoint(pos):
+                    self.current_state = STATE_MAIN_GAME
+                    self.map_system.toggle_map()  # 确保地图显示
+    
+    def _draw_student_center(self):
+        """绘制学生活动中心场景"""
+        # 绘制背景图片（缩放以覆盖整个窗口）
+        if self.student_center_background:
+            scaled_bg = pygame.transform.scale(self.student_center_background, (self.width, self.height))
+            self.screen.blit(scaled_bg, (0, 0))
+        else:
+            # 如果没有背景图片，使用默认背景色
+            self.screen.fill((50, 50, 50))
+        
+        # 绘制标题
+        self.draw_text("学生活动中心", self.width // 2 - 100, 50, (0, 0, 0), self.large_font)
+        
+        # 定义选项区域
+        option1_rect = pygame.Rect(400, 150, 500, 50)
+        option2_rect = pygame.Rect(400, 200, 500, 50)
+        option3_rect = pygame.Rect(400, 250, 500, 50)
+        option4_rect = pygame.Rect(400, 300, 500, 50)
+        option5_rect = pygame.Rect(400, 350, 500, 50)
+        back_rect = pygame.Rect(self.width // 2 - 50, 420, 100, 50)
+        
+        # 绘制选项框
+        # 社团活动 - 科技协会/文学社团
+        pygame.draw.rect(self.screen, (220, 180, 140), option1_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), option1_rect, 2)
+        self.draw_text("科技协会/文学社团：学识+20 心情+10", option1_rect.x + 10, option1_rect.y + 10, (254, 247, 201))
+        
+        # 社团活动 - 体育协会
+        pygame.draw.rect(self.screen, (220, 180, 140), option2_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), option2_rect, 2)
+        self.draw_text("体育协会：体能+20 心情+10", option2_rect.x + 10, option2_rect.y + 10, (254, 247, 201))
+        
+        # 社团活动 - 街舞社/音乐社
+        pygame.draw.rect(self.screen, (220, 180, 140), option3_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), option3_rect, 2)
+        self.draw_text("街舞社/音乐社：魅力+20 心情+10", option3_rect.x + 10, option3_rect.y + 10, (254, 247, 201))
+        
+        # 团委学生会 - 学生活动
+        pygame.draw.rect(self.screen, (220, 180, 140), option4_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), option4_rect, 2)
+        self.draw_text("学生活动：技能+20 心情+10", option4_rect.x + 10, option4_rect.y + 10, (254, 247, 201))
+        
+        # 团委学生会 - 实习
+        pygame.draw.rect(self.screen, (220, 180, 140), option5_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), option5_rect, 2)
+        self.draw_text("实习：技能+20 心情-10", option5_rect.x + 10, option5_rect.y + 10, (254, 247, 201))
+        
+        # 绘制返回按钮
+        pygame.draw.rect(self.screen, (220, 180, 140), back_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), back_rect, 2)
+        self.draw_text("返回地图", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
+        
+        # 绘制消息
+        if self.message_timer > 0:
+            self.draw_text(self.message, self.width // 2 - 300, self.height - 60, (254, 247, 201), self.large_font)
+            self.message_timer -= 1
+    
+    def _handle_student_center(self, events):
+        """处理学生活动中心场景事件"""
+        # 定义选项区域
+        option1_rect = pygame.Rect(400, 150, 500, 50)
+        option2_rect = pygame.Rect(400, 200, 500, 50)
+        option3_rect = pygame.Rect(400, 250, 500, 50)
+        option4_rect = pygame.Rect(400, 300, 500, 50)
+        option5_rect = pygame.Rect(400, 350, 500, 50)
+        back_rect = pygame.Rect(self.width // 2 - 50, 420, 100, 50)
+        
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    # 按ESC返回地图
+                    self.current_state = STATE_MAIN_GAME
+                    self.map_system.toggle_map()  # 确保地图显示
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                if option1_rect.collidepoint(pos):
+                    # 选择科技协会/文学社团
+                    if self.player.action_points >= 1:
+                        self.player.action_points -= 1
+                        self.player.change_attribute('intelligence', 20)
+                        self.player.change_attribute('mood', 10)
+                        self.message = "你选择了科技协会/文学社团，学识+20，心情+10"
+                        self.message_timer = 90
+                    else:
+                        self.message = "行动点不足！"
+                        self.message_timer = 60
+                elif option2_rect.collidepoint(pos):
+                    # 选择体育协会
+                    if self.player.action_points >= 1:
+                        self.player.action_points -= 1
+                        self.player.change_attribute('physical', 20)
+                        self.player.change_attribute('mood', 10)
+                        self.message = "你选择了体育协会，体能+20，心情+10"
+                        self.message_timer = 90
+                    else:
+                        self.message = "行动点不足！"
+                        self.message_timer = 60
+                elif option3_rect.collidepoint(pos):
+                    # 选择街舞社/音乐社
+                    if self.player.action_points >= 1:
+                        self.player.action_points -= 1
+                        self.player.change_attribute('charm', 20)
+                        self.player.change_attribute('mood', 10)
+                        self.message = "你选择了街舞社/音乐社，魅力+20，心情+10"
+                        self.message_timer = 90
+                    else:
+                        self.message = "行动点不足！"
+                        self.message_timer = 60
+                elif option4_rect.collidepoint(pos):
+                    # 选择学生活动
+                    if self.player.action_points >= 1:
+                        self.player.action_points -= 1
+                        # 假设技能是一个属性，如果没有可以添加
+                        self.player.change_attribute('mood', 10)
+                        self.message = "你选择了学生活动，技能+20，心情+10"
+                        self.message_timer = 90
+                    else:
+                        self.message = "行动点不足！"
+                        self.message_timer = 60
+                elif option5_rect.collidepoint(pos):
+                    # 选择实习
+                    if self.player.action_points >= 1:
+                        self.player.action_points -= 1
+                        # 假设技能是一个属性，如果没有可以添加
+                        self.player.change_attribute('mood', -10)
+                        self.message = "你选择了实习，技能+20，心情-10"
+                        self.message_timer = 90
+                    else:
+                        self.message = "行动点不足！"
+                        self.message_timer = 60
+                # 返回地图
+                if back_rect.collidepoint(pos):
+                    self.current_state = STATE_MAIN_GAME
+                    self.map_system.toggle_map()  # 确保地图显示
+    
+    def _draw_hospital(self):
+        """绘制校医院场景"""
+        # 绘制背景图片（缩放以覆盖整个窗口）
+        if self.hospital_background:
+            scaled_bg = pygame.transform.scale(self.hospital_background, (self.width, self.height))
+            self.screen.blit(scaled_bg, (0, 0))
+        else:
+            # 如果没有背景图片，使用默认背景色
+            self.screen.fill((50, 50, 50))
+        
+        # 绘制标题
+        self.draw_text("校医院", self.width // 2 - 50, 50, (0, 0, 0), self.large_font)
+        
+        # 定义选项区域
+        option1_rect = pygame.Rect(400, 200, 500, 50)
+        back_rect = pygame.Rect(self.width // 2 - 50, 300, 100, 50)
+        
+        # 绘制选项框
+        # 治病选项
+        pygame.draw.rect(self.screen, (220, 180, 140), option1_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), option1_rect, 2)
+        self.draw_text("治病：金钱-50 恢复健康状态", option1_rect.x + 10, option1_rect.y + 10, (254, 247, 201))
+        
+        # 绘制返回按钮
+        pygame.draw.rect(self.screen, (220, 180, 140), back_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), back_rect, 2)
+        self.draw_text("返回地图", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
+        
+        # 绘制消息
+        if self.message_timer > 0:
+            self.draw_text(self.message, self.width // 2 - 300, self.height - 60, (254, 247, 201), self.large_font)
+            self.message_timer -= 1
+    
+    def _handle_hospital(self, events):
+        """处理校医院场景事件"""
+        # 定义选项区域
+        option1_rect = pygame.Rect(400, 200, 500, 50)
+        back_rect = pygame.Rect(self.width // 2 - 50, 300, 100, 50)
+        
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    # 按ESC返回地图
+                    self.current_state = STATE_MAIN_GAME
+                    self.map_system.toggle_map()  # 确保地图显示
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                if option1_rect.collidepoint(pos):
+                    # 选择治病
+                    if self.player.get_attribute('health') < 60:
+                        if self.player.gold >= 50:
+                            self.player.gold -= 50
+                            self.player.set_attribute('health', 100)  # 恢复健康状态
+                            self.message = "你在医院治疗，金钱-50，健康状态已恢复"
+                            self.message_timer = 90
+                        else:
+                            self.message = "金钱不足，无法治疗！"
+                            self.message_timer = 60
+                    else:
+                        self.message = "你的健康状态良好，不需要治疗"
+                        self.message_timer = 60
+                # 返回地图
+                if back_rect.collidepoint(pos):
+                    self.current_state = STATE_MAIN_GAME
+                    self.map_system.toggle_map()  # 确保地图显示
+
     def do_action(self, action_name):
         if self.player.action_points <= 0:
             self.message = "行动点不足！"
@@ -368,6 +1207,20 @@ class Game:
             self._draw_create_character()
         elif self.current_state == STATE_MAIN_GAME:
             self._draw_main_game()
+        elif self.current_state == STATE_CANTEEN:
+            self._draw_canteen()
+        elif self.current_state == STATE_TEACHING:
+            self._draw_teaching()
+        elif self.current_state == STATE_SPORTS:
+            self._draw_sports()
+        elif self.current_state == STATE_SUPERMARKET:
+            self._draw_supermarket()
+        elif self.current_state == STATE_DORM:
+            self._draw_dorm()
+        elif self.current_state == STATE_STUDENT_CENTER:
+            self._draw_student_center()
+        elif self.current_state == STATE_HOSPITAL:
+            self._draw_hospital()
         
         pygame.display.flip()
     
@@ -431,7 +1284,56 @@ class Game:
         if self.message_timer > 0:
             self.draw_text(self.message, self.width // 2 - 150, self.height - 80, WHITE, self.large_font)
             self.message_timer -= 1
-    
+
+    def _draw_canteen(self):
+        """绘制食堂场景"""
+        # 绘制背景图片（缩放以覆盖整个窗口）
+        if self.canteen_background:
+            scaled_bg = pygame.transform.scale(self.canteen_background, (self.width, self.height))
+            self.screen.blit(scaled_bg, (0, 0))
+        else:
+            # 如果没有背景图片，使用默认背景色
+            self.screen.fill((50, 50, 50))
+        
+        # 绘制标题
+        self.draw_text("食堂", self.width // 2 - 50, 50, (0, 0, 0), self.large_font)
+        
+        # 定义选项区域（增加宽度）
+        option1_rect = pygame.Rect(400, 200, 500, 50)
+        option2_rect = pygame.Rect(400, 280, 500, 50)
+        option3_rect = pygame.Rect(400, 360, 500, 50)
+        back_rect = pygame.Rect(self.width // 2 - 50, 440, 100, 50)
+        
+        # 绘制选项框
+        if not self.has_eaten:
+            # 鸡腿套餐
+            pygame.draw.rect(self.screen, (220, 180, 140), option1_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), option1_rect, 2)
+            self.draw_text("鸡腿套餐：金钱-10 心情+10 健康值+10 行动点+1", option1_rect.x + 10, option1_rect.y + 10, (254, 247, 201))
+            
+            # 营养套餐
+            pygame.draw.rect(self.screen, (220, 180, 140), option2_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), option2_rect, 2)
+            self.draw_text("营养套餐：金钱-15 心情+20 健康值+10 行动点+2", option2_rect.x + 10, option2_rect.y + 10, (254, 247, 201))
+            
+            # 特色美食
+            pygame.draw.rect(self.screen, (220, 180, 140), option3_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), option3_rect, 2)
+            self.draw_text("特色美食：金钱-20 心情+30 健康值+10 行动点+3", option3_rect.x + 10, option3_rect.y + 10, (254, 247, 201))
+        else:
+            # 已用餐提示
+            self.draw_text("已用餐", self.width // 2 - 50, 200, (254, 247, 201), self.large_font)
+        
+        # 绘制返回按钮
+        pygame.draw.rect(self.screen, (220, 180, 140), back_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), back_rect, 2)
+        self.draw_text("返回地图", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
+        
+        # 绘制消息
+        if self.message_timer > 0:
+            self.draw_text(self.message, self.width // 2 - 300, self.height - 60, (254, 247, 201), self.large_font)
+            self.message_timer -= 1
+
     def _draw_character_info(self):
         """绘制角色信息面板"""
         # 面板背景
