@@ -398,7 +398,6 @@ class CreateCharacterScene:
         print(f"发型颜色: {self.hair_color}")
         print(f"上衣颜色: {self.top_color}")
         print(f"裤子颜色: {self.pants_color}")
-        print(f"绩点: {character.gpa}")
         print(f"体能: {character.energy}")
         print(f"人脉: {character.social}")
         print(f"技能: {character.skill}")
