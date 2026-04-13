@@ -30,13 +30,22 @@ class Game:
         self.width, self.height = SCREEN_WIDTH, SCREEN_HEIGHT
         # 尝试使用本地字体文件
         font_path = os.path.join(os.path.dirname(__file__), '..', 'fonts', 'msyh.ttf')
+        start_font_path = os.path.join(os.path.dirname(__file__), '..', 'fonts', 'fonts_start.ttf')
         self.font = None
         self.large_font = None
+        self.start_font = None
         
         try:
             if os.path.exists(font_path):
                 self.font = pygame.font.Font(font_path, 18)  # 增大字体大小
                 self.large_font = pygame.font.Font(font_path, 24)  # 增大字体大小
+        except:
+            pass
+        
+        # 加载粗体字体
+        try:
+            if os.path.exists(start_font_path):
+                self.start_font = pygame.font.Font(start_font_path, 20)
         except:
             pass
         
@@ -59,6 +68,8 @@ class Game:
             self.font = pygame.font.Font(None, 18)  # 增大字体大小
         if self.large_font is None:
             self.large_font = pygame.font.Font(None, 24)  # 增大字体大小
+        if self.start_font is None:
+            self.start_font = self.font
         
         # 游戏状态
         self.current_state = STATE_MAIN_GAME if character else STATE_CREATE_CHARACTER
@@ -66,6 +77,15 @@ class Game:
         # 角色和场景
         self.character = character
         self.create_character_scene = None
+        
+        # 加载地图按钮图片
+        map_button_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'map_button.png')
+        self.map_button_image = None
+        try:
+            if os.path.exists(map_button_path):
+                self.map_button_image = pygame.image.load(map_button_path)
+        except:
+            pass
         
         # 其他游戏对象
         self.player = Player()
@@ -315,15 +335,21 @@ class Game:
         # 绘制地图标题
         self.draw_text("校园地图", SCREEN_WIDTH // 2 - 100, 30, (80, 40, 0), self.large_font)  # 深棕色文字
         
-        # 绘制各个区域（带背景色和文字）
+        # 绘制各个区域（使用map_button作为背景）
         for area_id, area in self.map_system.areas.items():
             # 绘制区域背景
-            pygame.draw.rect(self.screen, area['bg_color'], area['rect'])
-            # 绘制区域边框
-            pygame.draw.rect(self.screen, area['border_color'], area['rect'], 2)
+            if self.map_button_image:
+                # 缩放按钮图片以适应区域大小
+                scaled_button = pygame.transform.scale(self.map_button_image, (area['rect'].width, area['rect'].height))
+                self.screen.blit(scaled_button, area['rect'])
+            else:
+                # 如果没有按钮图片，使用默认背景色
+                pygame.draw.rect(self.screen, area['bg_color'], area['rect'])
+                # 绘制区域边框
+                pygame.draw.rect(self.screen, area['border_color'], area['rect'], 2)
             
-            # 绘制区域名称
-            name_text = self.font.render(area['name'], True, area['text_color'])
+            # 绘制区域名称（使用指定的字体和颜色）
+            name_text = self.start_font.render(area['name'], True, (254, 247, 201))
             text_rect = name_text.get_rect(center=area['rect'].center)
             self.screen.blit(name_text, text_rect)
         

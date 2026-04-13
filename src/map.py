@@ -12,49 +12,49 @@ class MapSystem:
         self.areas = {
             'teaching': {
                 'name': '教学区',
-                'rect': pygame.Rect(100, 50, 100, 100),
+                'rect': pygame.Rect(50, 20, 300, 220),
                 'bg_color': bg_color,
                 'text_color': text_color,
                 'border_color': border_color
             },
             'food': {
                 'name': '美食街',
-                'rect': pygame.Rect(370, 100, 100, 75),
+                'rect': pygame.Rect(650, 125, 100, 100),
                 'bg_color': bg_color,
                 'text_color': text_color,
                 'border_color': border_color
             },
             'sports': {
                 'name': '运动场',
-                'rect': pygame.Rect(370, 220, 150, 100),
+                'rect': pygame.Rect(600, 240, 300, 220),
                 'bg_color': bg_color,
                 'text_color': text_color,
                 'border_color': border_color
             },
             'canteen': {
                 'name': '食堂',
-                'rect': pygame.Rect(200, 420, 75, 75),
+                'rect': pygame.Rect(380, 500, 100, 100),
                 'bg_color': bg_color,
                 'text_color': text_color,
                 'border_color': border_color
             },
             'supermarket': {
                 'name': '超市',
-                'rect': pygame.Rect(380, 390, 60, 60),
+                'rect': pygame.Rect(630,460, 70, 70),
                 'bg_color': bg_color,
                 'text_color': text_color,
                 'border_color': border_color
             },
             'dorm': {
                 'name': '宿舍',
-                'rect': pygame.Rect(360, 460, 100, 75),
+                'rect': pygame.Rect(590, 550, 150, 120),
                 'bg_color': bg_color,
                 'text_color': text_color,
                 'border_color': border_color
             },
             'hospital': {
                 'name': '校医院',
-                'rect': pygame.Rect(540, 500, 100, 75),
+                'rect': pygame.Rect(880, 600, 160, 110),
                 'bg_color': bg_color,
                 'text_color': text_color,
                 'border_color': border_color
