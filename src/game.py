@@ -112,7 +112,26 @@ class Game:
         except Exception as e:
             print(f"加载地图背景失败: {e}")
         
-        self.player.action_points = DAILY_ACTION_POINTS
+        if character:
+            # 如果提供了角色，初始化Player属性
+            # 主属性
+            self.player.knowledge = character.knowledge
+            self.player.charm = character.charm
+            self.player.physical = character.energy
+            # 重新计算等级，确保初始等级为LV1
+            self.player.knowledge, self.player.knowledge_level = self.player._level_up(self.player.knowledge, 1)
+            self.player.charm, self.player.charm_level = self.player._level_up(self.player.charm, 1)
+            self.player.physical, self.player.physical_level = self.player._level_up(self.player.physical, 1)
+            # 行动属性
+            self.player.living_expenses = character.money
+            self.player.action_points = character.action_points
+            self.player.mood = character.mood
+            # 副属性
+            self.player.skill = character.skill
+            self.player.social = character.social_network
+            self.player.reputation = character.reputation
+        else:
+            self.player.action_points = DAILY_ACTION_POINTS
     
     def reset(self):
         self.player.reset()

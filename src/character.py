@@ -25,24 +25,26 @@ class Character:
     birthday: str = "01-01"
     college: str = "材料"
     major: str = "材料科学与工程"
-    hair_style: int = 0
-    top_style: int = 0
-    pants_style: int = 0
-    color: int = 0
     
-    # 主属性 (初始值 40-60)
-    energy: int = field(default_factory=lambda: random.randint(40, 60))
-    social: int = field(default_factory=lambda: random.randint(40, 60))
-    skill: int = field(default_factory=lambda: random.randint(40, 60))
-    mood: int = field(default_factory=lambda: random.randint(40, 60))
+    # 主属性 (初始值 30)
+    knowledge: int = 30  # 学识
+    charm: int = 30  # 魅力
+    energy: int = 30  # 体能
     
-    # 子属性 (初始值 30-70)
-    logic: int = field(default_factory=lambda: random.randint(30, 70))
-    creativity: int = field(default_factory=lambda: random.randint(30, 70))
-    eq: int = field(default_factory=lambda: random.randint(30, 70))
-    charm: int = field(default_factory=lambda: random.randint(30, 70))
-    focus: int = field(default_factory=lambda: random.randint(30, 70))
-    luck: int = field(default_factory=lambda: random.randint(30, 70))
+    # 行动属性
+    money: int = 1000  # 生活费
+    action_points: int = 10  # 行动力
+    mood: int = 100  # 心情
+    
+    # 副属性 (初始值 0)
+    skill: int = 0  # 技能
+    social_network: int = 0  # 人脉
+    reputation: int = 0  # 声望
+    
+    # 学习属性 (初始值 0)
+    theory_experiment: int = 0  # 理论实验
+    employment_entrepreneurship: int = 0  # 就业创业
+    aesthetic_literacy: int = 0  # 美育素养
     
     # 隐藏属性 (初始值 0)
     skip_count: int = 0
@@ -73,23 +75,22 @@ class Character:
             "birthday": self.birthday,
             "college": self.college,
             "major": self.major,
-            "hair_style": self.hair_style,
-            "top_style": self.top_style,
-            "pants_style": self.pants_style,
-            "color": self.color,
             # 主属性
-            "gpa": self.gpa,
-            "energy": self.energy,
-            "social": self.social,
-            "skill": self.skill,
-            "mood": self.mood,
-            # 子属性
-            "logic": self.logic,
-            "creativity": self.creativity,
-            "eq": self.eq,
+            "knowledge": self.knowledge,
             "charm": self.charm,
-            "focus": self.focus,
-            "luck": self.luck,
+            "energy": self.energy,
+            # 行动属性
+            "money": self.money,
+            "action_points": self.action_points,
+            "mood": self.mood,
+            # 副属性
+            "skill": self.skill,
+            "social_network": self.social_network,
+            "reputation": self.reputation,
+            # 学习属性
+            "theory_experiment": self.theory_experiment,
+            "employment_entrepreneurship": self.employment_entrepreneurship,
+            "aesthetic_literacy": self.aesthetic_literacy,
             # 隐藏属性
             "skip_count": self.skip_count,
             "night_count": self.night_count,
@@ -109,21 +110,23 @@ class Character:
             birthday=data.get("birthday", "01-01"),
             college=data.get("college", "材料"),
             major=data.get("major", "材料科学与工程"),
-            hair_style=data.get("hair_style", 0),
-            top_style=data.get("top_style", 0),
-            pants_style=data.get("pants_style", 0),
-            color=data.get("color", 0),
-            gpa=data.get("gpa", 50),
-            energy=data.get("energy", 50),
-            social=data.get("social", 50),
-            skill=data.get("skill", 50),
-            mood=data.get("mood", 50),
-            logic=data.get("logic", 50),
-            creativity=data.get("creativity", 50),
-            eq=data.get("eq", 50),
-            charm=data.get("charm", 50),
-            focus=data.get("focus", 50),
-            luck=data.get("luck", 50),
+            # 主属性
+            knowledge=data.get("knowledge", 30),
+            charm=data.get("charm", 30),
+            energy=data.get("energy", 30),
+            # 行动属性
+            money=data.get("money", 1000),
+            action_points=data.get("action_points", 10),
+            mood=data.get("mood", 100),
+            # 副属性
+            skill=data.get("skill", 0),
+            social_network=data.get("social_network", 0),
+            reputation=data.get("reputation", 0),
+            # 学习属性
+            theory_experiment=data.get("theory_experiment", 0),
+            employment_entrepreneurship=data.get("employment_entrepreneurship", 0),
+            aesthetic_literacy=data.get("aesthetic_literacy", 0),
+            # 隐藏属性
             skip_count=data.get("skip_count", 0),
             night_count=data.get("night_count", 0),
             competition_wins=data.get("competition_wins", 0),
