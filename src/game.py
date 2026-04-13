@@ -162,6 +162,7 @@ class Game:
         self.has_studied = False
         self.has_exercised = False
         self.supermarket_purchases = 0
+        self.has_rested = False
         
         # 其他游戏对象
         self.player = Player()
@@ -232,11 +233,12 @@ class Game:
         
         self.time_system.next_day()
         self.player.action_points = DAILY_ACTION_POINTS
-        # 重置各区域状态
+        # 重置区域状态
         self.has_eaten = False  # 重置用餐状态
         self.has_studied = False  # 重置学习状态
         self.has_exercised = False  # 重置运动状态
         self.supermarket_purchases = 0  # 重置超市购买次数
+        self.has_rested = False  # 重置休息状态
         
         self.player.change_attribute('mood', -2)
         self.player.change_attribute('health', -1)
@@ -498,33 +500,30 @@ class Game:
                     self.map_system.toggle_map()  # 确保地图显示
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
-                if not self.has_studied:
-                    if option1_rect.collidepoint(pos):
-                        # 选择上课
-                        if self.player.action_points >= 2:
-                            self.player.action_points -= 2
-                            self.player.change_attribute('intelligence', 30)
-                            self.player.change_attribute('mood', -30)
-                            self.player.change_attribute('health', -5)
-                            self.has_studied = True
-                            self.message = "你选择了上课，行动点-2，学识+30，心情-30，健康值-5"
-                            self.message_timer = 90
-                        else:
-                            self.message = "行动点不足！"
-                            self.message_timer = 60
-                    elif option2_rect.collidepoint(pos):
-                        # 选择自习
-                        if self.player.action_points >= 1:
-                            self.player.action_points -= 1
-                            self.player.change_attribute('intelligence', 15)
-                            self.player.change_attribute('mood', -20)
-                            self.player.change_attribute('health', -5)
-                            self.has_studied = True
-                            self.message = "你选择了自习，行动点-1，学识+15，心情-20，健康值-5"
-                            self.message_timer = 90
-                        else:
-                            self.message = "行动点不足！"
-                            self.message_timer = 60
+                if option1_rect.collidepoint(pos):
+                    # 选择上课
+                    if self.player.action_points >= 2:
+                        self.player.action_points -= 2
+                        self.player.change_attribute('intelligence', 30)
+                        self.player.change_attribute('mood', -30)
+                        self.player.change_attribute('health', -5)
+                        self.message = "你选择了上课，行动点-2，学识+30，心情-30，健康值-5"
+                        self.message_timer = 90
+                    else:
+                        self.message = "行动点不足！"
+                        self.message_timer = 60
+                elif option2_rect.collidepoint(pos):
+                    # 选择自习
+                    if self.player.action_points >= 1:
+                        self.player.action_points -= 1
+                        self.player.change_attribute('intelligence', 15)
+                        self.player.change_attribute('mood', -20)
+                        self.player.change_attribute('health', -5)
+                        self.message = "你选择了自习，行动点-1，学识+15，心情-20，健康值-5"
+                        self.message_timer = 90
+                    else:
+                        self.message = "行动点不足！"
+                        self.message_timer = 60
                 # 返回地图
                 if back_rect.collidepoint(pos):
                     self.current_state = STATE_MAIN_GAME
@@ -595,44 +594,40 @@ class Game:
                     self.map_system.toggle_map()  # 确保地图显示
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
-                if not self.has_exercised:
-                    if option1_rect.collidepoint(pos):
-                        # 选择散步
-                        if self.player.action_points >= 1:
-                            self.player.action_points -= 1
-                            self.player.change_attribute('physical', 5)
-                            self.has_exercised = True
-                            self.message = "你选择了散步，行动点-1，体能+5"
-                            self.message_timer = 90
-                        else:
-                            self.message = "行动点不足！"
-                            self.message_timer = 60
-                    elif option2_rect.collidepoint(pos):
-                        # 选择跑步
-                        if self.player.action_points >= 2:
-                            self.player.action_points -= 2
-                            self.player.change_attribute('physical', 10)
-                            self.has_exercised = True
-                            self.message = "你选择了跑步，行动点-2，体能+10"
-                            self.message_timer = 90
-                        else:
-                            self.message = "行动点不足！"
-                            self.message_timer = 60
-                    elif option3_rect.collidepoint(pos):
-                        # 选择游泳
-                        if self.player.action_points >= 2 and self.player.gold >= 20:
-                            self.player.action_points -= 2
-                            self.player.gold -= 20
-                            self.player.change_attribute('physical', 15)
-                            self.has_exercised = True
-                            self.message = "你选择了游泳，行动点-2，金钱-20，体能+15"
-                            self.message_timer = 90
-                        elif self.player.action_points < 2:
-                            self.message = "行动点不足！"
-                            self.message_timer = 60
-                        else:
-                            self.message = "金钱不足！"
-                            self.message_timer = 60
+                if option1_rect.collidepoint(pos):
+                    # 选择散步
+                    if self.player.action_points >= 1:
+                        self.player.action_points -= 1
+                        self.player.change_attribute('physical', 5)
+                        self.message = "你选择了散步，行动点-1，体能+5"
+                        self.message_timer = 90
+                    else:
+                        self.message = "行动点不足！"
+                        self.message_timer = 60
+                elif option2_rect.collidepoint(pos):
+                    # 选择跑步
+                    if self.player.action_points >= 2:
+                        self.player.action_points -= 2
+                        self.player.change_attribute('physical', 10)
+                        self.message = "你选择了跑步，行动点-2，体能+10"
+                        self.message_timer = 90
+                    else:
+                        self.message = "行动点不足！"
+                        self.message_timer = 60
+                elif option3_rect.collidepoint(pos):
+                    # 选择游泳
+                    if self.player.action_points >= 2 and self.player.gold >= 20:
+                        self.player.action_points -= 2
+                        self.player.gold -= 20
+                        self.player.change_attribute('physical', 15)
+                        self.message = "你选择了游泳，行动点-2，金钱-20，体能+15"
+                        self.message_timer = 90
+                    elif self.player.action_points < 2:
+                        self.message = "行动点不足！"
+                        self.message_timer = 60
+                    else:
+                        self.message = "金钱不足！"
+                        self.message_timer = 60
                 # 返回地图
                 if back_rect.collidepoint(pos):
                     self.current_state = STATE_MAIN_GAME
@@ -884,10 +879,15 @@ class Game:
                         self.message_timer = 60
                 elif option3_rect.collidepoint(pos):
                     # 选择床
-                    self.player.action_points += 2
-                    self.player.change_attribute('health', 5)
-                    self.message = "你选择了休息，行动点+2，健康值+5"
-                    self.message_timer = 90
+                    if not self.has_rested:
+                        self.player.action_points += 2
+                        self.player.change_attribute('health', 5)
+                        self.has_rested = True
+                        self.message = "你选择了休息，行动点+2，健康值+5"
+                        self.message_timer = 90
+                    else:
+                        self.message = "你已经休息过了，每回合只能休息一次"
+                        self.message_timer = 60
                 # 返回地图
                 if back_rect.collidepoint(pos):
                     self.current_state = STATE_MAIN_GAME
