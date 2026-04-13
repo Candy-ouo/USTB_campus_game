@@ -13,6 +13,8 @@ from src.time_system import TimeSystem
 from src.map import MapSystem
 from src.character import Character
 from src.create_character_scene import CreateCharacterScene
+from src.ui_hud import UIHUD
+from src.time_season_panel import TimeSeasonPanel
 
 # 游戏状态
 STATE_CREATE_CHARACTER = "CREATE_CHARACTER"
@@ -71,6 +73,8 @@ class Game:
         self.player = Player()
         self.time_system = TimeSystem()
         self.map_system = MapSystem()
+        self.ui_hud = UIHUD(self.screen)
+        self.time_season_panel = TimeSeasonPanel(self.screen)
         
         # 游戏状态
         self.running = True
@@ -135,13 +139,12 @@ class Game:
             return
         
         self.time_system.next_day()
-        self.player.action_points = DAILY_ACTION_POINTS
+        self.player.add_action_points(10 + (self.player.physical_level - 1))  # 重置行动力
         
-        self.player.change_attribute('mood', -2)
-        self.player.change_attribute('health', -1)
+        self.player.add_mood(-2)
         
         if self.time_system.is_ended():
-            self.message = "恭喜！你完成了128天的校园生活！"
+            self.message = "恭喜！你完成了136天的校园生活！"
             self.message_timer = 300
         else:
             self.message = f"新的一天开始了！{self.time_system.get_time_display()}"
@@ -156,9 +159,6 @@ class Game:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
                     self.running = False
-                elif event.key == pygame.K_SPACE:
-                    if not self.map_system.is_map_showing():
-                        self.advance_day()
             elif event.type == pygame.VIDEORESIZE:
                 # 处理窗口大小变化
                 self.width, self.height = event.size
@@ -244,29 +244,29 @@ class Game:
         self.player.action_points -= 1
         
         if action_name == "学习":
-            self.player.change_attribute('intelligence', 5)
-            self.player.change_attribute('mood', -3)
-            self.player.change_attribute('health', -2)
-            self.message = "努力学习，智力+5"
+            self.player.add_knowledge(5)
+            self.player.add_mood(-3)
+            self.player.add_physical(-2)
+            self.message = "努力学习，学识+5"
         elif action_name == "运动":
-            self.player.change_attribute('physical', 5)
-            self.player.change_attribute('health', 3)
-            self.player.change_attribute('mood', 2)
-            self.message = "运动健身，体力+5"
+            self.player.add_physical(5)
+            self.player.add_mood(2)
+            self.player.add_charm(2)
+            self.message = "运动健身，体能+5"
         elif action_name == "休息":
-            self.player.change_attribute('health', 5)
-            self.player.change_attribute('mood', 5)
-            self.player.change_attribute('physical', -1)
+            self.player.add_mood(5)
+            self.player.add_physical(2)
             self.message = "好好休息，恢复体力"
         elif action_name == "打工":
-            self.player.change_attribute('gold', 100)
-            self.player.change_attribute('mood', -5)
-            self.player.change_attribute('health', -3)
-            self.message = "辛苦打工，金币+100"
+            self.player.add_living_expenses(100)
+            self.player.add_mood(-5)
+            self.player.add_skill(2)
+            self.message = "辛苦打工，生活费+100"
         elif action_name == "社交":
-            self.player.change_attribute('charm', 3)
-            self.player.change_attribute('mood', 5)
-            self.player.change_attribute('gold', -20)
+            self.player.add_charm(3)
+            self.player.add_mood(5)
+            self.player.add_social(2)
+            self.player.add_living_expenses(-20)
             self.message = "社交活动，魅力+3"
         
         self.message_timer = 90
@@ -292,7 +292,22 @@ class Game:
         effects = action['effects']
         effect_messages = []
         for attr, value in effects.items():
-            self.player.change_attribute(attr, value)
+            if attr == 'knowledge':
+                self.player.add_knowledge(value)
+            elif attr == 'charm':
+                self.player.add_charm(value)
+            elif attr == 'physical':
+                self.player.add_physical(value)
+            elif attr == 'living_expenses':
+                self.player.add_living_expenses(value)
+            elif attr == 'mood':
+                self.player.add_mood(value)
+            elif attr == 'skill':
+                self.player.add_skill(value)
+            elif attr == 'social':
+                self.player.add_social(value)
+            elif attr == 'reputation':
+                self.player.add_reputation(value)
             effect_messages.append(f"{attr}: {value:+d}")
         
         self.message = f"{area['name']}: {action['name']} - {', '.join(effect_messages)}"
@@ -355,52 +370,38 @@ class Game:
         """绘制主游戏场景"""
         self.screen.fill(BLACK)
         
-        # 绘制角色信息（左上角）
-        if self.character:
-            self._draw_character_info()
+        # 绘制时间季节面板
+        year = self.time_system.get_year()
+        month = self.time_system.get_month()
+        week = self.time_system.get_week_in_month()
+        self.time_season_panel.update(year, month, week)
+        self.time_season_panel.draw(self.screen)
         
-        # 调整时间显示位置，避免与角色信息重叠
-        if self.character:
-            self.draw_text(self.time_system.get_time_display(), 20, 180, WHITE, self.large_font)
-            y_offset = 220
-        else:
-            self.draw_text(self.time_system.get_time_display(), 20, 20, WHITE, self.large_font)
-            y_offset = 80
-        attr_names = {
-            'health': '健康',
-            'mood': '心情',
-            'intelligence': '智力',
-            'physical': '体力',
-            'charm': '魅力',
-            'gold': '金币'
-        }
+        # 绘制其他UI
+        time_display = self.time_system.get_time_display()
+        self.ui_hud.draw_all(time_display, self.player)
         
-        for attr, name in attr_names.items():
-            value = self.player.get_attribute(attr)
-            self.draw_text(f"{name}: {value}", 20, y_offset)
-            y_offset += 30
-        
-        self.draw_text(f"行动点: {self.player.action_points}", 20, y_offset + 10)
-        y_offset += 50
-        
-        self.draw_text("可用行动:", 20, y_offset)
+        # 绘制可用行动（右下角）
+        y_offset = self.height - 300
+        x_offset = self.width - 300
+        self.draw_text("可用行动:", x_offset, y_offset)
         y_offset += 30
         actions = [
-            "[1] 学习 (智力+5)",
-            "[2] 运动 (体力+5)",
+            "[1] 学习 (学识+5)",
+            "[2] 运动 (体能+5)",
             "[3] 休息 (恢复)",
-            "[4] 打工 (金币+100)",
+            "[4] 打工 (生活费+100)",
             "[5] 社交 (魅力+3)"
         ]
         
         for action in actions:
-            self.draw_text(action, 40, y_offset)
+            self.draw_text(action, x_offset + 20, y_offset)
             y_offset += 25
         
         y_offset += 20
-        self.draw_text("操作说明:", 20, y_offset)
+        self.draw_text("操作说明:", x_offset, y_offset)
         y_offset += 30
-        self.draw_text("[空格] 推进一天  [S] 存档  [L] 读档  [M] 打开地图  [Q] 退出", 40, y_offset)
+        self.draw_text("[空格] 推进一天  [S] 存档  [L] 读档  [M] 打开地图  [Q] 退出", x_offset + 20, y_offset)
         
         if self.message_timer > 0:
             self.draw_text(self.message, self.width // 2 - 150, self.height - 80, WHITE, self.large_font)
