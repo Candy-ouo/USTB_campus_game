@@ -18,7 +18,7 @@ class MapSystem:
                 'border_color': border_color
             },
             'food': {
-                'name': '美食街',
+                'name': '超市',
                 'rect': pygame.Rect(650, 125, 100, 100),
                 'bg_color': bg_color,
                 'text_color': text_color,
@@ -39,8 +39,8 @@ class MapSystem:
                 'border_color': border_color
             },
             'supermarket': {
-                'name': '超市',
-                'rect': pygame.Rect(630,460, 70, 70),
+                'name': '学生活动中心',
+                'rect': pygame.Rect(570,460, 200, 70),
                 'bg_color': bg_color,
                 'text_color': text_color,
                 'border_color': border_color
