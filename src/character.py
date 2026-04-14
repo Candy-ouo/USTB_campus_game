@@ -31,7 +31,6 @@ class Character:
     color: int = 0
     
     # 主属性 (初始值 40-60)
-    gpa: int = field(default_factory=lambda: random.randint(40, 60))
     energy: int = field(default_factory=lambda: random.randint(40, 60))
     social: int = field(default_factory=lambda: random.randint(40, 60))
     skill: int = field(default_factory=lambda: random.randint(40, 60))
