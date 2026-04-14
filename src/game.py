@@ -233,11 +233,285 @@ class Game:
             self.message = f"加载失败: {str(e)}"
             self.message_timer = 120
     
+    def __init__(self, character=None):
+        pygame.init()
+        # 创建可调整大小的窗口
+        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
+        pygame.display.set_caption("北科校园物语")
+        self.clock = pygame.time.Clock()
+        # 存储当前窗口大小
+        self.width, self.height = SCREEN_WIDTH, SCREEN_HEIGHT
+        # 尝试使用本地字体文件
+        font_path = os.path.join(os.path.dirname(__file__), '..', 'fonts', 'msyh.ttf')
+        start_font_path = os.path.join(os.path.dirname(__file__), '..', 'fonts', 'fonts_start.ttf')
+        self.font = None
+        self.large_font = None
+        self.start_font = None
+        
+        try:
+            if os.path.exists(font_path):
+                self.font = pygame.font.Font(font_path, 18)  # 增大字体大小
+                self.large_font = pygame.font.Font(font_path, 24)  # 增大字体大小
+        except:
+            pass
+        
+        # 加载粗体字体
+        try:
+            if os.path.exists(start_font_path):
+                self.start_font = pygame.font.Font(start_font_path, 20)
+        except:
+            pass
+        
+        # 如果本地字体失败，尝试使用系统字体
+        if self.font is None or self.large_font is None:
+            font_names = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS', 'sans-serif']
+            for font_name in font_names:
+                try:
+                    if self.font is None:
+                        self.font = pygame.font.SysFont(font_name, 18)  # 增大字体大小
+                    if self.large_font is None:
+                        self.large_font = pygame.font.SysFont(font_name, 24)  # 增大字体大小
+                    if self.font and self.large_font:
+                        break
+                except:
+                    continue
+        
+        # 如果所有字体都失败，使用默认字体
+        if self.font is None:
+            self.font = pygame.font.Font(None, 18)  # 增大字体大小
+        if self.large_font is None:
+            self.large_font = pygame.font.Font(None, 24)  # 增大字体大小
+        if self.start_font is None:
+            self.start_font = self.font
+        
+        # 游戏状态
+        self.current_state = STATE_MAIN_GAME if character else STATE_CREATE_CHARACTER
+        
+        # 角色和场景
+        self.character = character
+        self.create_character_scene = None
+        
+        # 加载地图按钮图片
+        map_button_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'map_button.png')
+        self.map_button_image = None
+        try:
+            if os.path.exists(map_button_path):
+                self.map_button_image = pygame.image.load(map_button_path)
+        except:
+            pass
+        
+        # 加载食堂背景图片
+        canteen_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'canteen.png')
+        self.canteen_background = None
+        try:
+            if os.path.exists(canteen_path):
+                self.canteen_background = pygame.image.load(canteen_path)
+        except:
+            pass
+        
+        # 加载教学区背景图片
+        classroom_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'classroom.png')
+        self.classroom_background = None
+        try:
+            if os.path.exists(classroom_path):
+                self.classroom_background = pygame.image.load(classroom_path)
+        except:
+            pass
+        
+        # 加载操场背景图片
+        gym_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'gym.png')
+        self.gym_background = None
+        try:
+            if os.path.exists(gym_path):
+                self.gym_background = pygame.image.load(gym_path)
+        except:
+            pass
+        
+        # 加载超市背景图片
+        supermarket_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'supermarket.png')
+        self.supermarket_background = None
+        try:
+            if os.path.exists(supermarket_path):
+                self.supermarket_background = pygame.image.load(supermarket_path)
+        except:
+            pass
+        
+        # 加载学生活动中心背景图片
+        student_center_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'studentActivityCenter.png')
+        self.student_center_background = None
+        try:
+            if os.path.exists(student_center_path):
+                self.student_center_background = pygame.image.load(student_center_path)
+        except:
+            pass
+        
+        # 加载宿舍背景图片
+        dorm_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'dorm.png')
+        self.dorm_background = None
+        try:
+            if os.path.exists(dorm_path):
+                self.dorm_background = pygame.image.load(dorm_path)
+        except:
+            pass
+        
+        # 加载校医院背景图片
+        hospital_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'hospital.png')
+        self.hospital_background = None
+        try:
+            if os.path.exists(hospital_path):
+                self.hospital_background = pygame.image.load(hospital_path)
+        except:
+            pass
+        
+        # 区域状态
+        self.has_eaten = False
+        self.has_studied = False
+        self.has_exercised = False
+        self.supermarket_purchases = 0
+        self.has_rested = False
+        
+        # 其他游戏对象
+        self.player = Player()
+        self.time_system = TimeSystem()
+        self.map_system = MapSystem()
+        self.ui_hud = UIHUD(self.screen)
+        self.time_season_panel = TimeSeasonPanel(self.screen)
+        
+        # 游戏状态
+        self.running = True
+        self.message = ""
+        self.message_timer = 0
+        
+        # 期末成绩记录
+        self.final_scores = []
+        self.final_gpas = []
+        
+        # 加载地图背景图片
+        self.map_background = None
+        map_image_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'map_background.jpg')
+        try:
+            if os.path.exists(map_image_path):
+                self.map_background = pygame.image.load(map_image_path)
+                # 缩放到屏幕大小
+                self.map_background = pygame.transform.scale(self.map_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        except Exception as e:
+            print(f"加载地图背景失败: {e}")
+        
+        if character:
+            # 角色创建完成，使用Player的默认初始属性
+            pass
+        else:
+            self.player.action_points = DAILY_ACTION_POINTS
+    
+    def reset(self):
+        self.player.reset()
+        self.time_system.reset()
+        self.player.action_points = DAILY_ACTION_POINTS
+        self.message = "新游戏开始！"
+        self.message_timer = 120
+        self.final_scores = []
+        self.final_gpas = []
+    
+    def calculate_final_score(self):
+        """计算期末成绩"""
+        knowledge = self.player.knowledge
+        theory_experiment = self.player.theory_experiment
+        
+        # 检查学识是否低于30
+        if knowledge < 30:
+            return 0, "F", 1.0, False
+        
+        # 计算分数
+        score = (knowledge / 100) * 60 + (theory_experiment / 300) * 40
+        score = max(0, min(100, score))
+        score = round(score, 1)
+        
+        # 计算评级和绩点
+        if score >= 90:
+            grade = "A"
+            gpa = 4.0
+        elif score >= 85:
+            grade = "A-"
+            gpa = 3.7
+        elif score >= 80:
+            grade = "B+"
+            gpa = 3.4
+        elif score >= 75:
+            grade = "B"
+            gpa = 3.0
+        elif score >= 70:
+            grade = "B-"
+            gpa = 2.4
+        elif score >= 65:
+            grade = "C+"
+            gpa = 2.0
+        elif score >= 60:
+            grade = "C"
+            gpa = 1.0
+        else:
+            grade = "F"
+            gpa = 1.0
+        
+        # 检查是否需要补考
+        need_makeup = score < 60 or knowledge < 30
+        
+        return score, grade, gpa, need_makeup
+    
+    def handle_final_exam_week(self):
+        """处理期末周结算"""
+        score, grade, gpa, need_makeup = self.calculate_final_score()
+        
+        # 记录成绩
+        self.final_scores.append(score)
+        self.final_gpas.append(gpa)
+        
+        # 处理补考
+        if need_makeup:
+            self.player.add_mood(-20)
+            self.player.add_charm(-10)
+            self.player.add_health(-10)
+            message = f"📚 期末周结果 📚\n" \
+                     f"成绩：{score}分\n" \
+                     f"评级：{grade}\n" \
+                     f"绩点：{gpa}\n" \
+                     f"⚠️ 需要补考！\n" \
+                     f"💢 心情-20\n" \
+                     f"😳 魅力-10\n" \
+                     f"❤️ 健康-10"
+        else:
+            # 奖学金机制
+            if grade == "A":
+                self.player.add_living_expenses(100)
+                message = f"🎉 期末周结果 🎉\n" \
+                         f"成绩：{score}分\n" \
+                         f"评级：{grade}\n" \
+                         f"绩点：{gpa}\n" \
+                         f"💰 获得奖学金100！"
+            elif grade == "A-":
+                self.player.add_living_expenses(50)
+                message = f"🎉 期末周结果 🎉\n" \
+                         f"成绩：{score}分\n" \
+                         f"评级：{grade}\n" \
+                         f"绩点：{gpa}\n" \
+                         f"💰 获得奖学金50！"
+            else:
+                message = f"📚 期末周结果 📚\n" \
+                         f"成绩：{score}分\n" \
+                         f"评级：{grade}\n" \
+                         f"绩点：{gpa}"
+        
+        self.message = message
+        self.message_timer = 600  # 延长显示时间，让玩家有足够时间查看
+    
     def advance_day(self):
         if self.time_system.is_ended():
             self.message = "游戏已结束！"
             self.message_timer = 120
             return
+        
+        # 记录当前天数和是否是期末周
+        current_day = self.time_system.day
+        is_current_final_week = self.time_system.is_final_exam_week()
         
         self.time_system.next_day()
         self.player.action_points = DAILY_ACTION_POINTS
@@ -251,10 +525,15 @@ class Game:
         
         self.player.add_mood(-2)
         
+        # 处理期末周结算（在期末周结束后显示）
+        if is_current_final_week:
+            self.handle_final_exam_week()
+        
         if self.time_system.is_ended():
-            self.message = "恭喜！你完成了136天的校园生活！"
-            self.message_timer = 300
-        else:
+            # 游戏结束，进行结局判定
+            self.handle_game_end()
+        elif not is_current_final_week:
+            # 如果不是期末周结束，显示正常的新天消息
             self.message = f"新的一天开始了！{self.time_system.get_time_display()}"
             self.message_timer = 120
     
@@ -486,9 +765,7 @@ class Game:
         self.draw_text("返回地图", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
         
         # 绘制消息
-        if self.message_timer > 0:
-            self.draw_text(self.message, self.width // 2 - 300, self.height - 60, (254, 247, 201), self.large_font)
-            self.message_timer -= 1
+        self.draw_message()
     
     def _handle_teaching(self, events):
         """处理教学区场景事件"""
@@ -579,9 +856,7 @@ class Game:
         self.draw_text("返回地图", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
         
         # 绘制消息
-        if self.message_timer > 0:
-            self.draw_text(self.message, self.width // 2 - 300, self.height - 60, (254, 247, 201), self.large_font)
-            self.message_timer -= 1
+        self.draw_message()
     
     def _handle_sports(self, events):
         """处理操场场景事件"""
@@ -704,9 +979,7 @@ class Game:
         self.draw_text("返回地图", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
         
         # 绘制消息
-        if self.message_timer > 0:
-            self.draw_text(self.message, self.width // 2 - 300, self.height - 60, (254, 247, 201), self.large_font)
-            self.message_timer -= 1
+        self.draw_message()
     
     def _handle_supermarket(self, events):
         """处理超市场景事件"""
@@ -841,9 +1114,7 @@ class Game:
         self.draw_text("返回地图", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
         
         # 绘制消息
-        if self.message_timer > 0:
-            self.draw_text(self.message, self.width // 2 - 300, self.height - 60, (254, 247, 201), self.large_font)
-            self.message_timer -= 1
+        self.draw_message()
     
     def _handle_dorm(self, events):
         """处理宿舍场景事件"""
@@ -951,9 +1222,7 @@ class Game:
         self.draw_text("返回地图", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
         
         # 绘制消息
-        if self.message_timer > 0:
-            self.draw_text(self.message, self.width // 2 - 300, self.height - 60, (254, 247, 201), self.large_font)
-            self.message_timer -= 1
+        self.draw_message()
     
     def _handle_student_center(self, events):
         """处理学生活动中心场景事件"""
@@ -1062,9 +1331,7 @@ class Game:
         self.draw_text("返回地图", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
         
         # 绘制消息
-        if self.message_timer > 0:
-            self.draw_text(self.message, self.width // 2 - 300, self.height - 60, (254, 247, 201), self.large_font)
-            self.message_timer -= 1
+        self.draw_message()
     
     def _handle_hospital(self, events):
         """处理校医院场景事件"""
@@ -1177,11 +1444,37 @@ class Game:
         self.message = f"{area['name']}: {action['name']} - {', '.join(effect_messages)}"
         self.message_timer = 90
     
-    def draw_text(self, text, x, y, color=WHITE, font=None):
+    def draw_text(self, text, x, y, color, font=None):
+        """绘制文本"""
         if font is None:
             font = self.font
         text_surface = font.render(text, True, color)
         self.screen.blit(text_surface, (x, y))
+    
+    def draw_message(self):
+        """绘制消息"""
+        if self.message_timer > 0:
+            # 创建消息背景框
+            message_lines = self.message.split('\n')
+            max_line_width = max([self.large_font.size(line)[0] for line in message_lines])
+            box_width = max_line_width + 40
+            box_height = len(message_lines) * 30 + 20
+            
+            # 计算消息框位置（居中显示）
+            box_x = self.width // 2 - box_width // 2
+            box_y = self.height // 2 - box_height // 2
+            
+            # 绘制背景框
+            pygame.draw.rect(self.screen, (0, 0, 0, 180), (box_x, box_y, box_width, box_height), border_radius=10)
+            pygame.draw.rect(self.screen, (254, 247, 201), (box_x, box_y, box_width, box_height), 2, border_radius=10)
+            
+            # 绘制消息文本
+            for i, line in enumerate(message_lines):
+                text_x = box_x + 20
+                text_y = box_y + 10 + i * 30
+                self.draw_text(line, text_x, text_y, (254, 247, 201), self.large_font)
+            
+            self.message_timer -= 1
     
     def draw_map(self):
         # 绘制地图背景图片
@@ -1336,9 +1629,7 @@ class Game:
         self.draw_text("返回地图", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
         
         # 绘制消息
-        if self.message_timer > 0:
-            self.draw_text(self.message, self.width // 2 - 300, self.height - 60, (254, 247, 201), self.large_font)
-            self.message_timer -= 1
+        self.draw_message()
 
     def _draw_character_info(self):
         """绘制角色信息面板"""
@@ -1366,6 +1657,118 @@ class Game:
         # 绩点
         gpa_text = self.font.render(f"绩点: {self.character.gpa}", True, (255, 200, 100))
         self.screen.blit(gpa_text, (35, 120))
+    
+    def handle_game_end(self):
+        """处理游戏结束，进行结局判定"""
+        # 计算平均成绩和平均绩点
+        if not self.final_scores or not self.final_gpas:
+            self.message = "游戏结束！但没有期末成绩记录。"
+            self.message_timer = 300
+            return
+        
+        avg_score = sum(self.final_scores) / len(self.final_scores)
+        avg_gpa = sum(self.final_gpas) / len(self.final_gpas)
+        
+        # 检查是否能顺利毕业
+        can_graduate = False
+        if (avg_score >= 60 and avg_gpa >= 1.0 and
+            self.player.knowledge_level >= 4 and self.player.knowledge >= 60 and
+            self.player.theory_experiment >= 600 and
+            self.player.employment_entrepreneurship >= 200 and
+            self.player.aesthetic_cultivation >= 200 and
+            self.player.health >= 60 and
+            self.player.mood >= 60 and
+            self.player.skill >= 50 and
+            self.player.social >= 30 and
+            self.player.reputation >= 20):
+            can_graduate = True
+        
+        if not can_graduate:
+            self.message = "很遗憾，你未能顺利毕业，需要延毕。"
+            self.message_timer = 300
+            return
+        
+        # 顺利毕业，进行结局判定
+        # 优先级：保研 > 考研 > 优质就业 > 普通就业/创业
+        
+        # 1. 保研
+        if (avg_score >= 85 and avg_gpa >= 3.7 and
+            self.player.knowledge_level >= 4 and self.player.knowledge >= 90 and
+            self.player.charm_level >= 2 and self.player.charm >= 70 and
+            self.player.physical_level >= 4 and self.player.physical >= 50 and
+            self.player.theory_experiment >= 800 and
+            self.player.employment_entrepreneurship >= 200 and
+            self.player.aesthetic_cultivation >= 200 and
+            self.player.skill >= 100 and
+            self.player.reputation >= 80 and
+            self.player.social >= 70):
+            self.message = "恭喜！你成功保研了！"
+            self.message_timer = 300
+            return
+        
+        # 2. 考研上岸
+        if (avg_score >= 75 and avg_gpa >= 3.0 and
+            self.player.knowledge_level >= 4 and self.player.knowledge >= 75 and
+            self.player.charm_level >= 2 and self.player.charm >= 50 and
+            self.player.physical_level >= 4 and self.player.physical >= 60 and
+            self.player.theory_experiment >= 600 and
+            self.player.employment_entrepreneurship >= 200 and
+            self.player.aesthetic_cultivation >= 200 and
+            self.player.skill >= 80 and
+            self.player.reputation >= 50 and
+            self.player.social >= 40):
+            self.message = "恭喜！你考研上岸了！"
+            self.message_timer = 300
+            return
+        
+        # 3. 优质就业
+        if (avg_score >= 70 and avg_gpa >= 2.4 and
+            self.player.knowledge_level >= 4 and self.player.knowledge >= 70 and
+            self.player.charm_level >= 2 and self.player.charm >= 80 and
+            self.player.physical_level >= 4 and self.player.physical >= 50 and
+            self.player.theory_experiment >= 500 and
+            self.player.employment_entrepreneurship >= 300 and
+            self.player.aesthetic_cultivation >= 200 and
+            self.player.skill >= 150 and
+            self.player.reputation >= 60 and
+            self.player.social >= 100):
+            self.message = "恭喜！你获得了优质就业机会！"
+            self.message_timer = 300
+            return
+        
+        # 4. 普通就业
+        if (avg_score >= 60 and avg_gpa >= 1.0 and
+            self.player.knowledge_level >= 4 and self.player.knowledge >= 60 and
+            self.player.charm_level >= 2 and self.player.charm >= 50 and
+            self.player.physical_level >= 4 and self.player.physical >= 50 and
+            self.player.theory_experiment >= 500 and
+            self.player.employment_entrepreneurship >= 300 and
+            self.player.aesthetic_cultivation >= 200 and
+            self.player.skill >= 130 and
+            self.player.reputation >= 50 and
+            self.player.social >= 60):
+            self.message = "恭喜！你获得了普通就业机会。"
+            self.message_timer = 300
+            return
+        
+        # 5. 创业
+        if (avg_score >= 65 and avg_gpa >= 2.0 and
+            self.player.knowledge_level >= 4 and self.player.knowledge >= 60 and
+            self.player.charm_level >= 3 and self.player.charm >= 80 and
+            self.player.physical_level >= 4 and self.player.physical >= 50 and
+            self.player.theory_experiment >= 500 and
+            self.player.employment_entrepreneurship >= 400 and
+            self.player.aesthetic_cultivation >= 200 and
+            self.player.skill >= 170 and
+            self.player.reputation >= 80 and
+            self.player.social >= 120):
+            self.message = "恭喜！你成功创业了！"
+            self.message_timer = 300
+            return
+        
+        # 其他情况
+        self.message = "游戏结束！你顺利毕业了。"
+        self.message_timer = 300
     
     def run(self):
         while self.running:
