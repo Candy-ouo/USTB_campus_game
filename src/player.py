@@ -7,39 +7,49 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 class Player:
     def __init__(self):
         # 主属性（等级1-4，经验0-100）
-        self.knowledge = 0  # 学识经验
+        self.knowledge = 10  # 学识经验
         self.knowledge_level = 1
         
-        self.charm = 0  # 魅力经验
+        self.charm = 10  # 魅力经验
         self.charm_level = 1
         
-        self.physical = 0  # 体能经验
+        self.physical = 10  # 体能经验
         self.physical_level = 1
         
-        # 行动属性
-        self.living_expenses = 1000  # 生活费
-        self.action_points = 10  # 行动力
+        # 生活属性
+        self.living_expenses = 200  # 生活费
+        self.action_points = 5  # 行动力
         self.mood = 100  # 心情
+        self.health = 80  # 健康值
         
         # 副属性
         self.skill = 0  # 技能
         self.social = 0  # 人脉
         self.reputation = 0  # 声望
+        
+        # 学习属性
+        self.theory_experiment = 0  # 理论/实验
+        self.employment_entrepreneurship = 0  # 就业/创业
+        self.aesthetic_cultivation = 0  # 美育/素养
     
     def reset(self):
         # 重置所有属性
-        self.knowledge = 0
+        self.knowledge = 10
         self.knowledge_level = 1
-        self.charm = 0
+        self.charm = 10
         self.charm_level = 1
-        self.physical = 0
+        self.physical = 10
         self.physical_level = 1
-        self.living_expenses = 1000
-        self.action_points = 10
+        self.living_expenses = 200
+        self.action_points = 5
         self.mood = 100
+        self.health = 80
         self.skill = 0
         self.social = 0
         self.reputation = 0
+        self.theory_experiment = 0
+        self.employment_entrepreneurship = 0
+        self.aesthetic_cultivation = 0
     
     def _level_up(self, exp, level):
         """处理等级升级逻辑"""
@@ -84,7 +94,7 @@ class Player:
         
         # 体能升级时增加行动力上限
         if self.physical_level > old_level:
-            self.action_points = 10 + (self.physical_level - 1)
+            self.action_points = 5 + (self.physical_level - 1)
         
         return self.physical_level
     
@@ -97,7 +107,10 @@ class Player:
     
     def add_action_points(self, amount):
         """增加行动力"""
-        max_points = 10 + (self.physical_level - 1)
+        max_points = 5 + (self.physical_level - 1)
+        # 健康值影响
+        if self.health < 60:
+            max_points = max(1, max_points // 2)
         self.action_points += amount
         if self.action_points > max_points:
             self.action_points = max_points
@@ -147,6 +160,48 @@ class Player:
             self.reputation = 0
         return self.reputation
     
+    def add_health(self, amount):
+        """增加健康值"""
+        self.health += amount
+        if self.health > 100:
+            self.health = 100
+        if self.health < 0:
+            self.health = 0
+        return self.health
+    
+    def add_theory_experiment(self, amount):
+        """增加理论/实验"""
+        # 心情影响
+        if self.mood < 50:
+            amount = int(amount * 0.5)
+        
+        self.theory_experiment += amount
+        if self.theory_experiment < 0:
+            self.theory_experiment = 0
+        return self.theory_experiment
+    
+    def add_employment_entrepreneurship(self, amount):
+        """增加就业/创业"""
+        # 心情影响
+        if self.mood < 50:
+            amount = int(amount * 0.5)
+        
+        self.employment_entrepreneurship += amount
+        if self.employment_entrepreneurship < 0:
+            self.employment_entrepreneurship = 0
+        return self.employment_entrepreneurship
+    
+    def add_aesthetic_cultivation(self, amount):
+        """增加美育/素养"""
+        # 心情影响
+        if self.mood < 50:
+            amount = int(amount * 0.5)
+        
+        self.aesthetic_cultivation += amount
+        if self.aesthetic_cultivation < 0:
+            self.aesthetic_cultivation = 0
+        return self.aesthetic_cultivation
+    
     def get_knowledge(self):
         """获取学识经验和等级"""
         return self.knowledge, self.knowledge_level
@@ -183,6 +238,22 @@ class Player:
         """获取声望"""
         return self.reputation
     
+    def get_health(self):
+        """获取健康值"""
+        return self.health
+    
+    def get_theory_experiment(self):
+        """获取理论/实验"""
+        return self.theory_experiment
+    
+    def get_employment_entrepreneurship(self):
+        """获取就业/创业"""
+        return self.employment_entrepreneurship
+    
+    def get_aesthetic_cultivation(self):
+        """获取美育/素养"""
+        return self.aesthetic_cultivation
+    
     def to_dict(self):
         """转换为字典用于存档"""
         return {
@@ -195,9 +266,13 @@ class Player:
             'living_expenses': self.living_expenses,
             'action_points': self.action_points,
             'mood': self.mood,
+            'health': self.health,
             'skill': self.skill,
             'social': self.social,
-            'reputation': self.reputation
+            'reputation': self.reputation,
+            'theory_experiment': self.theory_experiment,
+            'employment_entrepreneurship': self.employment_entrepreneurship,
+            'aesthetic_cultivation': self.aesthetic_cultivation
         }
     
     def from_dict(self, data):
@@ -220,9 +295,37 @@ class Player:
             self.action_points = data['action_points']
         if 'mood' in data:
             self.mood = data['mood']
+        if 'health' in data:
+            self.health = data['health']
         if 'skill' in data:
             self.skill = data['skill']
         if 'social' in data:
             self.social = data['social']
         if 'reputation' in data:
             self.reputation = data['reputation']
+        if 'theory_experiment' in data:
+            self.theory_experiment = data['theory_experiment']
+        if 'employment_entrepreneurship' in data:
+            self.employment_entrepreneurship = data['employment_entrepreneurship']
+        if 'aesthetic_cultivation' in data:
+            self.aesthetic_cultivation = data['aesthetic_cultivation']
+    
+    def is_sick(self):
+        """检查是否生病（健康值低于40）"""
+        return self.health < 40
+    
+    def can_interact(self):
+        """检查是否可以交互（除了校医院）"""
+        return self.health >= 40
+    
+    def reset_monthly(self):
+        """每月重置生活费"""
+        self.living_expenses = 200
+    
+    def reset_daily(self):
+        """每天重置行动点"""
+        max_points = 5 + (self.physical_level - 1)
+        # 健康值影响
+        if self.health < 60:
+            max_points = max(1, max_points // 2)
+        self.action_points = max_points

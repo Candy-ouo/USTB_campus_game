@@ -36,7 +36,7 @@ class UIHUD:
     
     def _load_attribute_background(self):
         """加载属性框背景图片"""
-        bg_path = os.path.join(os.path.dirname(__file__), '..', 'image', '属性框.png')
+        bg_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'propertise_box.png')
         try:
             if os.path.exists(bg_path):
                 self.attribute_bg = pygame.image.load(bg_path)

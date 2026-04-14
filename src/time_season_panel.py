@@ -44,7 +44,7 @@ class TimeSeasonPanel:
     def _load_images(self):
         """加载面板背景和季节图标"""
         # 加载面板背景
-        panel_path = os.path.join(os.path.dirname(__file__), '..', 'image', '时间框.png')
+        panel_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'time_box.png')
         try:
             if os.path.exists(panel_path):
                 self.panel_bg = pygame.image.load(panel_path)
@@ -52,9 +52,9 @@ class TimeSeasonPanel:
             print(f"加载时间框背景失败: {e}")
         
         # 加载季节图标
-        seasons = ['春天', '夏天', '秋天', '冬天']
+        seasons = ['spring', 'summer', 'autumn', 'winter']
         for season in seasons:
-            icon_path = os.path.join(os.path.dirname(__file__), '..', 'image', f'{season}图标.png')
+            icon_path = os.path.join(os.path.dirname(__file__), '..', 'image', f'{season}_icon.png')
             try:
                 if os.path.exists(icon_path):
                     self.season_icons[season] = pygame.image.load(icon_path)
@@ -64,13 +64,13 @@ class TimeSeasonPanel:
     def _get_season_by_month(self, month):
         """根据月份获取季节"""
         if 3 <= month <= 5:
-            return '春天'
+            return 'spring'
         elif 6 <= month <= 8:
-            return '夏天'
+            return 'summer'
         elif 9 <= month <= 11:
-            return '秋天'
+            return 'autumn'
         else:  # 12, 1, 2
-            return '冬天'
+            return 'winter'
     
     def update(self, year, month, week):
         """更新时间信息"""

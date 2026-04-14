@@ -26,26 +26,6 @@ class Character:
     college: str = "材料"
     major: str = "材料科学与工程"
     
-    # 主属性 (初始值 30)
-    knowledge: int = 30  # 学识
-    charm: int = 30  # 魅力
-    energy: int = 30  # 体能
-    
-    # 行动属性
-    money: int = 1000  # 生活费
-    action_points: int = 10  # 行动力
-    mood: int = 100  # 心情
-    
-    # 副属性 (初始值 0)
-    skill: int = 0  # 技能
-    social_network: int = 0  # 人脉
-    reputation: int = 0  # 声望
-    
-    # 学习属性 (初始值 0)
-    theory_experiment: int = 0  # 理论实验
-    employment_entrepreneurship: int = 0  # 就业创业
-    aesthetic_literacy: int = 0  # 美育素养
-    
     # 隐藏属性 (初始值 0)
     skip_count: int = 0
     night_count: int = 0

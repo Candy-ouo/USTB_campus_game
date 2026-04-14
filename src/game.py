@@ -190,23 +190,8 @@ class Game:
             print(f"加载地图背景失败: {e}")
         
         if character:
-            # 如果提供了角色，初始化Player属性
-            # 主属性
-            self.player.knowledge = character.knowledge
-            self.player.charm = character.charm
-            self.player.physical = character.energy
-            # 重新计算等级，确保初始等级为LV1
-            self.player.knowledge, self.player.knowledge_level = self.player._level_up(self.player.knowledge, 1)
-            self.player.charm, self.player.charm_level = self.player._level_up(self.player.charm, 1)
-            self.player.physical, self.player.physical_level = self.player._level_up(self.player.physical, 1)
-            # 行动属性
-            self.player.living_expenses = character.money
-            self.player.action_points = character.action_points
-            self.player.mood = character.mood
-            # 副属性
-            self.player.skill = character.skill
-            self.player.social = character.social_network
-            self.player.reputation = character.reputation
+            # 角色创建完成，使用Player的默认初始属性
+            pass
         else:
             self.player.action_points = DAILY_ACTION_POINTS
     
@@ -420,10 +405,10 @@ class Game:
                 if not self.has_eaten:
                     if option1_rect.collidepoint(pos):
                         # 选择鸡腿套餐
-                        if self.player.gold >= 10:
-                            self.player.gold -= 10
-                            self.player.change_attribute('mood', 10)
-                            self.player.change_attribute('health', 10)
+                        if self.player.living_expenses >= 10:
+                            self.player.living_expenses -= 10
+                            self.player.add_mood(10)
+                            self.player.add_health(10)
                             self.player.action_points += 1
                             self.has_eaten = True
                             self.message = "你选择了鸡腿套餐，金钱-10，心情+10，健康值+10，行动点+1"
@@ -433,10 +418,10 @@ class Game:
                             self.message_timer = 60
                     elif option2_rect.collidepoint(pos):
                         # 选择营养套餐
-                        if self.player.gold >= 15:
-                            self.player.gold -= 15
-                            self.player.change_attribute('mood', 20)
-                            self.player.change_attribute('health', 10)
+                        if self.player.living_expenses >= 15:
+                            self.player.living_expenses -= 15
+                            self.player.add_mood(20)
+                            self.player.add_health(10)
                             self.player.action_points += 2
                             self.has_eaten = True
                             self.message = "你选择了营养套餐，金钱-15，心情+20，健康值+10，行动点+2"
@@ -446,10 +431,10 @@ class Game:
                             self.message_timer = 60
                     elif option3_rect.collidepoint(pos):
                         # 选择特色美食
-                        if self.player.gold >= 20:
-                            self.player.gold -= 20
-                            self.player.change_attribute('mood', 30)
-                            self.player.change_attribute('health', 10)
+                        if self.player.living_expenses >= 20:
+                            self.player.living_expenses -= 20
+                            self.player.add_mood(30)
+                            self.player.add_health(10)
                             self.player.action_points += 3
                             self.has_eaten = True
                             self.message = "你选择了特色美食，金钱-20，心情+30，健康值+10，行动点+3"
@@ -524,9 +509,9 @@ class Game:
                     # 选择上课
                     if self.player.action_points >= 2:
                         self.player.action_points -= 2
-                        self.player.change_attribute('intelligence', 30)
-                        self.player.change_attribute('mood', -30)
-                        self.player.change_attribute('health', -5)
+                        self.player.add_knowledge(30)
+                        self.player.add_mood(-30)
+                        self.player.add_health(-5)
                         self.message = "你选择了上课，行动点-2，学识+30，心情-30，健康值-5"
                         self.message_timer = 90
                     else:
@@ -536,9 +521,9 @@ class Game:
                     # 选择自习
                     if self.player.action_points >= 1:
                         self.player.action_points -= 1
-                        self.player.change_attribute('intelligence', 15)
-                        self.player.change_attribute('mood', -20)
-                        self.player.change_attribute('health', -5)
+                        self.player.add_knowledge(15)
+                        self.player.add_mood(-20)
+                        self.player.add_health(-5)
                         self.message = "你选择了自习，行动点-1，学识+15，心情-20，健康值-5"
                         self.message_timer = 90
                     else:
@@ -618,7 +603,7 @@ class Game:
                     # 选择散步
                     if self.player.action_points >= 1:
                         self.player.action_points -= 1
-                        self.player.change_attribute('physical', 5)
+                        self.player.add_physical(5)
                         self.message = "你选择了散步，行动点-1，体能+5"
                         self.message_timer = 90
                     else:
@@ -628,7 +613,7 @@ class Game:
                     # 选择跑步
                     if self.player.action_points >= 2:
                         self.player.action_points -= 2
-                        self.player.change_attribute('physical', 10)
+                        self.player.add_physical(10)
                         self.message = "你选择了跑步，行动点-2，体能+10"
                         self.message_timer = 90
                     else:
@@ -636,10 +621,10 @@ class Game:
                         self.message_timer = 60
                 elif option3_rect.collidepoint(pos):
                     # 选择游泳
-                    if self.player.action_points >= 2 and self.player.gold >= 20:
+                    if self.player.action_points >= 2 and self.player.living_expenses >= 20:
                         self.player.action_points -= 2
-                        self.player.gold -= 20
-                        self.player.change_attribute('physical', 15)
+                        self.player.living_expenses -= 20
+                        self.player.add_physical(15)
                         self.message = "你选择了游泳，行动点-2，金钱-20，体能+15"
                         self.message_timer = 90
                     elif self.player.action_points < 2:
@@ -745,9 +730,9 @@ class Game:
                 if self.supermarket_purchases < 2:
                     if option1_rect.collidepoint(pos):
                         # 购买美味蛋糕
-                        if self.player.gold >= 15:
-                            self.player.gold -= 15
-                            self.player.change_attribute('mood', 30)
+                        if self.player.living_expenses >= 15:
+                            self.player.living_expenses -= 15
+                            self.player.add_mood(30)
                             self.supermarket_purchases += 1
                             self.message = "你购买了美味蛋糕，金钱-15，心情+30"
                             self.message_timer = 90
@@ -756,9 +741,9 @@ class Game:
                             self.message_timer = 60
                     elif option2_rect.collidepoint(pos):
                         # 购买潮流衣服
-                        if self.player.gold >= 30:
-                            self.player.gold -= 30
-                            self.player.change_attribute('charm', 10)
+                        if self.player.living_expenses >= 30:
+                            self.player.living_expenses -= 30
+                            self.player.add_charm(10)
                             self.supermarket_purchases += 1
                             self.message = "你购买了潮流衣服，金钱-30，魅力+10"
                             self.message_timer = 90
@@ -767,9 +752,9 @@ class Game:
                             self.message_timer = 60
                     elif option3_rect.collidepoint(pos):
                         # 购买课外教材
-                        if self.player.gold >= 20:
-                            self.player.gold -= 20
-                            self.player.change_attribute('intelligence', 10)
+                        if self.player.living_expenses >= 20:
+                            self.player.living_expenses -= 20
+                            self.player.add_knowledge(10)
                             self.supermarket_purchases += 1
                             self.message = "你购买了课外教材，金钱-20，学识+10"
                             self.message_timer = 90
@@ -778,9 +763,9 @@ class Game:
                             self.message_timer = 60
                     elif option4_rect.collidepoint(pos):
                         # 购买健身器材
-                        if self.player.gold >= 30:
-                            self.player.gold -= 30
-                            self.player.change_attribute('physical', 10)
+                        if self.player.living_expenses >= 30:
+                            self.player.living_expenses -= 30
+                            self.player.add_physical(10)
                             self.supermarket_purchases += 1
                             self.message = "你购买了健身器材，金钱-30，体能+10"
                             self.message_timer = 90
@@ -789,10 +774,10 @@ class Game:
                             self.message_timer = 60
                     elif option5_rect.collidepoint(pos):
                         # 购买不健康的零食
-                        if self.player.gold >= 15:
-                            self.player.gold -= 15
-                            self.player.change_attribute('mood', 40)
-                            self.player.change_attribute('health', -5)
+                        if self.player.living_expenses >= 15:
+                            self.player.living_expenses -= 15
+                            self.player.add_mood(40)
+                            self.player.add_health(-5)
                             self.supermarket_purchases += 1
                             self.message = "你购买了不健康的零食，金钱-15，心情+40，健康-5"
                             self.message_timer = 90
@@ -801,8 +786,8 @@ class Game:
                             self.message_timer = 60
                     elif option6_rect.collidepoint(pos):
                         # 购买体力药水
-                        if self.player.gold >= 30:
-                            self.player.gold -= 30
+                        if self.player.living_expenses >= 30:
+                            self.player.living_expenses -= 30
                             self.player.action_points += 1
                             self.supermarket_purchases += 1
                             self.message = "你购买了体力药水，金钱-30，行动点+1"
@@ -880,7 +865,7 @@ class Game:
                     # 选择玩游戏
                     if self.player.action_points >= 1:
                         self.player.action_points -= 1
-                        self.player.change_attribute('mood', 40)
+                        self.player.add_mood(40)
                         self.message = "你选择了玩游戏，心情+40，行动点-1"
                         self.message_timer = 90
                     else:
@@ -890,8 +875,8 @@ class Game:
                     # 选择看书
                     if self.player.action_points >= 1:
                         self.player.action_points -= 1
-                        self.player.change_attribute('intelligence', 10)
-                        self.player.change_attribute('mood', -10)
+                        self.player.add_knowledge(10)
+                        self.player.add_mood(-10)
                         self.message = "你选择了看书，学识+10，心情-10，行动点-1"
                         self.message_timer = 90
                     else:
@@ -901,7 +886,7 @@ class Game:
                     # 选择床
                     if not self.has_rested:
                         self.player.action_points += 2
-                        self.player.change_attribute('health', 5)
+                        self.player.add_health(5)
                         self.has_rested = True
                         self.message = "你选择了休息，行动点+2，健康值+5"
                         self.message_timer = 90
@@ -992,8 +977,8 @@ class Game:
                     # 选择科技协会/文学社团
                     if self.player.action_points >= 1:
                         self.player.action_points -= 1
-                        self.player.change_attribute('intelligence', 20)
-                        self.player.change_attribute('mood', 10)
+                        self.player.add_knowledge(20)
+                        self.player.add_mood(10)
                         self.message = "你选择了科技协会/文学社团，学识+20，心情+10"
                         self.message_timer = 90
                     else:
@@ -1003,8 +988,8 @@ class Game:
                     # 选择体育协会
                     if self.player.action_points >= 1:
                         self.player.action_points -= 1
-                        self.player.change_attribute('physical', 20)
-                        self.player.change_attribute('mood', 10)
+                        self.player.add_physical(20)
+                        self.player.add_mood(10)
                         self.message = "你选择了体育协会，体能+20，心情+10"
                         self.message_timer = 90
                     else:
@@ -1014,8 +999,8 @@ class Game:
                     # 选择街舞社/音乐社
                     if self.player.action_points >= 1:
                         self.player.action_points -= 1
-                        self.player.change_attribute('charm', 20)
-                        self.player.change_attribute('mood', 10)
+                        self.player.add_charm(20)
+                        self.player.add_mood(10)
                         self.message = "你选择了街舞社/音乐社，魅力+20，心情+10"
                         self.message_timer = 90
                     else:
@@ -1026,7 +1011,7 @@ class Game:
                     if self.player.action_points >= 1:
                         self.player.action_points -= 1
                         # 假设技能是一个属性，如果没有可以添加
-                        self.player.change_attribute('mood', 10)
+                        self.player.add_mood(10)
                         self.message = "你选择了学生活动，技能+20，心情+10"
                         self.message_timer = 90
                     else:
@@ -1037,7 +1022,7 @@ class Game:
                     if self.player.action_points >= 1:
                         self.player.action_points -= 1
                         # 假设技能是一个属性，如果没有可以添加
-                        self.player.change_attribute('mood', -10)
+                        self.player.add_mood(-10)
                         self.message = "你选择了实习，技能+20，心情-10"
                         self.message_timer = 90
                     else:
@@ -1097,10 +1082,10 @@ class Game:
                 pos = pygame.mouse.get_pos()
                 if option1_rect.collidepoint(pos):
                     # 选择治病
-                    if self.player.get_attribute('health') < 60:
-                        if self.player.gold >= 50:
-                            self.player.gold -= 50
-                            self.player.set_attribute('health', 100)  # 恢复健康状态
+                    if self.player.get_health() < 60:
+                        if self.player.living_expenses >= 50:
+                            self.player.living_expenses -= 50
+                            self.player.add_health(100)  # 恢复健康状态
                             self.message = "你在医院治疗，金钱-50，健康状态已恢复"
                             self.message_timer = 90
                         else:

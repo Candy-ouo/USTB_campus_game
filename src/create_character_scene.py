@@ -414,22 +414,6 @@ class CreateCharacterScene:
         print(f"生日: {character.birthday}")
         print(f"学院: {character.college}")
         print(f"专业: {character.major}")
-        print("\n主属性:")
-        print(f"学识: LV{character.knowledge // 25} {character.knowledge % 100}/100")
-        print(f"魅力: LV{character.charm // 25} {character.charm % 100}/100")
-        print(f"体能: LV{character.energy // 25} {character.energy % 100}/100")
-        print("\n行动属性:")
-        print(f"生活费: {character.money} 元")
-        print(f"行动力: {character.action_points} 点")
-        print(f"心情: {character.mood}/100")
-        print("\n副属性:")
-        print(f"技能: {character.skill}")
-        print(f"人脉: {character.social_network}")
-        print(f"声望: {character.reputation}")
-        print("\n学习属性:")
-        print(f"理论实验: {character.theory_experiment}")
-        print(f"就业创业: {character.employment_entrepreneurship}")
-        print(f"美育素养: {character.aesthetic_literacy}")
         
         return character
     
