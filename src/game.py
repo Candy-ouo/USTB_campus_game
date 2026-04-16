@@ -248,6 +248,8 @@ class Game:
         # 日程安排相关属性
         self.schedule_selected = []  # 已选择的日程
         self.has_scheduled = False  # 是否已经安排日程
+        self.schedule_scroll_offsets = [0, 0, 0]  # 每列的滚动偏移量
+        self.course_study_counts = {}  # 课程学习次数追踪
     
     def reset(self):
         self.player.reset()
@@ -256,6 +258,7 @@ class Game:
         # 重置日程安排相关属性
         self.schedule_selected = []
         self.has_scheduled = False
+        self.course_study_counts = {}
         self.message = "新游戏开始！"
         self.message_timer = 120
         self.final_scores = []
@@ -265,7 +268,8 @@ class Game:
         try:
             save_data = {
                 'player': self.player.to_dict(),
-                'time_system': self.time_system.to_dict()
+                'time_system': self.time_system.to_dict(),
+                'course_study_counts': self.course_study_counts
             }
             os.makedirs(os.path.dirname(SAVE_FILE), exist_ok=True)
             with open(SAVE_FILE, 'w', encoding='utf-8') as f:
@@ -283,6 +287,10 @@ class Game:
                     save_data = json.load(f)
                 self.player.from_dict(save_data['player'])
                 self.time_system.from_dict(save_data['time_system'])
+                if 'course_study_counts' in save_data:
+                    self.course_study_counts = save_data['course_study_counts']
+                else:
+                    self.course_study_counts = {}
                 self.message = "游戏已加载！"
                 self.message_timer = 120
             else:
@@ -580,23 +588,43 @@ class Game:
         # 定义日程数据
         schedules = {
             "理论实验": [
-                {"name": "专业课导论", "hours": 16, "attribute": "theory_experiment", "value": 100},
-                {"name": "编程语言上机课", "hours": 12, "attribute": "theory_experiment", "value": 75},
-                {"name": "高数课", "hours": 16, "attribute": "theory_experiment", "value": 100},
-                {"name": "概率论", "hours": 8, "attribute": "theory_experiment", "value": 50},
-                {"name": "专业课课设", "hours": 12, "attribute": "theory_experiment", "value": 75}
+                {"name": "固体物理", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "材料分析技术", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "量子力学导论", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "大学物理实验", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "数理方法", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "材料合成与制备", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "金相分析实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "工程制图", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "计算机辅助设计", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "材料性能实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "大学英语", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "思修与法律基础", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "大学体育", "hours": 8, "attribute": "theory_experiment", "value": 50},
             ],
             "创新创业": [
-                {"name": "生涯规划课", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
-                {"name": "创造训练", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
-                {"name": "创新与专利", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100}
+                {"name": "科研项目实训", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "企业实习实践", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "专利撰写与申报", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "创业大赛指导", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "本科就业指导", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
+                {"name": "科研伦理与规范", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
+                {"name": "科技文献检索", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
             ],
             "美育素养": [
-                {"name": "世界文明史", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "艺术鉴赏", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "基本乐理", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
-                {"name": "乐器演奏", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "人际沟通艺术", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75}
+                {"name": "交响乐团鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "中国书法艺术", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "国画赏析", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "影视鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "西方哲学史", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "演讲与口才", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "摄影技术", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "舞蹈基础", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "茶文化", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "中外民俗", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "心理健康", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "安全教育", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
+                {"name": "通识课任选", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
             ]
         }
         
@@ -615,10 +643,17 @@ class Game:
             self.screen.blit(category_text, category_rect)
             
             # 绘制日程项
-            item_y = column_y + 40
             item_spacing = 40
+            items_per_column = 6
             
-            for item in schedules[category]:
+            # 计算当前显示的课程范围
+            start_index = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
+            end_index = min(len(schedules[category]), start_index + items_per_column)
+            
+            # 绘制课程
+            item_y = column_y + 40
+            for j in range(start_index, end_index):
+                item = schedules[category][j]
                 # 计算日程项位置
                 item_x = column_x + 10
                 item_width = column_width - 20
@@ -665,32 +700,36 @@ class Game:
         
         self.draw_text(f"总学时: {total_hours}", 100, selected_info_y + 30, (150, 100, 50))
         
-        # 绘制预计增加的属性
-        gain_text = "预计增加: "
-        for attr, value in attribute_gains.items():
-            gain_text += f"{self._get_attribute_name(attr)}+{value}, "
-        if gain_text != "预计增加: ":
-            gain_text = gain_text[:-2]  # 移除最后一个逗号和空格
-        self.draw_text(gain_text, 100, selected_info_y + 60, (150, 100, 50))
+        # 提示信息
+        self.draw_text("选择课程并执行后立即进入下一周", 100, selected_info_y + 60, (150, 100, 50))
         
         # 绘制操作按钮
         confirm_button_rect = pygame.Rect(self.width // 2 - 200, self.height - 80, 180, 50)
         cancel_button_rect = pygame.Rect(self.width // 2 + 20, self.height - 80, 180, 50)
         
-        # 确认选择按钮
+        # 执行并进入下一回合按钮
         if len(self.schedule_selected) > 0 and not self.has_scheduled:
             pygame.draw.rect(self.screen, (220, 180, 140), confirm_button_rect)
             pygame.draw.rect(self.screen, (150, 100, 50), confirm_button_rect, 2)
-            self.draw_text("确认选择", confirm_button_rect.x + 40, confirm_button_rect.y + 15, (254, 247, 201), self.large_font)
+            # 计算文本宽度，使文本居中
+            text_surface = self.large_font.render("执行", True, (254, 247, 201))
+            text_x = confirm_button_rect.x + (confirm_button_rect.width - text_surface.get_width()) // 2
+            self.draw_text("执行", text_x, confirm_button_rect.y + 15, (254, 247, 201), self.large_font)
         else:
             pygame.draw.rect(self.screen, (100, 100, 100), confirm_button_rect)
             pygame.draw.rect(self.screen, (50, 50, 50), confirm_button_rect, 2)
-            self.draw_text("确认选择", confirm_button_rect.x + 40, confirm_button_rect.y + 15, (200, 200, 200), self.large_font)
+            # 计算文本宽度，使文本居中
+            text_surface = self.large_font.render("执行", True, (200, 200, 200))
+            text_x = confirm_button_rect.x + (confirm_button_rect.width - text_surface.get_width()) // 2
+            self.draw_text("执行", text_x, confirm_button_rect.y + 15, (200, 200, 200), self.large_font)
         
         # 取消选择按钮
         pygame.draw.rect(self.screen, (220, 180, 140), cancel_button_rect)
         pygame.draw.rect(self.screen, (150, 100, 50), cancel_button_rect, 2)
-        self.draw_text("取消选择", cancel_button_rect.x + 40, cancel_button_rect.y + 15, (254, 247, 201), self.large_font)
+        # 计算文本宽度，使文本居中
+        text_surface = self.large_font.render("取消", True, (254, 247, 201))
+        text_x = cancel_button_rect.x + (cancel_button_rect.width - text_surface.get_width()) // 2
+        self.draw_text("取消", text_x, cancel_button_rect.y + 15, (254, 247, 201), self.large_font)
         
         # 绘制消息
         if self.message_timer > 0:
@@ -711,23 +750,43 @@ class Game:
         # 定义日程数据
         schedules = {
             "理论实验": [
-                {"name": "专业课导论", "hours": 16, "attribute": "theory_experiment", "value": 100},
-                {"name": "编程语言上机课", "hours": 12, "attribute": "theory_experiment", "value": 75},
-                {"name": "高数课", "hours": 16, "attribute": "theory_experiment", "value": 100},
-                {"name": "概率论", "hours": 8, "attribute": "theory_experiment", "value": 50},
-                {"name": "专业课课设", "hours": 12, "attribute": "theory_experiment", "value": 75}
+                {"name": "固体物理", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "材料分析技术", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "量子力学导论", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "大学物理实验", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "数理方法", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "材料合成与制备", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "金相分析实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "工程制图", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "计算机辅助设计", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "材料性能实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "大学英语", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "思修与法律基础", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "大学体育", "hours": 8, "attribute": "theory_experiment", "value": 50},
             ],
             "创新创业": [
-                {"name": "生涯规划课", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
-                {"name": "创造训练", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
-                {"name": "创新与专利", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100}
+                {"name": "科研项目实训", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "企业实习实践", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "专利撰写与申报", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "创业大赛指导", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "本科就业指导", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
+                {"name": "科研伦理与规范", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
+                {"name": "科技文献检索", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
             ],
             "美育素养": [
-                {"name": "世界文明史", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "艺术鉴赏", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "基本乐理", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
-                {"name": "乐器演奏", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "人际沟通艺术", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75}
+                {"name": "交响乐团鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "中国书法艺术", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "国画赏析", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "影视鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "西方哲学史", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "演讲与口才", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "摄影技术", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "舞蹈基础", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "茶文化", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "中外民俗", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "心理健康", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "安全教育", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
+                {"name": "通识课任选", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
             ]
         }
         
@@ -735,74 +794,57 @@ class Game:
         column_width = (self.width - 100) // 3
         categories = list(schedules.keys())
         
-        # 处理鼠标点击事件
-        if not self.has_scheduled:
-            for event in events:
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    pos = pygame.mouse.get_pos()
-                    
-                    # 遍历所有日程项，检查是否被点击
-                    for i, category in enumerate(categories):
-                        # 计算列的位置
-                        column_x = 50 + i * column_width
-                        column_y = 140
-                        
-                        # 绘制日程项
-                        item_y = column_y + 40
-                        item_spacing = 40
-                        
-                        for item in schedules[category]:
-                            # 计算日程项位置
-                            item_x = column_x + 10
-                            item_width = column_width - 20
-                            item_height = 30
-                            item_rect = pygame.Rect(item_x, item_y, item_width, item_height)
-                            
-                            if item_rect.collidepoint(pos):
-                                # 检查是否已经选择了该日程
-                                is_selected = any(selected['name'] == item['name'] for selected in self.schedule_selected)
-                                if is_selected:
-                                    # 取消选择
-                                    self.schedule_selected = [s for s in self.schedule_selected if s['name'] != item['name']]
-                                else:
-                                    # 检查是否已经选择了3项
-                                    if len(self.schedule_selected) >= 3:
-                                        # 替换最早选择的项
-                                        self.schedule_selected.pop(0)
-                                    # 添加到选择列表
-                                    self.schedule_selected.append(item)
-                            
-                            item_y += item_spacing
-        
         # 处理操作按钮点击
         confirm_button_rect = pygame.Rect(self.width // 2 - 200, self.height - 80, 180, 50)
         cancel_button_rect = pygame.Rect(self.width // 2 + 20, self.height - 80, 180, 50)
         
+        # 处理所有事件
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     # 按ESC返回主界面
                     self.current_state = STATE_MAIN_GAME
             elif event.type == pygame.MOUSEBUTTONDOWN:
+                # 只处理鼠标左键点击
+                if event.button != 1:
+                    continue
+                
                 pos = pygame.mouse.get_pos()
+                
+                # 检查确认按钮
                 if confirm_button_rect.collidepoint(pos):
-                    # 确认选择
+                    # 执行并进入下一回合
                     if len(self.schedule_selected) > 0 and not self.has_scheduled:
                         # 记录属性变化前的值
                         before_theory = self.player.theory_experiment
                         before_employment = self.player.employment_entrepreneurship
                         before_aesthetic = self.player.aesthetic_cultivation
                         
-                        # 执行属性修改
-                        for item in self.schedule_selected:
-                            if item['attribute'] == "theory_experiment":
-                                self.player.add_theory_experiment(item['value'])
-                            elif item['attribute'] == "employment_entrepreneurship":
-                                self.player.add_employment_entrepreneurship(item['value'])
-                            elif item['attribute'] == "aesthetic_cultivation":
-                                self.player.add_aesthetic_cultivation(item['value'])
                         # 计算总学时（不扣除行动力）
                         total_hours = sum(item['hours'] for item in self.schedule_selected)
+                        
+                        # 执行属性修改（累计学习次数，达到学时时增加属性）
+                        for item in self.schedule_selected:
+                            course_name = item['name']
+                            # 初始化课程学习次数
+                            if course_name not in self.course_study_counts:
+                                self.course_study_counts[course_name] = 0
+                            
+                            # 增加学习次数
+                            self.course_study_counts[course_name] += 1
+                            
+                            # 检查是否达到学时要求
+                            if self.course_study_counts[course_name] >= item['hours']:
+                                # 增加属性
+                                if item['attribute'] == "theory_experiment":
+                                    self.player.add_theory_experiment(item['value'])
+                                elif item['attribute'] == "employment_entrepreneurship":
+                                    self.player.add_employment_entrepreneurship(item['value'])
+                                elif item['attribute'] == "aesthetic_cultivation":
+                                    self.player.add_aesthetic_cultivation(item['value'])
+                                # 重置学习次数（可选：如果课程可以重复学习）
+                                # self.course_study_counts[course_name] = 0
+                        
                         # 标记为已安排日程
                         self.has_scheduled = True
                         # 显示消息
@@ -816,8 +858,21 @@ class Game:
                         print(f"美育素养: {before_aesthetic} → {self.player.aesthetic_cultivation} (+{self.player.aesthetic_cultivation - before_aesthetic})")
                         print(f"总学时: {total_hours}")
                         print(f"剩余行动力: {self.player.action_points}")
+                        # 打印课程学习进度
+                        print("\n=== 课程学习进度 ===")
+                        for item in self.schedule_selected:
+                            course_name = item['name']
+                            count = self.course_study_counts.get(course_name, 0)
+                            print(f"{course_name}: {count}/{item['hours']} 学时")
                         print("=====================\n")
                         
+                        # 进入下一回合
+                        self.time_system.next_week()
+                        # 重置行动点
+                        self.player.action_points = DAILY_ACTION_POINTS
+                        # 重置日程安排相关属性
+                        self.schedule_selected = []
+                        self.has_scheduled = False
                         # 返回主界面
                         self.current_state = STATE_MAIN_GAME
                 elif cancel_button_rect.collidepoint(pos):
@@ -825,6 +880,69 @@ class Game:
                     self.schedule_selected = []
                     # 返回主界面
                     self.current_state = STATE_MAIN_GAME
+                else:
+                    # 检查日程项点击
+                    if not self.has_scheduled:
+                        for i, category in enumerate(categories):
+                            # 计算列的位置
+                            column_x = 50 + i * column_width
+                            column_y = 140
+                            
+                            # 绘制日程项
+                            item_spacing = 40
+                            items_per_column = 6
+                            
+                            # 计算当前显示的课程范围
+                            start_index = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
+                            end_index = min(len(schedules[category]), start_index + items_per_column)
+                            
+                            # 检查日程项点击
+                            item_y = column_y + 40
+                            for j in range(start_index, end_index):
+                                item = schedules[category][j]
+                                # 计算日程项位置
+                                item_x = column_x + 10
+                                item_width = column_width - 20
+                                item_height = 30
+                                item_rect = pygame.Rect(item_x, item_y, item_width, item_height)
+                                
+                                if item_rect.collidepoint(pos):
+                                    # 检查是否已经选择了该日程
+                                    is_selected = any(selected['name'] == item['name'] for selected in self.schedule_selected)
+                                    if is_selected:
+                                        # 取消选择
+                                        self.schedule_selected = [s for s in self.schedule_selected if s['name'] != item['name']]
+                                    else:
+                                        # 检查是否已经选择了3项
+                                        if len(self.schedule_selected) >= 3:
+                                            # 替换最早选择的项
+                                            self.schedule_selected.pop(0)
+                                        # 添加到选择列表
+                                        self.schedule_selected.append(item)
+                                
+                                item_y += item_spacing
+            elif event.type == pygame.MOUSEWHEEL:
+                # 处理鼠标滚轮事件，实现每列独立滚动
+                pos = pygame.mouse.get_pos()
+                for i in range(3):
+                    column_x = 50 + i * column_width
+                    column_rect = pygame.Rect(column_x, 140, column_width, self.height - 300)
+                    if column_rect.collidepoint(pos):
+                        # 计算最大滚动偏移量
+                        items_per_column = 6
+                        item_spacing = 40
+                        max_scroll = (len(schedules[categories[i]]) - items_per_column) * item_spacing
+                        if max_scroll < 0:
+                            max_scroll = 0
+                        
+                        # 滚动速度
+                        scroll_speed = item_spacing  # 每次滚动一个课程的高度
+                        
+                        # 更新滚动偏移量
+                        if event.y > 0:  # 向上滚动
+                            self.schedule_scroll_offsets[i] = min(0, self.schedule_scroll_offsets[i] + scroll_speed)
+                        else:  # 向下滚动
+                            self.schedule_scroll_offsets[i] = max(-max_scroll, self.schedule_scroll_offsets[i] - scroll_speed)
                     
     def do_action(self, action_name):
         if self.player.action_points <= 0:
