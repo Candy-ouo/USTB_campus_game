@@ -26,26 +26,31 @@ class Character:
     college: str = "材料"
     major: str = "材料科学与工程"
     
-    # 主属性
-    knowledge: int = 30
-    charm: int = 30
-    energy: int = 30
+    # 主属性（等级1-4，经验0-100）
+    knowledge: int = 10  # 学识经验
+    knowledge_level: int = 1
     
-    # 行动属性
-    money: int = 1000  # 生活费
-    action_points: int = 10  # 行动力
+    charm: int = 10  # 魅力经验
+    charm_level: int = 1
+    
+    physical: int = 10  # 体能经验
+    physical_level: int = 1
+    
+    # 生活属性
+    living_expenses: int = 200  # 生活费
+    action_points: int = 5  # 行动力
     mood: int = 100  # 心情 0-100
     health: int = 80  # 健康值 0-100
     
     # 副属性
-    skill: int = 0
-    social_network: int = 0
-    reputation: int = 0
+    skill: int = 0  # 技能
+    social: int = 0  # 人脉
+    reputation: int = 0  # 声望
     
     # 学习属性
-    theory_experiment: int = 0
-    employment_entrepreneurship: int = 0
-    aesthetic_literacy: int = 0
+    theory_experiment: int = 0  # 理论/实验
+    employment_entrepreneurship: int = 0  # 就业/创业
+    aesthetic_cultivation: int = 0  # 美育/素养
     
 
     
@@ -73,21 +78,24 @@ class Character:
             "major": self.major,
             # 主属性
             "knowledge": self.knowledge,
+            "knowledge_level": self.knowledge_level,
             "charm": self.charm,
-            "energy": self.energy,
-            # 行动属性
-            "money": self.money,
+            "charm_level": self.charm_level,
+            "physical": self.physical,
+            "physical_level": self.physical_level,
+            # 生活属性
+            "living_expenses": self.living_expenses,
             "action_points": self.action_points,
             "mood": self.mood,
             "health": self.health,
             # 副属性
             "skill": self.skill,
-            "social_network": self.social_network,
+            "social": self.social,
             "reputation": self.reputation,
             # 学习属性
             "theory_experiment": self.theory_experiment,
             "employment_entrepreneurship": self.employment_entrepreneurship,
-            "aesthetic_literacy": self.aesthetic_literacy
+            "aesthetic_cultivation": self.aesthetic_cultivation
         }
     
     @classmethod
@@ -102,20 +110,23 @@ class Character:
             college=data.get("college", "材料"),
             major=data.get("major", "材料科学与工程"),
             # 主属性
-            knowledge=data.get("knowledge", 30),
-            charm=data.get("charm", 30),
-            energy=data.get("energy", 30),
-            # 行动属性
-            money=data.get("money", 1000),
-            action_points=data.get("action_points", 10),
+            knowledge=data.get("knowledge", 10),
+            knowledge_level=data.get("knowledge_level", 1),
+            charm=data.get("charm", 10),
+            charm_level=data.get("charm_level", 1),
+            physical=data.get("physical", 10),
+            physical_level=data.get("physical_level", 1),
+            # 生活属性
+            living_expenses=data.get("living_expenses", 200),
+            action_points=data.get("action_points", 5),
             mood=data.get("mood", 100),
             health=data.get("health", 80),
             # 副属性
             skill=data.get("skill", 0),
-            social_network=data.get("social_network", 0),
+            social=data.get("social", 0),
             reputation=data.get("reputation", 0),
             # 学习属性
             theory_experiment=data.get("theory_experiment", 0),
             employment_entrepreneurship=data.get("employment_entrepreneurship", 0),
-            aesthetic_literacy=data.get("aesthetic_literacy", 0)
+            aesthetic_cultivation=data.get("aesthetic_cultivation", 0)
         )
