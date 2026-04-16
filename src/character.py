@@ -26,12 +26,28 @@ class Character:
     college: str = "材料"
     major: str = "材料科学与工程"
     
-    # 隐藏属性 (初始值 0)
-    skip_count: int = 0
-    night_count: int = 0
-    competition_wins: int = 0
-    papers: int = 0
-    certificates: int = 0
+    # 主属性
+    knowledge: int = 30
+    charm: int = 30
+    energy: int = 30
+    
+    # 行动属性
+    money: int = 1000  # 生活费
+    action_points: int = 10  # 行动力
+    mood: int = 100  # 心情 0-100
+    health: int = 80  # 健康值 0-100
+    
+    # 副属性
+    skill: int = 0
+    social_network: int = 0
+    reputation: int = 0
+    
+    # 学习属性
+    theory_experiment: int = 0
+    employment_entrepreneurship: int = 0
+    aesthetic_literacy: int = 0
+    
+
     
     def __post_init__(self):
         """初始化后确保专业与学院匹配"""
@@ -63,6 +79,7 @@ class Character:
             "money": self.money,
             "action_points": self.action_points,
             "mood": self.mood,
+            "health": self.health,
             # 副属性
             "skill": self.skill,
             "social_network": self.social_network,
@@ -70,13 +87,7 @@ class Character:
             # 学习属性
             "theory_experiment": self.theory_experiment,
             "employment_entrepreneurship": self.employment_entrepreneurship,
-            "aesthetic_literacy": self.aesthetic_literacy,
-            # 隐藏属性
-            "skip_count": self.skip_count,
-            "night_count": self.night_count,
-            "competition_wins": self.competition_wins,
-            "papers": self.papers,
-            "certificates": self.certificates
+            "aesthetic_literacy": self.aesthetic_literacy
         }
     
     @classmethod
@@ -98,6 +109,7 @@ class Character:
             money=data.get("money", 1000),
             action_points=data.get("action_points", 10),
             mood=data.get("mood", 100),
+            health=data.get("health", 80),
             # 副属性
             skill=data.get("skill", 0),
             social_network=data.get("social_network", 0),
@@ -105,11 +117,5 @@ class Character:
             # 学习属性
             theory_experiment=data.get("theory_experiment", 0),
             employment_entrepreneurship=data.get("employment_entrepreneurship", 0),
-            aesthetic_literacy=data.get("aesthetic_literacy", 0),
-            # 隐藏属性
-            skip_count=data.get("skip_count", 0),
-            night_count=data.get("night_count", 0),
-            competition_wins=data.get("competition_wins", 0),
-            papers=data.get("papers", 0),
-            certificates=data.get("certificates", 0)
+            aesthetic_literacy=data.get("aesthetic_literacy", 0)
         )
