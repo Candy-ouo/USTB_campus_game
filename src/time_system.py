@@ -25,7 +25,15 @@ class TimeSystem:
         return True
     
     def get_year(self):
-        return (self.day - 1) // 34 + 1
+        # 每过两个期末周（两个学期）才算一个学年
+        semester = self.get_semester()
+        
+        # 每两个学期为一个学年
+        # 第1-2学期 = 第1学年
+        # 第3-4学期 = 第2学年
+        # 第5-6学期 = 第3学年
+        # 第7-8学期 = 第4学年
+        return ((semester - 1) // 2) + 1
     
     def get_semester(self):
         semester = (self.day - 1) // 17 + 1

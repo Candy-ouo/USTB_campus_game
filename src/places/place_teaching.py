@@ -83,7 +83,8 @@ class Teaching:
                     # 选择上课
                     if self.game.player.action_points >= 2:
                         self.game.player.action_points -= 2
-                        self.game.player.add_knowledge(30)
+                        current_year = self.game.time_system.get_year()
+                        self.game.player.add_knowledge(30, current_year)
                         self.game.player.add_mood(-30)
                         self.game.player.add_health(-5)
                         self.game.message = "你选择了上课，行动点-2，学识+30，心情-30，健康值-5"
@@ -95,7 +96,8 @@ class Teaching:
                     # 选择自习
                     if self.game.player.action_points >= 1:
                         self.game.player.action_points -= 1
-                        self.game.player.add_knowledge(15)
+                        current_year = self.game.time_system.get_year()
+                        self.game.player.add_knowledge(15, current_year)
                         self.game.player.add_mood(-20)
                         self.game.player.add_health(-5)
                         self.game.message = "你选择了自习，行动点-1，学识+15，心情-20，健康值-5"

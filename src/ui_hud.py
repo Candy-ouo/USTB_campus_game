@@ -233,7 +233,7 @@ class UIHUD:
         health_rect = health_text.get_rect(center=(1110, y_offset))
         self.screen.blit(health_text, health_rect)
     
-    def draw_main_attributes(self, knowledge, knowledge_level, charm, charm_level, physical, physical_level, skill, social, reputation):
+    def draw_main_attributes(self, knowledge, knowledge_level, charm, charm_level, physical, physical_level, skill, social, reputation, mood=100):
         """绘制主属性和副属性（左下角）"""
         # 调整位置，确保在窗口左下角
         margin = 0
@@ -261,17 +261,34 @@ class UIHUD:
         reputation_text = self.font.render(f"{reputation}", True, (95, 58, 31))  
         self.screen.blit(reputation_text, (160, start_y))
         
-        # 学识
-        knowledge_text = self.font.render(f"LV{knowledge_level} {knowledge}/100", True, (60, 172, 100))  # 绿色
-        self.screen.blit(knowledge_text, (65, start_y + 30))
-        
-        # 魅力
-        charm_text = self.font.render(f"LV{charm_level} {charm}/100", True, (252, 173, 72))  # 黄色
-        self.screen.blit(charm_text, (65, start_y + 75))
-        
-        # 体能
-        physical_text = self.font.render(f"LV{physical_level} {physical}/100", True, (186, 50, 50))  # 红色
-        self.screen.blit(physical_text, (65, start_y + 115))
+        # 心情影响：心情低于50时，属性显示上限为50，当前值为实际值的一半
+        if mood < 50:
+            # 学识
+            display_knowledge = int(knowledge * 0.5)
+            knowledge_text = self.font.render(f"LV{knowledge_level} {display_knowledge}/50", True, (60, 172, 100))  # 绿色
+            self.screen.blit(knowledge_text, (65, start_y + 30))
+            
+            # 魅力
+            display_charm = int(charm * 0.5)
+            charm_text = self.font.render(f"LV{charm_level} {display_charm}/50", True, (252, 173, 72))  # 黄色
+            self.screen.blit(charm_text, (65, start_y + 75))
+            
+            # 体能
+            display_physical = int(physical * 0.5)
+            physical_text = self.font.render(f"LV{physical_level} {display_physical}/50", True, (186, 50, 50))  # 红色
+            self.screen.blit(physical_text, (65, start_y + 115))
+        else:
+            # 学识
+            knowledge_text = self.font.render(f"LV{knowledge_level} {knowledge}/100", True, (60, 172, 100))  # 绿色
+            self.screen.blit(knowledge_text, (65, start_y + 30))
+            
+            # 魅力
+            charm_text = self.font.render(f"LV{charm_level} {charm}/100", True, (252, 173, 72))  # 黄色
+            self.screen.blit(charm_text, (65, start_y + 75))
+            
+            # 体能
+            physical_text = self.font.render(f"LV{physical_level} {physical}/100", True, (186, 50, 50))  # 红色
+            self.screen.blit(physical_text, (65, start_y + 115))
         
         
     
@@ -364,7 +381,8 @@ class UIHUD:
         skill = player.get_skill()
         social = player.get_social()
         reputation = player.get_reputation()
-        self.draw_main_attributes(knowledge, knowledge_level, charm, charm_level, physical, physical_level, skill, social, reputation)
+        mood = player.get_mood()
+        self.draw_main_attributes(knowledge, knowledge_level, charm, charm_level, physical, physical_level, skill, social, reputation, mood)
     
     def handle_events(self, events):
         """处理UI事件"""

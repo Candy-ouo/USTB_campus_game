@@ -27,20 +27,21 @@ class Character:
     major: str = "材料科学与工程"
     
     # 主属性（等级1-4，经验0-100）
-    knowledge: int = 10  # 学识经验
+    knowledge: int = 30  # 学识经验，第一级初始为30
     knowledge_level: int = 1
     
-    charm: int = 10  # 魅力经验
+    charm: int = 30  # 魅力经验，第一级初始为30
     charm_level: int = 1
     
-    physical: int = 10  # 体能经验
+    physical: int = 30  # 体能经验，第一级初始为30
     physical_level: int = 1
     
     # 生活属性
     living_expenses: int = 200  # 生活费
     action_points: int = 5  # 行动力
-    mood: int = 100  # 心情 0-100
-    health: int = 80  # 健康值 0-100
+    mood: int = 100  # 心情
+    health: int = 80  # 健康值
+    is_sick: bool = False  # 是否生病 0-100
     
     # 副属性
     skill: int = 0  # 技能

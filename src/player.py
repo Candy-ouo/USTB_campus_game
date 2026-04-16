@@ -7,13 +7,13 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 class Player:
     def __init__(self):
         # 主属性（等级1-4，经验0-100）
-        self.knowledge = 10  # 学识经验
+        self.knowledge = 30  # 学识经验，第一级初始为30
         self.knowledge_level = 1
         
-        self.charm = 10  # 魅力经验
+        self.charm = 30  # 魅力经验，第一级初始为30
         self.charm_level = 1
         
-        self.physical = 10  # 体能经验
+        self.physical = 30  # 体能经验，第一级初始为30
         self.physical_level = 1
         
         # 生活属性
@@ -21,6 +21,7 @@ class Player:
         self.action_points = 5  # 行动力
         self.mood = 100  # 心情
         self.health = 80  # 健康值
+        self.is_sick = False  # 是否生病
         
         # 副属性
         self.skill = 0  # 技能
@@ -34,16 +35,17 @@ class Player:
     
     def reset(self):
         # 重置所有属性
-        self.knowledge = 10
+        self.knowledge = 30  # 第一级初始为30
         self.knowledge_level = 1
-        self.charm = 10
+        self.charm = 30  # 第一级初始为30
         self.charm_level = 1
-        self.physical = 10
+        self.physical = 30  # 第一级初始为30
         self.physical_level = 1
         self.living_expenses = 200
         self.action_points = 5
         self.mood = 100
         self.health = 80
+        self.is_sick = False
         self.skill = 0
         self.social = 0
         self.reputation = 0
@@ -51,8 +53,15 @@ class Player:
         self.employment_entrepreneurship = 0
         self.aesthetic_cultivation = 0
     
-    def _level_up(self, exp, level):
+    def _level_up(self, exp, level, current_year=None):
         """处理等级升级逻辑"""
+        # 如果提供了当前学年，检查等级限制
+        if current_year is not None and level >= current_year:
+            # 一学年只能最高只能达到当前等级的100/100+
+            if exp >= 100:
+                exp = 100
+            return exp, level
+        
         while exp >= 100:
             exp -= 100
             level += 1
@@ -60,37 +69,28 @@ class Player:
                 level = 4
                 exp = 100
                 break
+            # 如果提供了当前学年，检查等级限制
+            if current_year is not None and level >= current_year:
+                break
         return exp, level
     
-    def add_knowledge(self, amount):
+    def add_knowledge(self, amount, current_year=None):
         """增加学识经验"""
-        # 心情影响
-        if self.mood < 50:
-            amount = int(amount * 0.5)
-        
         self.knowledge += amount
-        self.knowledge, self.knowledge_level = self._level_up(self.knowledge, self.knowledge_level)
+        self.knowledge, self.knowledge_level = self._level_up(self.knowledge, self.knowledge_level, current_year)
         return self.knowledge_level
     
-    def add_charm(self, amount):
+    def add_charm(self, amount, current_year=None):
         """增加魅力经验"""
-        # 心情影响
-        if self.mood < 50:
-            amount = int(amount * 0.5)
-        
         self.charm += amount
-        self.charm, self.charm_level = self._level_up(self.charm, self.charm_level)
+        self.charm, self.charm_level = self._level_up(self.charm, self.charm_level, current_year)
         return self.charm_level
     
-    def add_physical(self, amount):
+    def add_physical(self, amount, current_year=None):
         """增加体能经验"""
-        # 心情影响
-        if self.mood < 50:
-            amount = int(amount * 0.5)
-        
         old_level = self.physical_level
         self.physical += amount
-        self.physical, self.physical_level = self._level_up(self.physical, self.physical_level)
+        self.physical, self.physical_level = self._level_up(self.physical, self.physical_level, current_year)
         
         # 体能升级时增加行动力上限
         if self.physical_level > old_level:
@@ -129,10 +129,6 @@ class Player:
     
     def add_skill(self, amount):
         """增加技能"""
-        # 心情影响
-        if self.mood < 50:
-            amount = int(amount * 0.5)
-        
         self.skill += amount
         if self.skill < 0:
             self.skill = 0
@@ -140,10 +136,6 @@ class Player:
     
     def add_social(self, amount):
         """增加人脉"""
-        # 心情影响
-        if self.mood < 50:
-            amount = int(amount * 0.5)
-        
         self.social += amount
         if self.social < 0:
             self.social = 0
@@ -151,10 +143,6 @@ class Player:
     
     def add_reputation(self, amount):
         """增加声望"""
-        # 心情影响
-        if self.mood < 50:
-            amount = int(amount * 0.5)
-        
         self.reputation += amount
         if self.reputation < 0:
             self.reputation = 0
@@ -167,14 +155,15 @@ class Player:
             self.health = 100
         if self.health < 0:
             self.health = 0
+        # 检查是否生病
+        if self.health < 40:
+            self.is_sick = True
+        else:
+            self.is_sick = False
         return self.health
     
     def add_theory_experiment(self, amount):
         """增加理论/实验"""
-        # 心情影响
-        if self.mood < 50:
-            amount = int(amount * 0.5)
-        
         self.theory_experiment += amount
         if self.theory_experiment < 0:
             self.theory_experiment = 0
@@ -182,10 +171,6 @@ class Player:
     
     def add_employment_entrepreneurship(self, amount):
         """增加就业/创业"""
-        # 心情影响
-        if self.mood < 50:
-            amount = int(amount * 0.5)
-        
         self.employment_entrepreneurship += amount
         if self.employment_entrepreneurship < 0:
             self.employment_entrepreneurship = 0
@@ -193,10 +178,6 @@ class Player:
     
     def add_aesthetic_cultivation(self, amount):
         """增加美育/素养"""
-        # 心情影响
-        if self.mood < 50:
-            amount = int(amount * 0.5)
-        
         self.aesthetic_cultivation += amount
         if self.aesthetic_cultivation < 0:
             self.aesthetic_cultivation = 0
