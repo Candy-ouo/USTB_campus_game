@@ -650,10 +650,25 @@ class Game:
             start_index = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
             end_index = min(len(schedules[category]), start_index + items_per_column)
             
-            # 绘制课程
+            # 绘制课程（过滤掉已修满的课程）
             item_y = column_y + 40
-            for j in range(start_index, end_index):
+            visible_items = []
+            
+            # 先过滤出未修满的课程
+            for j in range(len(schedules[category])):
                 item = schedules[category][j]
+                course_name = item['name']
+                study_count = self.course_study_counts.get(course_name, 0)
+                if study_count < item['hours']:
+                    visible_items.append(item)
+            
+            # 计算可见课程的显示范围
+            visible_start = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
+            visible_end = min(len(visible_items), visible_start + items_per_column)
+            
+            # 绘制可见的课程
+            for j in range(visible_start, visible_end):
+                item = visible_items[j]
                 # 计算日程项位置
                 item_x = column_x + 10
                 item_width = column_width - 20
@@ -898,8 +913,23 @@ class Game:
                             
                             # 检查日程项点击
                             item_y = column_y + 40
-                            for j in range(start_index, end_index):
+                            # 过滤出未修满的课程
+                            visible_items = []
+                            for j in range(len(schedules[category])):
                                 item = schedules[category][j]
+                                course_name = item['name']
+                                study_count = self.course_study_counts.get(course_name, 0)
+                                if study_count < item['hours']:
+                                    visible_items.append(item)
+                            
+                            # 计算当前显示的可见课程范围
+                            visible_start = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
+                            visible_end = min(len(visible_items), visible_start + items_per_column)
+                            
+                            # 检查可见课程的点击
+                            item_y = column_y + 40
+                            for j in range(visible_start, visible_end):
+                                item = visible_items[j]
                                 # 计算日程项位置
                                 item_x = column_x + 10
                                 item_width = column_width - 20
@@ -928,10 +958,18 @@ class Game:
                     column_x = 50 + i * column_width
                     column_rect = pygame.Rect(column_x, 140, column_width, self.height - 300)
                     if column_rect.collidepoint(pos):
+                        # 过滤出未修满的课程
+                        visible_items = []
+                        for item in schedules[categories[i]]:
+                            course_name = item['name']
+                            study_count = self.course_study_counts.get(course_name, 0)
+                            if study_count < item['hours']:
+                                visible_items.append(item)
+                        
                         # 计算最大滚动偏移量
                         items_per_column = 6
                         item_spacing = 40
-                        max_scroll = (len(schedules[categories[i]]) - items_per_column) * item_spacing
+                        max_scroll = (len(visible_items) - items_per_column) * item_spacing
                         if max_scroll < 0:
                             max_scroll = 0
                         
