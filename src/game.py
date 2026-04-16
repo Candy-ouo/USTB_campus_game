@@ -22,6 +22,14 @@ from src.places.place_dorm import Dorm
 from src.places.place_student_center import StudentCenter
 from src.places.place_hospital import Hospital
 
+# 时间季节面板类
+class TimeSeasonPanel:
+    def __init__(self, screen):
+        self.screen = screen
+    
+    def draw(self, time_system):
+        pass
+
 # 游戏状态
 STATE_CREATE_CHARACTER = "CREATE_CHARACTER"
 STATE_MAIN_GAME = "MAIN_GAME"
@@ -37,172 +45,14 @@ STATE_SCHEDULE = "SCHEDULE"
 
 class Game:
     def __init__(self, character=None, screen=None):
-        self.screen = screen
-        self.clock = pygame.time.Clock()
-        # 尝试使用本地字体文件
-        font_path = os.path.join(os.path.dirname(__file__), '..', 'fonts', 'msyh.ttf')
-        start_font_path = os.path.join(os.path.dirname(__file__), '..', 'fonts', 'fonts_start.ttf')
-        self.font = None
-        self.large_font = None
-        self.start_font = None
-        
-        try:
-            if os.path.exists(font_path):
-                self.font = pygame.font.Font(font_path, 18)  # 增大字体大小
-                self.large_font = pygame.font.Font(font_path, 24)  # 增大字体大小
-        except:
-            pass
-        
-        # 加载粗体字体
-        try:
-            if os.path.exists(start_font_path):
-                self.start_font = pygame.font.Font(start_font_path, 20)
-        except:
-            pass
-        
-        # 如果本地字体失败，尝试使用系统字体
-        if self.font is None or self.large_font is None:
-            font_names = ['SimHei', 'Microsoft YaHei', 'Arial Unicode MS', 'sans-serif']
-            for font_name in font_names:
-                try:
-                    if self.font is None:
-                        self.font = pygame.font.SysFont(font_name, 18)  # 增大字体大小
-                    if self.large_font is None:
-                        self.large_font = pygame.font.SysFont(font_name, 24)  # 增大字体大小
-                    if self.font and self.large_font:
-                        break
-                except:
-                    continue
-        
-        # 如果所有字体都失败，使用默认字体
-        if self.font is None:
-            self.font = pygame.font.Font(None, 18)  # 增大字体大小
-        if self.large_font is None:
-            self.large_font = pygame.font.Font(None, 24)  # 增大字体大小
-        if self.start_font is None:
-            self.start_font = self.font
-        
-        # 游戏状态
-        self.current_state = STATE_MAIN_GAME if character else STATE_CREATE_CHARACTER
-        
-        # 角色和场景
-        self.character = character
-        self.create_character_scene = None
-        
-        # 加载地图按钮图片
-        map_button_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'map_button.png')
-        self.map_button_image = None
-        try:
-            if os.path.exists(map_button_path):
-                self.map_button_image = pygame.image.load(map_button_path)
-        except:
-            pass
-        
-        # 区域状态
-        self.has_eaten = False
-        self.has_studied = False
-        self.has_exercised = False
-        self.supermarket_purchases = 0
-        self.has_rested = False
-        
-        # 其他游戏对象
-        self.player = Player()
-        self.time_system = TimeSystem()
-        self.map_system = MapSystem()
-        self.ui_hud = UIHUD(self.screen)
-        # 初始化场景对象
-        self.canteen = Canteen(self)
-        self.teaching = Teaching(self)
-        self.sports = Sports(self)
-        self.supermarket = Supermarket(self)
-        self.dorm = Dorm(self)
-        self.student_center = StudentCenter(self)
-        self.hospital = Hospital(self)
-        
-        # 游戏状态
-        self.running = True
-        self.message = ""
-        self.message_timer = 0
-        
-        # 加载地图背景图片
-        self.map_background = None
-        map_image_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'map_background.jpg')
-        try:
-            if os.path.exists(map_image_path):
-                self.map_background = pygame.image.load(map_image_path)
-                # 缩放到屏幕大小
-                self.map_background = pygame.transform.scale(self.map_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
-        except Exception as e:
-            print(f"加载地图背景失败: {e}")
-        
-        if character:
-            # 角色创建完成，将Character属性传递给Player
-            # 主属性
-            self.player.knowledge = character.knowledge
-            self.player.charm = character.charm
-            self.player.physical = character.energy
-            # 行动属性
-            self.player.living_expenses = character.money
-            self.player.action_points = character.action_points
-            self.player.mood = character.mood
-            self.player.health = character.health
-            # 副属性
-            self.player.skill = character.skill
-            self.player.social = character.social_network
-            self.player.reputation = character.reputation
+        if screen is None:
+            pygame.init()
+            # 创建可调整大小的窗口
+            self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
+            pygame.display.set_caption("北科校园物语")
         else:
-            self.player.action_points = DAILY_ACTION_POINTS
+            self.screen = screen
         
-        # 日程安排相关属性
-        self.schedule_selected = []  # 已选择的日程
-        self.has_scheduled = False  # 是否已经安排日程
-    
-    def reset(self):
-        self.player.reset()
-        self.time_system.reset()
-        self.player.action_points = DAILY_ACTION_POINTS
-        # 重置日程安排相关属性
-        self.schedule_selected = []
-        self.has_scheduled = False
-        self.message = "新游戏开始！"
-        self.message_timer = 120
-    
-    def save_game(self):
-        try:
-            save_data = {
-                'player': self.player.to_dict(),
-                'time_system': self.time_system.to_dict()
-            }
-            os.makedirs(os.path.dirname(SAVE_FILE), exist_ok=True)
-            with open(SAVE_FILE, 'w', encoding='utf-8') as f:
-                json.dump(save_data, f, ensure_ascii=False, indent=2)
-            self.message = "游戏已保存！"
-            self.message_timer = 120
-        except Exception as e:
-            self.message = f"保存失败: {str(e)}"
-            self.message_timer = 120
-    
-    def load_game(self):
-        try:
-            if os.path.exists(SAVE_FILE):
-                with open(SAVE_FILE, 'r', encoding='utf-8') as f:
-                    save_data = json.load(f)
-                self.player.from_dict(save_data['player'])
-                self.time_system.from_dict(save_data['time_system'])
-                self.message = "游戏已加载！"
-                self.message_timer = 120
-            else:
-                self.message = "没有找到存档！"
-                self.message_timer = 120
-        except Exception as e:
-            self.message = f"加载失败: {str(e)}"
-            self.message_timer = 120
-    
-    def __init__(self, character=None):
-        pygame.init()
-        # 创建可调整大小的窗口
-        self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
-        pygame.display.set_caption("北科校园物语")
         self.clock = pygame.time.Clock()
         # 存储当前窗口大小
         self.width, self.height = SCREEN_WIDTH, SCREEN_HEIGHT
@@ -341,6 +191,14 @@ class Game:
         self.map_system = MapSystem()
         self.ui_hud = UIHUD(self.screen)
         self.time_season_panel = TimeSeasonPanel(self.screen)
+        # 初始化场景对象
+        self.canteen = Canteen(self)
+        self.teaching = Teaching(self)
+        self.sports = Sports(self)
+        self.supermarket = Supermarket(self)
+        self.dorm = Dorm(self)
+        self.student_center = StudentCenter(self)
+        self.hospital = Hospital(self)
         
         # 游戏状态
         self.running = True
@@ -363,19 +221,76 @@ class Game:
             print(f"加载地图背景失败: {e}")
         
         if character:
-            # 角色创建完成，使用Player的默认初始属性
-            pass
+            # 角色创建完成，将Character属性传递给Player
+            # 主属性
+            self.player.knowledge = character.knowledge
+            self.player.knowledge_level = character.knowledge_level
+            self.player.charm = character.charm
+            self.player.charm_level = character.charm_level
+            self.player.physical = character.physical
+            self.player.physical_level = character.physical_level
+            # 行动属性
+            self.player.living_expenses = character.living_expenses
+            self.player.action_points = character.action_points
+            self.player.mood = character.mood
+            self.player.health = character.health
+            # 副属性
+            self.player.skill = character.skill
+            self.player.social = character.social
+            self.player.reputation = character.reputation
+            # 学习属性
+            self.player.theory_experiment = character.theory_experiment
+            self.player.employment_entrepreneurship = character.employment_entrepreneurship
+            self.player.aesthetic_cultivation = character.aesthetic_cultivation
         else:
             self.player.action_points = DAILY_ACTION_POINTS
+        
+        # 日程安排相关属性
+        self.schedule_selected = []  # 已选择的日程
+        self.has_scheduled = False  # 是否已经安排日程
     
     def reset(self):
         self.player.reset()
         self.time_system.reset()
         self.player.action_points = DAILY_ACTION_POINTS
+        # 重置日程安排相关属性
+        self.schedule_selected = []
+        self.has_scheduled = False
         self.message = "新游戏开始！"
         self.message_timer = 120
         self.final_scores = []
         self.final_gpas = []
+    
+    def save_game(self):
+        try:
+            save_data = {
+                'player': self.player.to_dict(),
+                'time_system': self.time_system.to_dict()
+            }
+            os.makedirs(os.path.dirname(SAVE_FILE), exist_ok=True)
+            with open(SAVE_FILE, 'w', encoding='utf-8') as f:
+                json.dump(save_data, f, ensure_ascii=False, indent=2)
+            self.message = "游戏已保存！"
+            self.message_timer = 120
+        except Exception as e:
+            self.message = f"保存失败: {str(e)}"
+            self.message_timer = 120
+    
+    def load_game(self):
+        try:
+            if os.path.exists(SAVE_FILE):
+                with open(SAVE_FILE, 'r', encoding='utf-8') as f:
+                    save_data = json.load(f)
+                self.player.from_dict(save_data['player'])
+                self.time_system.from_dict(save_data['time_system'])
+                self.message = "游戏已加载！"
+                self.message_timer = 120
+            else:
+                self.message = "没有找到存档！"
+                self.message_timer = 120
+        except Exception as e:
+            self.message = f"加载失败: {str(e)}"
+            self.message_timer = 120
     
     def calculate_final_score(self):
         """计算期末成绩"""
@@ -1100,6 +1015,8 @@ class Game:
         self.ui_hud.draw_all(time_display, self.player)
         
         # 绘制日程安排按钮
+        x_offset = self.width - 300
+        y_offset = self.height - 300 + 30 + 5 * 25 + 20 + 30
         y_offset += 40
         schedule_button_rect = pygame.Rect(x_offset, y_offset, 280, 50)
         if not self.has_scheduled:
