@@ -1,5 +1,16 @@
 import sys
 import os
+
+# 禁用 libpng 的 iCCP 警告
+class DevNull:
+    def write(self, *args): pass
+    def flush(self): pass
+
+# 重定向stderr以忽略libpng警告
+old_stderr = sys.stderr
+sys.stderr = DevNull()
+
+# 然后导入 pygame
 import pygame
 
 sys.path.append(os.path.dirname(__file__))
@@ -12,6 +23,7 @@ from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS
 def main():
     # 初始化pygame
     pygame.init()
+    # 创建不可调整大小的窗口（默认就是不可调整的）
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("北科校园物语")
     
@@ -90,7 +102,7 @@ def main():
                     current_scene = 'START_SCENE'
         
         elif current_scene == 'GAME_SCENE':
-            game = Game(character)
+            game = Game(character, screen)
             game.run()
             break
 
