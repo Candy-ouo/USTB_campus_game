@@ -7,7 +7,7 @@ GRAY = (128, 128, 128)
 
 TOTAL_DAYS = 128
 DAYS_PER_WEEK = 7
-DAILY_ACTION_POINTS = 3
+DAILY_ACTION_POINTS = 5
 
 WEEKDAYS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
 
