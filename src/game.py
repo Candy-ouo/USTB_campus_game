@@ -553,20 +553,15 @@ class Game:
                 else:
                     # 处理主界面的鼠标点击
                     pos = pygame.mouse.get_pos()
-                    # 检查日程安排按钮是否被点击
-                    x_offset = self.width - 300
-                    y_offset = self.height - 300 + 30 + 5 * 25 + 20 + 30 + 40
-                    schedule_button_rect = pygame.Rect(x_offset, y_offset, 280, 50)
-                    print(f"鼠标点击位置: {pos}")
-                    print(f"日程安排按钮区域: {schedule_button_rect}")
-                    print(f"是否点击了按钮: {schedule_button_rect.collidepoint(pos)}")
-                    print(f"是否已经安排日程: {self.has_scheduled}")
-                    if schedule_button_rect.collidepoint(pos) and not self.has_scheduled:
+                    # 检查"安排"图标是否被点击
+                    # 根据截图，"安排"图标位于界面右侧，地图图标的下方
+                    schedule_icon_rect = pygame.Rect(self.width - 100, self.height - 150, 80, 80)
+                    if schedule_icon_rect.collidepoint(pos):
                         # 跳转到日程安排页面
-                        print("跳转到日程安排页面")
                         self.current_state = STATE_SCHEDULE
-                        # 重置已选择的日程
-                        self.schedule_selected = []
+                        # 如果还没有安排日程，重置已选择的日程
+                        if not self.has_scheduled:
+                            self.schedule_selected = []
     
     def _draw_schedule(self):
         """绘制日程安排页面"""
@@ -637,11 +632,20 @@ class Game:
                     pygame.draw.rect(self.screen, (255, 215, 0), (item_x, item_y, item_width, item_height))
                     pygame.draw.rect(self.screen, (218, 165, 32), (item_x, item_y, item_width, item_height), 2)
                 else:
-                    pygame.draw.rect(self.screen, (254, 247, 201), (item_x, item_y, item_width, item_height))
-                    pygame.draw.rect(self.screen, (150, 100, 50), (item_x, item_y, item_width, item_height), 2)
+                    if self.has_scheduled:
+                        # 已经安排了日程，禁用未选中的日程项
+                        pygame.draw.rect(self.screen, (200, 200, 200), (item_x, item_y, item_width, item_height))
+                        pygame.draw.rect(self.screen, (100, 100, 100), (item_x, item_y, item_width, item_height), 2)
+                    else:
+                        pygame.draw.rect(self.screen, (254, 247, 201), (item_x, item_y, item_width, item_height))
+                        pygame.draw.rect(self.screen, (150, 100, 50), (item_x, item_y, item_width, item_height), 2)
                 
                 # 绘制日程项文本
-                item_text = self.font.render(f"{item['name']}: {item['hours']}学时, {self._get_attribute_name(item['attribute'])}+{item['value']}", True, (150, 100, 50))
+                if self.has_scheduled:
+                    # 已经安排了日程，使用灰色文本
+                    item_text = self.font.render(f"{item['name']}: {item['hours']}学时, {self._get_attribute_name(item['attribute'])}+{item['value']}", True, (100, 100, 100))
+                else:
+                    item_text = self.font.render(f"{item['name']}: {item['hours']}学时, {self._get_attribute_name(item['attribute'])}+{item['value']}", True, (150, 100, 50))
                 self.screen.blit(item_text, (item_x + 10, item_y + 5))
                 
                 item_y += item_spacing
@@ -674,7 +678,7 @@ class Game:
         cancel_button_rect = pygame.Rect(self.width // 2 + 20, self.height - 80, 180, 50)
         
         # 确认选择按钮
-        if len(self.schedule_selected) > 0:
+        if len(self.schedule_selected) > 0 and not self.has_scheduled:
             pygame.draw.rect(self.screen, (220, 180, 140), confirm_button_rect)
             pygame.draw.rect(self.screen, (150, 100, 50), confirm_button_rect, 2)
             self.draw_text("确认选择", confirm_button_rect.x + 40, confirm_button_rect.y + 15, (254, 247, 201), self.large_font)
@@ -732,42 +736,43 @@ class Game:
         categories = list(schedules.keys())
         
         # 处理鼠标点击事件
-        for event in events:
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                pos = pygame.mouse.get_pos()
-                
-                # 遍历所有日程项，检查是否被点击
-                for i, category in enumerate(categories):
-                    # 计算列的位置
-                    column_x = 50 + i * column_width
-                    column_y = 140
+        if not self.has_scheduled:
+            for event in events:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
                     
-                    # 绘制日程项
-                    item_y = column_y + 40
-                    item_spacing = 40
-                    
-                    for item in schedules[category]:
-                        # 计算日程项位置
-                        item_x = column_x + 10
-                        item_width = column_width - 20
-                        item_height = 30
-                        item_rect = pygame.Rect(item_x, item_y, item_width, item_height)
+                    # 遍历所有日程项，检查是否被点击
+                    for i, category in enumerate(categories):
+                        # 计算列的位置
+                        column_x = 50 + i * column_width
+                        column_y = 140
                         
-                        if item_rect.collidepoint(pos):
-                            # 检查是否已经选择了该日程
-                            is_selected = any(selected['name'] == item['name'] for selected in self.schedule_selected)
-                            if is_selected:
-                                # 取消选择
-                                self.schedule_selected = [s for s in self.schedule_selected if s['name'] != item['name']]
-                            else:
-                                # 检查是否已经选择了3项
-                                if len(self.schedule_selected) >= 3:
-                                    # 替换最早选择的项
-                                    self.schedule_selected.pop(0)
-                                # 添加到选择列表
-                                self.schedule_selected.append(item)
+                        # 绘制日程项
+                        item_y = column_y + 40
+                        item_spacing = 40
                         
-                        item_y += item_spacing
+                        for item in schedules[category]:
+                            # 计算日程项位置
+                            item_x = column_x + 10
+                            item_width = column_width - 20
+                            item_height = 30
+                            item_rect = pygame.Rect(item_x, item_y, item_width, item_height)
+                            
+                            if item_rect.collidepoint(pos):
+                                # 检查是否已经选择了该日程
+                                is_selected = any(selected['name'] == item['name'] for selected in self.schedule_selected)
+                                if is_selected:
+                                    # 取消选择
+                                    self.schedule_selected = [s for s in self.schedule_selected if s['name'] != item['name']]
+                                else:
+                                    # 检查是否已经选择了3项
+                                    if len(self.schedule_selected) >= 3:
+                                        # 替换最早选择的项
+                                        self.schedule_selected.pop(0)
+                                    # 添加到选择列表
+                                    self.schedule_selected.append(item)
+                            
+                            item_y += item_spacing
         
         # 处理操作按钮点击
         confirm_button_rect = pygame.Rect(self.width // 2 - 200, self.height - 80, 180, 50)
@@ -782,7 +787,7 @@ class Game:
                 pos = pygame.mouse.get_pos()
                 if confirm_button_rect.collidepoint(pos):
                     # 确认选择
-                    if len(self.schedule_selected) > 0:
+                    if len(self.schedule_selected) > 0 and not self.has_scheduled:
                         # 记录属性变化前的值
                         before_theory = self.player.theory_experiment
                         before_employment = self.player.employment_entrepreneurship
@@ -1014,19 +1019,7 @@ class Game:
         time_display = self.time_system.get_time_display()
         self.ui_hud.draw_all(time_display, self.player)
         
-        # 绘制日程安排按钮
-        x_offset = self.width - 300
-        y_offset = self.height - 300 + 30 + 5 * 25 + 20 + 30
-        y_offset += 40
-        schedule_button_rect = pygame.Rect(x_offset, y_offset, 280, 50)
-        if not self.has_scheduled:
-            pygame.draw.rect(self.screen, (220, 180, 140), schedule_button_rect)
-            pygame.draw.rect(self.screen, (150, 100, 50), schedule_button_rect, 2)
-            self.draw_text("日程安排", schedule_button_rect.x + 100, schedule_button_rect.y + 15, (254, 247, 201), self.large_font)
-        else:
-            pygame.draw.rect(self.screen, (100, 100, 100), schedule_button_rect)
-            pygame.draw.rect(self.screen, (50, 50, 50), schedule_button_rect, 2)
-            self.draw_text("已安排日程", schedule_button_rect.x + 80, schedule_button_rect.y + 15, (200, 200, 200), self.large_font)
+
         
         if self.message_timer > 0:
             self.draw_text(self.message, self.width // 2 - 150, self.height - 80, WHITE, self.large_font)
