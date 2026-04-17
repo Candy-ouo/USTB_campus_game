@@ -562,6 +562,14 @@ class Game:
                 self.hospital.handle_events(events)
             elif self.current_state == STATE_SCHEDULE:
                 self._handle_schedule(events)
+            elif self.current_state == STATE_FILE:
+                result = self.file_scene.handle_events(events)
+                if result:
+                    self.current_state = result
+            elif self.current_state == STATE_FINAL_EXAM:
+                for event in events:
+                    if event.type == pygame.MOUSEBUTTONDOWN or (event.type == pygame.KEYDOWN and event.key != pygame.K_m):
+                        self.current_state = STATE_DORM
     
     def _handle_create_character(self, events):
         """处理角色创建"""
