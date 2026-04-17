@@ -160,39 +160,48 @@ class Sports:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 if walking_button_rect.collidepoint(pos):
-                    if self.game.player.action_points >= 1:
-                        self.game.player.action_points -= 1
+                    # 使用add_action_points方法，确保健康状态检查
+                    old_action_points = self.game.player.action_points
+                    self.game.player.add_action_points(-1)
+                    # 检查行动点是否真的减少了（生病时不会减少）
+                    if self.game.player.action_points < old_action_points:
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_physical(5, current_year)
                         self.game.player.add_reputation(1)  # 增加声望
-                        self.game.message = "你选择了散步，行动点-1，体能+5，声望+1"
+                        self.game.message = "你选择了散步，体能+5，声望+1"
                         self.game.message_timer = 90
                     else:
-                        self.game.message = "行动点不足！"
+                        self.game.message = "行动点不足或生病了！"
                         self.game.message_timer = 60
                 elif running_button_rect.collidepoint(pos):
-                    if self.game.player.action_points >= 2:
-                        self.game.player.action_points -= 2
+                    # 使用add_action_points方法，确保健康状态检查
+                    old_action_points = self.game.player.action_points
+                    self.game.player.add_action_points(-2)
+                    # 检查行动点是否真的减少了（生病时不会减少）
+                    if self.game.player.action_points < old_action_points:
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_physical(10, current_year)
                         self.game.player.add_reputation(2)  # 增加声望
-                        self.game.message = "你选择了跑步，行动点-2，体能+10，声望+2"
+                        self.game.message = "你选择了跑步，体能+10，声望+2"
                         self.game.message_timer = 90
                     else:
-                        self.game.message = "行动点不足！"
+                        self.game.message = "行动点不足或生病了！"
                         self.game.message_timer = 60
                 elif swimming_button_rect.collidepoint(pos):
-                    if self.game.player.action_points >= 2 and self.game.player.living_expenses >= 20:
-                        self.game.player.action_points -= 2
+                    # 使用add_action_points方法，确保健康状态检查
+                    old_action_points = self.game.player.action_points
+                    self.game.player.add_action_points(-2)
+                    # 检查行动点是否真的减少了（生病时不会减少）
+                    if self.game.player.action_points < old_action_points and self.game.player.living_expenses >= 20:
                         self.game.player.living_expenses -= 20
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_physical(15, current_year)
                         self.game.player.add_reputation(3)  # 增加声望
                         self.game.player.add_social(2)  # 增加人脉
-                        self.game.message = "你选择了游泳，行动点-2，金钱-20，体能+15，声望+3，人脉+2"
+                        self.game.message = "你选择了游泳，金钱-20，体能+15，声望+3，人脉+2"
                         self.game.message_timer = 90
-                    elif self.game.player.action_points < 2:
-                        self.game.message = "行动点不足！"
+                    elif old_action_points == self.game.player.action_points:
+                        self.game.message = "行动点不足或生病了！"
                         self.game.message_timer = 60
                     else:
                         self.game.message = "金钱不足！"

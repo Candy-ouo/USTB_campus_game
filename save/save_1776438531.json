@@ -1,9 +1,9 @@
 {
   "character": {
-    "name": "春意",
+    "name": "玩家",
     "gender": "男",
-    "height": 222,
-    "weight": 333,
+    "height": 170,
+    "weight": 60,
     "birthday": "01-01",
     "college": "材料",
     "major": "材料化学",
@@ -25,7 +25,7 @@
     "aesthetic_cultivation": 0
   },
   "player": {
-    "knowledge": 40,
+    "knowledge": 30,
     "knowledge_level": 1,
     "charm": 30,
     "charm_level": 1,
@@ -33,8 +33,8 @@
     "physical_level": 1,
     "living_expenses": 200,
     "action_points": 5,
-    "mood": 90,
-    "health": 85,
+    "mood": 100,
+    "health": 80,
     "skill": 0,
     "social": 0,
     "reputation": 0,
@@ -43,7 +43,7 @@
     "aesthetic_cultivation": 0
   },
   "time_system": {
-    "day": 2,
+    "day": 1,
     "ended": false
   },
   "game_state": {
@@ -62,10 +62,7 @@
       0,
       0
     ],
-    "course_study_counts": {
-      "数理方法": 1,
-      "材料合成与制备": 1
-    },
+    "course_study_counts": {},
     "final_scores": [],
     "final_gpas": [],
     "current_final_score": 0,

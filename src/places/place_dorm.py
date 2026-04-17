@@ -161,33 +161,40 @@ class Dorm:
                 pos = pygame.mouse.get_pos()
                 # 只有未玩游戏时才能点击玩游戏选项
                 if not self.game.has_played_games and playgame_button_rect.collidepoint(pos):
-                    if self.game.player.action_points >= 1:
-                        self.game.player.action_points -= 1
+                    # 使用add_action_points方法，确保健康状态检查
+                    old_action_points = self.game.player.action_points
+                    self.game.player.add_action_points(-1)
+                    # 检查行动点是否真的减少了（生病时不会减少）
+                    if self.game.player.action_points < old_action_points:
                         self.game.player.add_mood(40)
                         self.game.player.add_social(2)  # 增加人脉
                         self.game.has_played_games = True
-                        self.game.message = "你选择了玩游戏，心情+40，行动点-1，人脉+2"
+                        self.game.message = "你选择了玩游戏，心情+40，人脉+2"
                         self.game.message_timer = 90
                     else:
-                        self.game.message = "行动点不足！"
+                        self.game.message = "行动点不足或生病了！"
                         self.game.message_timer = 60
                 # 只有未看书时才能点击看书选项
                 elif not self.game.has_read_book and reading_button_rect.collidepoint(pos):
-                    if self.game.player.action_points >= 1:
-                        self.game.player.action_points -= 1
+                    # 使用add_action_points方法，确保健康状态检查
+                    old_action_points = self.game.player.action_points
+                    self.game.player.add_action_points(-1)
+                    # 检查行动点是否真的减少了（生病时不会减少）
+                    if self.game.player.action_points < old_action_points:
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_knowledge(10, current_year)
                         self.game.player.add_skill(3)  # 增加技能
                         self.game.player.add_mood(-10)
                         self.game.has_read_book = True
-                        self.game.message = "你选择了看书，学识+10，技能+3，心情-10，行动点-1"
+                        self.game.message = "你选择了看书，学识+10，技能+3，心情-10"
                         self.game.message_timer = 90
                     else:
-                        self.game.message = "行动点不足！"
+                        self.game.message = "行动点不足或生病了！"
                         self.game.message_timer = 60
                 # 只有未休息时才能点击休息选项
                 elif not self.game.has_rested and bed_button_rect.collidepoint(pos):
-                    self.game.player.action_points += 2
+                    # 使用add_action_points方法，确保健康状态检查
+                    self.game.player.add_action_points(2)
                     self.game.player.add_health(5)
                     self.game.player.add_mood(10)  # 增加心情
                     self.game.has_rested = True

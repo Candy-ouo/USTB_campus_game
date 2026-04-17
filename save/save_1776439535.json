@@ -1,9 +1,9 @@
 {
   "character": {
-    "name": "啊啊啊",
+    "name": "玩家",
     "gender": "男",
-    "height": 223,
-    "weight": 333,
+    "height": 170,
+    "weight": 60,
     "birthday": "01-01",
     "college": "材料",
     "major": "材料化学",

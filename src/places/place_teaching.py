@@ -119,28 +119,34 @@ class Teaching:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 if shangke_button_rect.collidepoint(pos):
-                    if self.game.player.action_points >= 2:
-                        self.game.player.action_points -= 2
+                    # 使用add_action_points方法，确保健康状态检查
+                    old_action_points = self.game.player.action_points
+                    self.game.player.add_action_points(-2)
+                    # 检查行动点是否真的减少了（生病时不会减少）
+                    if self.game.player.action_points < old_action_points:
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_knowledge(30, current_year)
                         self.game.player.add_skill(5)  # 增加技能
                         self.game.player.add_mood(-30)
                         self.game.player.add_health(-5)
-                        self.game.message = "你选择了上课，行动点-2，学识+30，技能+5，心情-30，健康值-5"
+                        self.game.message = "你选择了上课，学识+30，技能+5，心情-30，健康值-5"
                         self.game.message_timer = 90
                     else:
-                        self.game.message = "行动点不足！"
+                        self.game.message = "行动点不足或生病了！"
                         self.game.message_timer = 60
                 elif zixi_button_rect.collidepoint(pos):
-                    if self.game.player.action_points >= 1:
-                        self.game.player.action_points -= 1
+                    # 使用add_action_points方法，确保健康状态检查
+                    old_action_points = self.game.player.action_points
+                    self.game.player.add_action_points(-1)
+                    # 检查行动点是否真的减少了（生病时不会减少）
+                    if self.game.player.action_points < old_action_points:
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_knowledge(15, current_year)
                         self.game.player.add_skill(2)  # 增加技能
                         self.game.player.add_mood(-20)
                         self.game.player.add_health(-5)
-                        self.game.message = "你选择了自习，行动点-1，学识+15，技能+2，心情-20，健康值-5"
+                        self.game.message = "你选择了自习，学识+15，技能+2，心情-20，健康值-5"
                         self.game.message_timer = 90
                     else:
-                        self.game.message = "行动点不足！"
+                        self.game.message = "行动点不足或生病了！"
                         self.game.message_timer = 60

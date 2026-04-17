@@ -220,10 +220,19 @@ class UIHUD:
         self.screen.blit(expense_text, expense_rect)
         
         # 绘制行动力
+        # 计算最大行动点，考虑健康状态和体能等级
         max_action_points = 5 + (player.physical_level - 1)
-        if player.health < 60:
+        if player.health < 40:
+            max_action_points = 0
+            display_action_points = 0
+        elif player.health < 60:
             max_action_points = max(1, max_action_points // 2)
-        action_text = self.action_font.render(f"{action_points}/{max_action_points}", True, (225, 182, 83))
+            # 确保显示的行动点不超过上限
+            display_action_points = min(action_points, max_action_points)
+        else:
+            # 确保显示的行动点不超过上限
+            display_action_points = min(action_points, max_action_points)
+        action_text = self.action_font.render(f"{display_action_points}/{max_action_points}", True, (225, 182, 83))
         action_rect = action_text.get_rect(center=(600, y_offset))
         self.screen.blit(action_text, action_rect)
         

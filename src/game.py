@@ -1,9 +1,13 @@
-import pygame
 import json
 import os
 import sys
 
-sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+# 忽略libpng警告
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+os.environ['SDL_VIDEO_X11_WMCLASS'] = 'pygame'
+
+import pygame
+
 from data.config import (
     SCREEN_WIDTH, SCREEN_HEIGHT, FPS, BLACK, WHITE, GRAY,
     DAILY_ACTION_POINTS, SAVE_FILE
@@ -222,6 +226,51 @@ class Game:
         self.current_final_grade = ""
         self.current_final_gpa = 0.0
         self.current_need_makeup = False
+        # 追踪所有学期理论实验的累加总值
+        self.total_theory_experiment = 0
+        
+        # 日程安排数据
+        self.schedules = {
+            "理论实验": [
+                {"name": "固体物理", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "材料分析技术", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "量子力学导论", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "大学物理实验", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "数理方法", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "材料合成与制备", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "金相分析实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "工程制图", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "计算机辅助设计", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "材料性能实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "大学英语", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "思修与法律基础", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "大学体育", "hours": 8, "attribute": "theory_experiment", "value": 50},
+            ],
+            "创新创业": [
+                {"name": "科研项目实训", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "企业实习实践", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "专利撰写与申报", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "创业大赛指导", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "本科就业指导", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
+                {"name": "科研伦理与规范", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
+                {"name": "科技文献检索", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
+            ],
+            "美育素养": [
+                {"name": "交响乐团鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "中国书法艺术", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "国画赏析", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "影视鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "西方哲学史", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "演讲与口才", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "摄影技术", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "舞蹈基础", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "茶文化", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "中外民俗", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "心理健康", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "安全教育", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
+                {"name": "通识课任选", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
+            ]
+        }
         
         # 加载地图背景图片
         self.map_background = None
@@ -277,6 +326,22 @@ class Game:
         self.message_timer = 120
         self.final_scores = []
         self.final_gpas = []
+        self.total_theory_experiment = 0
+    
+    def reset_game(self):
+        """重置游戏状态，回到主菜单"""
+        print("[DEBUG] reset_game called")
+        # 重置游戏数据
+        self.reset()
+        # 确保游戏继续运行
+        self.running = True
+        # 回到角色创建场景（主菜单）
+        self.current_state = STATE_CREATE_CHARACTER
+        print(f"[DEBUG] current_state set to: {self.current_state}")
+        # 重新初始化角色创建场景
+        from create_character import CreateCharacterScene
+        self.create_character_scene = CreateCharacterScene(self.screen, self.font, self.large_font)
+        print("[DEBUG] create_character_scene reinitialized")
     
     def save_game(self):
         try:
@@ -328,7 +393,7 @@ class Game:
         mood_multiplier = 0.5 if mood < 50 else 1.0
         
         # 计算分数
-        score = (knowledge * mood_multiplier / 100) * 60 + (theory_experiment * mood_multiplier / 300) * 40
+        score = (knowledge * mood_multiplier / 100) * 60 + (theory_experiment * mood_multiplier / 200) * 40
         score = max(0, min(100, score))
         score = round(score, 1)
         
@@ -368,6 +433,9 @@ class Game:
         # 保存结算前的理论实验值
         self.current_theory_experiment = self.player.theory_experiment
         
+        # 累加理论实验到总值（每学期从0开始，但最终结局计算总值）
+        self.total_theory_experiment += self.player.theory_experiment
+        
         score, grade, gpa, need_makeup = self.calculate_final_score(current_year)
         
         # 记录成绩
@@ -392,8 +460,18 @@ class Game:
         self.current_final_gpa = gpa
         self.current_need_makeup = need_makeup
         
+        # 调试输出
+        print(f"[DEBUG] handle_final_exam_week: score={score}, grade={grade}, gpa={gpa}, need_makeup={need_makeup}")
+        print(f"[DEBUG] handle_final_exam_week: before state change, current_state={self.current_state}")
+        
+        # 保存之前的场景（返回时会用到）
+        self.previous_state = self.current_state
+        
         # 切换到期末成绩显示状态
         self.current_state = STATE_FINAL_EXAM
+        
+        # 调试输出
+        print(f"[DEBUG] handle_final_exam_week: after state change, current_state={self.current_state}")
     
     def advance_day(self):
         if self.time_system.is_ended():
@@ -406,12 +484,15 @@ class Game:
         is_current_final_week = self.time_system.is_final_exam_week()
         current_year = self.time_system.get_year()  # 保存结算前的学年
         
+        # 调试输出
+        print(f"[DEBUG] advance_day: day={current_day}, is_final_week={is_current_final_week}, year={current_year}, current_state={self.current_state}")
+        
+        # 调用next_day后检查是否进入期末周
         self.time_system.next_day()
-        # 设置行动点，健康值低于60时减半
-        if self.player.health < 60:
-            self.player.action_points = DAILY_ACTION_POINTS // 2
-        else:
-            self.player.action_points = DAILY_ACTION_POINTS
+        print(f"[DEBUG] advance_day: after next_day, day={self.time_system.day}, is_final_week={self.time_system.is_final_exam_week()}")
+        # 设置行动点，健康值低于60时减半，低于40时为0
+        # 调用player的reset_daily方法，确保正确计算行动点上限
+        self.player.reset_daily()
         # 重置区域状态
         self.has_eaten = False  # 重置用餐状态
         self.has_studied = False  # 重置学习状态
@@ -424,8 +505,22 @@ class Game:
         
         self.player.add_mood(-2)
         
+        # 检查是否是第8学期第17周（day 136），如果是则立即结束游戏
+        # 这个检查必须在next_day()之前，以确保正确触发游戏结束
+        if current_day == 136:
+            # 处理期末周结算
+            self.handle_final_exam_week(current_year)
+            self.player.theory_experiment = 0
+            # 立即结束游戏
+            self.handle_game_end()
+            return
+        
+        # 调用next_day后检查是否进入期末周
+        self.time_system.next_day()
+        
         # 处理期末周结算（在期末周结束后显示）
-        if is_current_final_week:
+        is_now_final_week = self.time_system.is_final_exam_week()
+        if is_current_final_week or is_now_final_week:
             self.handle_final_exam_week(current_year)  # 传递结算前的学年
             # 期末周结算后重置理论实验
             self.player.theory_experiment = 0
@@ -433,7 +528,9 @@ class Game:
         if self.time_system.is_ended():
             # 游戏结束，进行结局判定
             self.handle_game_end()
-        elif not is_current_final_week:
+            return
+        
+        if not is_current_final_week:
             # 如果不是期末周结束，显示正常的新天消息
             self.message = "新的一天开始了！"
             self.message_timer = 120
@@ -441,12 +538,30 @@ class Game:
     def handle_events(self):
         events = pygame.event.get()
         
+        # 处理窗口大小变化事件（在所有状态下都需要处理）
+        for event in events:
+            if event.type == pygame.VIDEORESIZE:
+                self.width, self.height = event.size
+                self.screen = pygame.display.set_mode((self.width, self.height), pygame.RESIZABLE)
+                return
+        
+        # 期末成绩显示状态优先处理（最高优先级）
+        if self.current_state == STATE_FINAL_EXAM:
+            self._handle_final_exam(events)
+            return
+        
         for event in events:
             if event.type == pygame.QUIT:
-                self.running = False
+                pygame.quit()
+                sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
-                    self.running = False
+                    pygame.quit()
+                    sys.exit()
+                # 在任何状态下按SPACE键都可以进入下一回合
+                elif event.key == pygame.K_SPACE:
+                    self.advance_day()
+
                 # 无论当前状态是什么，只要按M键就切换地图
                 elif event.key == pygame.K_m:
                     self.map_system.toggle_map()
@@ -530,32 +645,32 @@ class Game:
                             self.map_system.set_active_area(area_id)
                     else:
                         self.map_system.clear_active_area()
-        else:
-            # 根据状态处理事件
-            if self.current_state == STATE_CREATE_CHARACTER:
-                self._handle_create_character(events)
-                # 更新角色创建场景的窗口大小
-                if self.create_character_scene is not None:
-                    self.create_character_scene.width = SCREEN_WIDTH
-                    self.create_character_scene.height = SCREEN_HEIGHT
-            elif self.current_state == STATE_MAIN_GAME:
-                self._handle_main_game(events)
-            elif self.current_state == STATE_CANTEEN:
-                self.canteen.handle_events(events)
-            elif self.current_state == STATE_TEACHING:
-                self.teaching.handle_events(events)
-            elif self.current_state == STATE_SPORTS:
-                self.sports.handle_events(events)
-            elif self.current_state == STATE_SUPERMARKET:
-                self.supermarket.handle_events(events)
-            elif self.current_state == STATE_DORM:
-                self.dorm.handle_events(events)
-            elif self.current_state == STATE_STUDENT_CENTER:
-                self.student_center.handle_events(events)
-            elif self.current_state == STATE_HOSPITAL:
-                self.hospital.handle_events(events)
-            elif self.current_state == STATE_SCHEDULE:
-                self._handle_schedule(events)
+            return
+        
+        # 根据状态处理事件
+        if self.current_state == STATE_CREATE_CHARACTER:
+            self._handle_create_character(events)
+            if self.create_character_scene is not None:
+                self.create_character_scene.width = SCREEN_WIDTH
+                self.create_character_scene.height = SCREEN_HEIGHT
+        elif self.current_state == STATE_MAIN_GAME:
+            self._handle_main_game(events)
+        elif self.current_state == STATE_CANTEEN:
+            self.canteen.handle_events(events)
+        elif self.current_state == STATE_TEACHING:
+            self.teaching.handle_events(events)
+        elif self.current_state == STATE_SPORTS:
+            self.sports.handle_events(events)
+        elif self.current_state == STATE_SUPERMARKET:
+            self.supermarket.handle_events(events)
+        elif self.current_state == STATE_DORM:
+            self.dorm.handle_events(events)
+        elif self.current_state == STATE_STUDENT_CENTER:
+            self.student_center.handle_events(events)
+        elif self.current_state == STATE_HOSPITAL:
+            self.hospital.handle_events(events)
+        elif self.current_state == STATE_SCHEDULE:
+            self._handle_schedule(events)
     
     def _handle_create_character(self, events):
         """处理角色创建"""
@@ -613,16 +728,20 @@ class Game:
                 if self.map_system.is_map_showing():
                     pos = pygame.mouse.get_pos()
                     area_id = self.map_system.get_area_at(pos, self.player.is_sick)
-                    if area_id:                        # 检查是否生病                        
-                        if self.player.is_sick:                            
-                            if area_id == 'hospital':                                # 切换到校医院场景
-                                self.map_system.toggle_map()  # 确保地图不显示                                
-                                self.current_state = STATE_HOSPITAL                            
-                            else:                                # 生病时只能去校医院                                
-                                self.message = "你生病了，只能去校医院！"                                
-                                self.message_timer = 90                        
-                        else:                            # 点击地图区域时，设置活跃区域，允许在地图界面执行行动                            
-                             self.map_system.set_active_area(area_id)
+                    if area_id:
+                        # 检查是否生病
+                        if self.player.is_sick:
+                            if area_id == 'hospital':
+                                # 切换到校医院场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_HOSPITAL
+                            else:
+                                # 生病时只能去校医院
+                                self.message = "你生病了，只能去校医院！"
+                                self.message_timer = 90
+                        else:
+                            # 点击地图区域时，设置活跃区域，允许在地图界面执行行动
+                            self.map_system.set_active_area(area_id)
                     else:
                         self.map_system.clear_active_area()
                 else:
@@ -699,73 +818,79 @@ class Game:
         column_width = (self.width - 100) // 3
         categories = list(schedules.keys())
         
-        for i, category in enumerate(categories):
-            # 计算列的位置
-            column_x = 50 + i * column_width
-            column_y = 140
-            
-            # 绘制分类标题
-            category_text = self.large_font.render(category, True, (150, 100, 50))
-            category_rect = category_text.get_rect(center=(column_x + column_width // 2, column_y))
-            self.screen.blit(category_text, category_rect)
-            
-            # 绘制日程项
-            item_spacing = 40
-            items_per_column = 6
-            
-            # 计算当前显示的课程范围
-            start_index = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
-            end_index = min(len(schedules[category]), start_index + items_per_column)
-            
-            # 绘制课程（过滤掉已修满的课程）
-            item_y = column_y + 40
-            visible_items = []
-            
-            # 先过滤出未修满的课程
-            for j in range(len(schedules[category])):
-                item = schedules[category][j]
-                course_name = item['name']
-                study_count = self.course_study_counts.get(course_name, 0)
-                if study_count < item['hours']:
-                    visible_items.append(item)
-            
-            # 计算可见课程的显示范围
-            visible_start = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
-            visible_end = min(len(visible_items), visible_start + items_per_column)
-            
-            # 绘制可见的课程
-            for j in range(visible_start, visible_end):
-                item = visible_items[j]
-                # 计算日程项位置
-                item_x = column_x + 10
-                item_width = column_width - 20
-                item_height = 30
+        # 检查健康状态，生病时不显示课程列表
+        if self.player.health >= 40:
+            for i, category in enumerate(categories):
+                # 计算列的位置
+                column_x = 50 + i * column_width
+                column_y = 140
                 
-                # 检查是否被选中
-                is_selected = any(selected['name'] == item['name'] for selected in self.schedule_selected)
+                # 绘制分类标题
+                category_text = self.large_font.render(category, True, (150, 100, 50))
+                category_rect = category_text.get_rect(center=(column_x + column_width // 2, column_y))
+                self.screen.blit(category_text, category_rect)
                 
-                # 绘制日程项背景
-                if is_selected:
-                    pygame.draw.rect(self.screen, (255, 215, 0), (item_x, item_y, item_width, item_height))
-                    pygame.draw.rect(self.screen, (218, 165, 32), (item_x, item_y, item_width, item_height), 2)
-                else:
-                    if self.has_scheduled:
-                        # 已经安排了日程，禁用未选中的日程项
-                        pygame.draw.rect(self.screen, (200, 200, 200), (item_x, item_y, item_width, item_height))
-                        pygame.draw.rect(self.screen, (100, 100, 100), (item_x, item_y, item_width, item_height), 2)
+                # 绘制日程项
+                item_spacing = 40
+                items_per_column = 6
+                
+                # 计算当前显示的课程范围
+                start_index = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
+                end_index = min(len(schedules[category]), start_index + items_per_column)
+                
+                # 绘制课程（过滤掉已修满的课程）
+                item_y = column_y + 40
+                visible_items = []
+                
+                # 先过滤出未修满的课程
+                for j in range(len(schedules[category])):
+                    item = schedules[category][j]
+                    course_name = item['name']
+                    study_count = self.course_study_counts.get(course_name, 0)
+                    if study_count < item['hours']:
+                        visible_items.append(item)
+                
+                # 计算可见课程的显示范围
+                visible_start = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
+                visible_end = min(len(visible_items), visible_start + items_per_column)
+                
+                # 绘制可见的课程
+                for j in range(visible_start, visible_end):
+                    item = visible_items[j]
+                    # 计算日程项位置
+                    item_x = column_x + 10
+                    item_width = column_width - 20
+                    item_height = 30
+                    
+                    # 检查是否被选中
+                    is_selected = any(selected['name'] == item['name'] for selected in self.schedule_selected)
+                    
+                    # 绘制日程项背景
+                    if is_selected:
+                        pygame.draw.rect(self.screen, (255, 215, 0), (item_x, item_y, item_width, item_height))
+                        pygame.draw.rect(self.screen, (218, 165, 32), (item_x, item_y, item_width, item_height), 2)
                     else:
-                        pygame.draw.rect(self.screen, (254, 247, 201), (item_x, item_y, item_width, item_height))
-                        pygame.draw.rect(self.screen, (150, 100, 50), (item_x, item_y, item_width, item_height), 2)
-                
-                # 绘制日程项文本
-                if self.has_scheduled:
-                    # 已经安排了日程，使用灰色文本
-                    item_text = self.font.render(f"{item['name']}: {item['hours']}学时, {self._get_attribute_name(item['attribute'])}+{item['value']}", True, (100, 100, 100))
-                else:
-                    item_text = self.font.render(f"{item['name']}: {item['hours']}学时, {self._get_attribute_name(item['attribute'])}+{item['value']}", True, (150, 100, 50))
-                self.screen.blit(item_text, (item_x + 10, item_y + 5))
-                
-                item_y += item_spacing
+                        if self.has_scheduled:
+                            # 已经安排了日程，禁用未选中的日程项
+                            pygame.draw.rect(self.screen, (200, 200, 200), (item_x, item_y, item_width, item_height))
+                            pygame.draw.rect(self.screen, (100, 100, 100), (item_x, item_y, item_width, item_height), 2)
+                        else:
+                            pygame.draw.rect(self.screen, (254, 247, 201), (item_x, item_y, item_width, item_height))
+                            pygame.draw.rect(self.screen, (150, 100, 50), (item_x, item_y, item_width, item_height), 2)
+                    
+                    # 绘制日程项文本
+                    if self.has_scheduled:
+                        # 已经安排了日程，使用灰色文本
+                        item_text = self.font.render(f"{item['name']}: {item['hours']}学时, {self._get_attribute_name(item['attribute'])}+{item['value']}", True, (100, 100, 100))
+                    else:
+                        item_text = self.font.render(f"{item['name']}: {item['hours']}学时, {self._get_attribute_name(item['attribute'])}+{item['value']}", True, (150, 100, 50))
+                    self.screen.blit(item_text, (item_x + 10, item_y + 5))
+                    
+                    item_y += item_spacing
+        else:
+            # 生病时显示提示信息
+            self.draw_text("你生病了，无法选课！", self.width // 2 - 100, 200, (255, 0, 0), self.large_font)
+            self.draw_text("但可以通过安排进入下一回合", self.width // 2 - 150, 250, (255, 0, 0), self.large_font)
         
         # 绘制已选择的日程信息
         selected_info_y = 450  # 移到方框内部，课程列表下方
@@ -790,7 +915,7 @@ class Game:
         cancel_button_rect = pygame.Rect(self.width // 2 + 20, self.height - 80, 180, 50)
         
         # 执行并进入下一回合按钮
-        if len(self.schedule_selected) > 0 and not self.has_scheduled:
+        if (len(self.schedule_selected) > 0 or self.player.health < 40) and not self.has_scheduled:
             pygame.draw.rect(self.screen, (220, 180, 140), confirm_button_rect)
             pygame.draw.rect(self.screen, (150, 100, 50), confirm_button_rect, 2)
             # 计算文本宽度，使文本居中
@@ -829,52 +954,9 @@ class Game:
     
     def _handle_schedule(self, events):
         """处理日程安排页面事件"""
-        # 定义日程数据
-        schedules = {
-            "理论实验": [
-                {"name": "固体物理", "hours": 16, "attribute": "theory_experiment", "value": 100},
-                {"name": "材料分析技术", "hours": 16, "attribute": "theory_experiment", "value": 100},
-                {"name": "量子力学导论", "hours": 16, "attribute": "theory_experiment", "value": 100},
-                {"name": "大学物理实验", "hours": 16, "attribute": "theory_experiment", "value": 100},
-                {"name": "数理方法", "hours": 16, "attribute": "theory_experiment", "value": 100},
-                {"name": "材料合成与制备", "hours": 12, "attribute": "theory_experiment", "value": 75},
-                {"name": "金相分析实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
-                {"name": "工程制图", "hours": 12, "attribute": "theory_experiment", "value": 75},
-                {"name": "计算机辅助设计", "hours": 12, "attribute": "theory_experiment", "value": 75},
-                {"name": "材料性能实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
-                {"name": "大学英语", "hours": 8, "attribute": "theory_experiment", "value": 50},
-                {"name": "思修与法律基础", "hours": 8, "attribute": "theory_experiment", "value": 50},
-                {"name": "大学体育", "hours": 8, "attribute": "theory_experiment", "value": 50},
-            ],
-            "创新创业": [
-                {"name": "科研项目实训", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
-                {"name": "企业实习实践", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
-                {"name": "专利撰写与申报", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
-                {"name": "创业大赛指导", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
-                {"name": "本科就业指导", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
-                {"name": "科研伦理与规范", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
-                {"name": "科技文献检索", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
-            ],
-            "美育素养": [
-                {"name": "交响乐团鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
-                {"name": "中国书法艺术", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
-                {"name": "国画赏析", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
-                {"name": "影视鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
-                {"name": "西方哲学史", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
-                {"name": "演讲与口才", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "摄影技术", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "舞蹈基础", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "茶文化", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "中外民俗", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "心理健康", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "安全教育", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
-                {"name": "通识课任选", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
-            ]
-        }
-        
         # 计算日程项的位置（三列布局）
         column_width = (self.width - 100) // 3
-        categories = list(schedules.keys())
+        categories = list(self.schedules.keys())
         
         # 处理操作按钮点击
         confirm_button_rect = pygame.Rect(self.width // 2 - 200, self.height - 80, 180, 50)
@@ -896,7 +978,7 @@ class Game:
                 # 检查确认按钮
                 if confirm_button_rect.collidepoint(pos):
                     # 执行并进入下一回合
-                    if len(self.schedule_selected) > 0 and not self.has_scheduled:
+                    if (len(self.schedule_selected) > 0 or self.player.health < 40) and not self.has_scheduled:
                         # 记录属性变化前的值
                         before_theory = self.player.theory_experiment
                         before_employment = self.player.employment_entrepreneurship
@@ -929,8 +1011,12 @@ class Game:
                         
                         # 标记为已安排日程
                         self.has_scheduled = True
+                        
                         # 显示消息
-                        self.message = f"日程安排完成！选择了{len(self.schedule_selected)}项日程，总学时{total_hours}。"
+                        if self.player.health < 40:
+                            self.message = "你生病了，直接进入下一回合！"
+                        else:
+                            self.message = f"日程安排完成！选择了{len(self.schedule_selected)}项日程，总学时{total_hours}。"
                         self.message_timer = 120
                         
                         # 在终端打印属性变化
@@ -949,14 +1035,32 @@ class Game:
                         print("=====================\n")
                         
                         # 进入下一回合
+                        current_day = self.time_system.day
                         self.time_system.next_week()
+                        # 检查是否进入期末周
+                        is_now_final_week = self.time_system.is_final_exam_week()
+                        if is_now_final_week:
+                            self.handle_final_exam_week(self.time_system.get_year())
+                            self.player.theory_experiment = 0
+                            # 进入了期末周，不需要返回之前的场景
+                        
+                        # 检查游戏是否结束
+                        if self.time_system.is_ended():
+                            # 游戏结束，进行结局判定
+                            self.handle_game_end()
+                            return
+                        
+                        # 检查是否是第8学期第17周（day 136），如果是则立即结束游戏
+                        if current_day == 136:
+                            self.handle_game_end()
+                            return
                         # 更新UIHUD的时间信息
                         year = self.time_system.get_year()
                         month = self.time_system.get_month()
                         week = self.time_system.get_week_in_month()
                         self.ui_hud.update_time(year, month, week)
-                        # 重置行动点
-                        self.player.action_points = DAILY_ACTION_POINTS
+                        # 重置行动点（根据健康状态正确设置）
+                        self.player.reset_daily()
                         # 重置超市购买次数
                         self.supermarket_purchases = 0
                         # 重置已用餐状态
@@ -974,8 +1078,9 @@ class Game:
                         # 重置日程安排相关属性
                         self.schedule_selected = []
                         self.has_scheduled = False
-                        # 返回之前的场景
-                        self.current_state = self.previous_state
+                        # 返回之前的场景（只有不在期末周时才返回）
+                        if self.current_state != STATE_FINAL_EXAM:
+                            self.current_state = self.previous_state
                 elif cancel_button_rect.collidepoint(pos):
                     # 取消选择
                     self.schedule_selected = []
@@ -995,14 +1100,14 @@ class Game:
                             
                             # 计算当前显示的课程范围
                             start_index = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
-                            end_index = min(len(schedules[category]), start_index + items_per_column)
+                            end_index = min(len(self.schedules[category]), start_index + items_per_column)
                             
                             # 检查日程项点击
                             item_y = column_y + 40
                             # 过滤出未修满的课程
                             visible_items = []
-                            for j in range(len(schedules[category])):
-                                item = schedules[category][j]
+                            for j in range(len(self.schedules[category])):
+                                item = self.schedules[category][j]
                                 course_name = item['name']
                                 study_count = self.course_study_counts.get(course_name, 0)
                                 if study_count < item['hours']:
@@ -1046,7 +1151,7 @@ class Game:
                     if column_rect.collidepoint(pos):
                         # 过滤出未修满的课程
                         visible_items = []
-                        for item in schedules[categories[i]]:
+                        for item in self.schedules[categories[i]]:
                             course_name = item['name']
                             study_count = self.course_study_counts.get(course_name, 0)
                             if study_count < item['hours']:
@@ -1227,11 +1332,23 @@ class Game:
         pygame.display.flip()
     
     def draw(self):
-        if self.map_system.is_map_showing():
-            self.draw_map()
+        # 检查健康状态，如果健康值低于40且不在医院或日程安排场景，强制跳转到宿舍
+        if self.player.health < 40 and self.current_state not in [STATE_HOSPITAL, STATE_SCHEDULE, STATE_FINAL_EXAM]:
+            print(f"[DEBUG] Health below 40, forcing transition to dorm. Current state: {self.current_state}")
+            self.current_state = STATE_DORM
+        
+        # 期末成绩显示优先于地图显示
+        if self.current_state == STATE_FINAL_EXAM:
+            self._draw_final_exam()
+            pygame.display.flip()
             return
         
-        # 根据状态绘制
+        if self.map_system.is_map_showing():
+            self.draw_map()
+            pygame.display.flip()
+            return
+        
+        # 绘制场景
         if self.current_state == STATE_CREATE_CHARACTER:
             self._draw_create_character()
         elif self.current_state == STATE_MAIN_GAME:
@@ -1277,7 +1394,7 @@ class Game:
         time_display = self.time_system.get_time_display()
         self.ui_hud.draw_all(time_display, self.player)
     
-    def handle_game_end(self):
+    def handle_game_end(self, is_final_exam=False):
         """处理游戏结束，进行结局判定"""
         # 计算平均成绩和平均绩点
         if not self.final_scores or not self.final_gpas:
@@ -1292,7 +1409,7 @@ class Game:
         can_graduate = False
         if (avg_score >= 60 and avg_gpa >= 1.0 and
             self.player.knowledge_level >= 4 and self.player.knowledge >= 60 and
-            self.player.theory_experiment >= 600 and
+            self.total_theory_experiment >= 600 and
             self.player.employment_entrepreneurship >= 200 and
             self.player.aesthetic_cultivation >= 200 and
             self.player.health >= 60 and
@@ -1303,8 +1420,64 @@ class Game:
             can_graduate = True
         
         if not can_graduate:
-            self.message = "很遗憾，你未能顺利毕业，需要延毕。"
-            self.message_timer = 300
+            # 加载延毕图片
+            yanbi_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'yanbi.png')
+            yanbi_image = None
+            try:
+                if os.path.exists(yanbi_path):
+                    yanbi_image = pygame.image.load(yanbi_path)
+            except Exception as e:
+                print(f"加载延毕图片失败: {e}")
+            
+            # 绘制延毕结局
+            self.screen.fill((240, 240, 240))
+            
+            # 绘制图片（如果成功加载）
+            if yanbi_image:
+                # 计算图片位置（居中显示）
+                image_width, image_height = yanbi_image.get_size()
+                # 调整图片大小，使其适合屏幕
+                max_width = self.width * 0.8
+                max_height = self.height * 0.6
+                scale_factor = min(max_width / image_width, max_height / image_height)
+                new_width = int(image_width * scale_factor)
+                new_height = int(image_height * scale_factor)
+                scaled_yanbi = pygame.transform.scale(yanbi_image, (new_width, new_height))
+                image_x = (self.width - new_width) // 2
+                image_y = (self.height - new_height) // 2 - 50
+                self.screen.blit(scaled_yanbi, (image_x, image_y))
+            
+            # 绘制标题
+            title_text = self.large_font.render("延毕结局", True, (255, 0, 0))
+            title_rect = title_text.get_rect(center=(self.width // 2, 50))
+            self.screen.blit(title_text, title_rect)
+            
+            # 绘制延毕原因
+            reason_text = self.font.render("很遗憾，你未能顺利毕业，需要延长学业。", True, (0, 0, 0))
+            reason_rect = reason_text.get_rect(center=(self.width // 2, self.height - 100))
+            self.screen.blit(reason_text, reason_rect)
+            
+            # 绘制提示信息
+            hint_text = self.font.render("按任意键返回主菜单", True, (100, 100, 100))
+            hint_rect = hint_text.get_rect(center=(self.width // 2, self.height - 50))
+            self.screen.blit(hint_text, hint_rect)
+            
+            pygame.display.flip()
+            
+            # 等待用户输入
+            waiting = True
+            while waiting:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        # 关闭按钮也当作任意键处理，返回主菜单
+                        waiting = False
+                    elif event.type == pygame.KEYDOWN:
+                        waiting = False
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        waiting = False
+            
+            # 结束游戏运行，回到主菜单
+            self.running = False
             return
         
         # 顺利毕业，进行结局判定
@@ -1315,14 +1488,70 @@ class Game:
             self.player.knowledge_level >= 4 and self.player.knowledge >= 90 and
             self.player.charm_level >= 2 and self.player.charm >= 70 and
             self.player.physical_level >= 4 and self.player.physical >= 50 and
-            self.player.theory_experiment >= 800 and
+            self.total_theory_experiment >= 800 and
             self.player.employment_entrepreneurship >= 200 and
             self.player.aesthetic_cultivation >= 200 and
             self.player.skill >= 100 and
             self.player.reputation >= 80 and
             self.player.social >= 70):
-            self.message = "恭喜！你成功保研了！"
-            self.message_timer = 300
+            # 加载保研图片
+            baoyan_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'baoyan.png')
+            baoyan_image = None
+            try:
+                if os.path.exists(baoyan_path):
+                    baoyan_image = pygame.image.load(baoyan_path)
+            except Exception as e:
+                print(f"加载保研图片失败: {e}")
+            
+            # 绘制保研结局
+            self.screen.fill((240, 240, 240))
+            
+            # 绘制图片（如果成功加载）
+            if baoyan_image:
+                # 计算图片位置（居中显示）
+                image_width, image_height = baoyan_image.get_size()
+                # 调整图片大小，使其适合屏幕
+                max_width = self.width * 0.8
+                max_height = self.height * 0.6
+                scale_factor = min(max_width / image_width, max_height / image_height)
+                new_width = int(image_width * scale_factor)
+                new_height = int(image_height * scale_factor)
+                scaled_baoyan = pygame.transform.scale(baoyan_image, (new_width, new_height))
+                image_x = (self.width - new_width) // 2
+                image_y = (self.height - new_height) // 2 - 50
+                self.screen.blit(scaled_baoyan, (image_x, image_y))
+            
+            # 绘制标题
+            title_text = self.large_font.render("保研成功", True, (0, 128, 0))
+            title_rect = title_text.get_rect(center=(self.width // 2, 50))
+            self.screen.blit(title_text, title_rect)
+            
+            # 绘制结局消息
+            message_text = self.font.render("恭喜！你成功保研了！", True, (0, 0, 0))
+            message_rect = message_text.get_rect(center=(self.width // 2, self.height - 100))
+            self.screen.blit(message_text, message_rect)
+            
+            # 绘制提示信息
+            hint_text = self.font.render("按任意键返回主菜单", True, (100, 100, 100))
+            hint_rect = hint_text.get_rect(center=(self.width // 2, self.height - 50))
+            self.screen.blit(hint_text, hint_rect)
+            
+            pygame.display.flip()
+            
+            # 等待用户输入
+            waiting = True
+            while waiting:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        # 关闭按钮也当作任意键处理，返回主菜单
+                        waiting = False
+                    elif event.type == pygame.KEYDOWN:
+                        waiting = False
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        waiting = False
+            
+            # 结束游戏运行，回到主菜单
+            self.running = False
             return
         
         # 2. 考研上岸
@@ -1330,14 +1559,70 @@ class Game:
             self.player.knowledge_level >= 4 and self.player.knowledge >= 75 and
             self.player.charm_level >= 2 and self.player.charm >= 50 and
             self.player.physical_level >= 4 and self.player.physical >= 60 and
-            self.player.theory_experiment >= 600 and
+            self.total_theory_experiment >= 600 and
             self.player.employment_entrepreneurship >= 200 and
             self.player.aesthetic_cultivation >= 200 and
             self.player.skill >= 80 and
             self.player.reputation >= 50 and
             self.player.social >= 40):
-            self.message = "恭喜！你考研上岸了！"
-            self.message_timer = 300
+            # 加载考研图片
+            kaoyan_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'kaoyan.png')
+            kaoyan_image = None
+            try:
+                if os.path.exists(kaoyan_path):
+                    kaoyan_image = pygame.image.load(kaoyan_path)
+            except Exception as e:
+                print(f"加载考研图片失败: {e}")
+            
+            # 绘制考研结局
+            self.screen.fill((240, 240, 240))
+            
+            # 绘制图片（如果成功加载）
+            if kaoyan_image:
+                # 计算图片位置（居中显示）
+                image_width, image_height = kaoyan_image.get_size()
+                # 调整图片大小，使其适合屏幕
+                max_width = self.width * 0.8
+                max_height = self.height * 0.6
+                scale_factor = min(max_width / image_width, max_height / image_height)
+                new_width = int(image_width * scale_factor)
+                new_height = int(image_height * scale_factor)
+                scaled_kaoyan = pygame.transform.scale(kaoyan_image, (new_width, new_height))
+                image_x = (self.width - new_width) // 2
+                image_y = (self.height - new_height) // 2 - 50
+                self.screen.blit(scaled_kaoyan, (image_x, image_y))
+            
+            # 绘制标题
+            title_text = self.large_font.render("考研上岸", True, (0, 128, 0))
+            title_rect = title_text.get_rect(center=(self.width // 2, 50))
+            self.screen.blit(title_text, title_rect)
+            
+            # 绘制结局消息
+            message_text = self.font.render("恭喜！你考研上岸了！", True, (0, 0, 0))
+            message_rect = message_text.get_rect(center=(self.width // 2, self.height - 100))
+            self.screen.blit(message_text, message_rect)
+            
+            # 绘制提示信息
+            hint_text = self.font.render("按任意键返回主菜单", True, (100, 100, 100))
+            hint_rect = hint_text.get_rect(center=(self.width // 2, self.height - 50))
+            self.screen.blit(hint_text, hint_rect)
+            
+            pygame.display.flip()
+            
+            # 等待用户输入
+            waiting = True
+            while waiting:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        # 关闭按钮也当作任意键处理，返回主菜单
+                        waiting = False
+                    elif event.type == pygame.KEYDOWN:
+                        waiting = False
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        waiting = False
+            
+            # 结束游戏运行，回到主菜单
+            self.running = False
             return
         
         # 3. 优质就业
@@ -1345,14 +1630,70 @@ class Game:
             self.player.knowledge_level >= 4 and self.player.knowledge >= 70 and
             self.player.charm_level >= 2 and self.player.charm >= 80 and
             self.player.physical_level >= 4 and self.player.physical >= 50 and
-            self.player.theory_experiment >= 500 and
+            self.total_theory_experiment >= 500 and
             self.player.employment_entrepreneurship >= 300 and
             self.player.aesthetic_cultivation >= 200 and
             self.player.skill >= 150 and
             self.player.reputation >= 60 and
             self.player.social >= 100):
-            self.message = "恭喜！你获得了优质就业机会！"
-            self.message_timer = 300
+            # 加载优质就业图片
+            goodwork_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'goodwork.png')
+            goodwork_image = None
+            try:
+                if os.path.exists(goodwork_path):
+                    goodwork_image = pygame.image.load(goodwork_path)
+            except Exception as e:
+                print(f"加载优质就业图片失败: {e}")
+            
+            # 绘制优质就业结局
+            self.screen.fill((240, 240, 240))
+            
+            # 绘制图片（如果成功加载）
+            if goodwork_image:
+                # 计算图片位置（居中显示）
+                image_width, image_height = goodwork_image.get_size()
+                # 调整图片大小，使其适合屏幕
+                max_width = self.width * 0.8
+                max_height = self.height * 0.6
+                scale_factor = min(max_width / image_width, max_height / image_height)
+                new_width = int(image_width * scale_factor)
+                new_height = int(image_height * scale_factor)
+                scaled_goodwork = pygame.transform.scale(goodwork_image, (new_width, new_height))
+                image_x = (self.width - new_width) // 2
+                image_y = (self.height - new_height) // 2 - 50
+                self.screen.blit(scaled_goodwork, (image_x, image_y))
+            
+            # 绘制标题
+            title_text = self.large_font.render("优质就业", True, (0, 128, 0))
+            title_rect = title_text.get_rect(center=(self.width // 2, 50))
+            self.screen.blit(title_text, title_rect)
+            
+            # 绘制结局消息
+            message_text = self.font.render("恭喜！你获得了优质就业机会！", True, (0, 0, 0))
+            message_rect = message_text.get_rect(center=(self.width // 2, self.height - 100))
+            self.screen.blit(message_text, message_rect)
+            
+            # 绘制提示信息
+            hint_text = self.font.render("按任意键返回主菜单", True, (100, 100, 100))
+            hint_rect = hint_text.get_rect(center=(self.width // 2, self.height - 50))
+            self.screen.blit(hint_text, hint_rect)
+            
+            pygame.display.flip()
+            
+            # 等待用户输入
+            waiting = True
+            while waiting:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        # 关闭按钮也当作任意键处理，返回主菜单
+                        waiting = False
+                    elif event.type == pygame.KEYDOWN:
+                        waiting = False
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        waiting = False
+            
+            # 结束游戏运行，回到主菜单
+            self.running = False
             return
         
         # 4. 普通就业
@@ -1360,14 +1701,70 @@ class Game:
             self.player.knowledge_level >= 4 and self.player.knowledge >= 60 and
             self.player.charm_level >= 2 and self.player.charm >= 50 and
             self.player.physical_level >= 4 and self.player.physical >= 50 and
-            self.player.theory_experiment >= 500 and
+            self.total_theory_experiment >= 500 and
             self.player.employment_entrepreneurship >= 300 and
             self.player.aesthetic_cultivation >= 200 and
             self.player.skill >= 130 and
             self.player.reputation >= 50 and
             self.player.social >= 60):
-            self.message = "恭喜！你获得了普通就业机会。"
-            self.message_timer = 300
+            # 加载普通就业图片
+            normalwork_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'normalwork.png')
+            normalwork_image = None
+            try:
+                if os.path.exists(normalwork_path):
+                    normalwork_image = pygame.image.load(normalwork_path)
+            except Exception as e:
+                print(f"加载普通就业图片失败: {e}")
+            
+            # 绘制普通就业结局
+            self.screen.fill((240, 240, 240))
+            
+            # 绘制图片（如果成功加载）
+            if normalwork_image:
+                # 计算图片位置（居中显示）
+                image_width, image_height = normalwork_image.get_size()
+                # 调整图片大小，使其适合屏幕
+                max_width = self.width * 0.8
+                max_height = self.height * 0.6
+                scale_factor = min(max_width / image_width, max_height / image_height)
+                new_width = int(image_width * scale_factor)
+                new_height = int(image_height * scale_factor)
+                scaled_normalwork = pygame.transform.scale(normalwork_image, (new_width, new_height))
+                image_x = (self.width - new_width) // 2
+                image_y = (self.height - new_height) // 2 - 50
+                self.screen.blit(scaled_normalwork, (image_x, image_y))
+            
+            # 绘制标题
+            title_text = self.large_font.render("普通就业", True, (0, 128, 0))
+            title_rect = title_text.get_rect(center=(self.width // 2, 50))
+            self.screen.blit(title_text, title_rect)
+            
+            # 绘制结局消息
+            message_text = self.font.render("恭喜！你获得了普通就业机会。", True, (0, 0, 0))
+            message_rect = message_text.get_rect(center=(self.width // 2, self.height - 100))
+            self.screen.blit(message_text, message_rect)
+            
+            # 绘制提示信息
+            hint_text = self.font.render("按任意键返回主菜单", True, (100, 100, 100))
+            hint_rect = hint_text.get_rect(center=(self.width // 2, self.height - 50))
+            self.screen.blit(hint_text, hint_rect)
+            
+            pygame.display.flip()
+            
+            # 等待用户输入
+            waiting = True
+            while waiting:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        # 关闭按钮也当作任意键处理，返回主菜单
+                        waiting = False
+                    elif event.type == pygame.KEYDOWN:
+                        waiting = False
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        waiting = False
+            
+            # 结束游戏运行，回到主菜单
+            self.running = False
             return
         
         # 5. 创业
@@ -1375,19 +1772,131 @@ class Game:
             self.player.knowledge_level >= 4 and self.player.knowledge >= 60 and
             self.player.charm_level >= 3 and self.player.charm >= 80 and
             self.player.physical_level >= 4 and self.player.physical >= 50 and
-            self.player.theory_experiment >= 500 and
+            self.total_theory_experiment >= 500 and
             self.player.employment_entrepreneurship >= 400 and
             self.player.aesthetic_cultivation >= 200 and
             self.player.skill >= 170 and
             self.player.reputation >= 80 and
             self.player.social >= 120):
-            self.message = "恭喜！你成功创业了！"
-            self.message_timer = 300
+            # 加载创业图片
+            chuangye_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'chuangye.png')
+            chuangye_image = None
+            try:
+                if os.path.exists(chuangye_path):
+                    chuangye_image = pygame.image.load(chuangye_path)
+            except Exception as e:
+                print(f"加载创业图片失败: {e}")
+            
+            # 绘制创业结局
+            self.screen.fill((240, 240, 240))
+            
+            # 绘制图片（如果成功加载）
+            if chuangye_image:
+                # 计算图片位置（居中显示）
+                image_width, image_height = chuangye_image.get_size()
+                # 调整图片大小，使其适合屏幕
+                max_width = self.width * 0.8
+                max_height = self.height * 0.6
+                scale_factor = min(max_width / image_width, max_height / image_height)
+                new_width = int(image_width * scale_factor)
+                new_height = int(image_height * scale_factor)
+                scaled_chuangye = pygame.transform.scale(chuangye_image, (new_width, new_height))
+                image_x = (self.width - new_width) // 2
+                image_y = (self.height - new_height) // 2 - 50
+                self.screen.blit(scaled_chuangye, (image_x, image_y))
+            
+            # 绘制标题
+            title_text = self.large_font.render("创业成功", True, (0, 128, 0))
+            title_rect = title_text.get_rect(center=(self.width // 2, 50))
+            self.screen.blit(title_text, title_rect)
+            
+            # 绘制结局消息
+            message_text = self.font.render("恭喜！你成功创业了！", True, (0, 0, 0))
+            message_rect = message_text.get_rect(center=(self.width // 2, self.height - 100))
+            self.screen.blit(message_text, message_rect)
+            
+            # 绘制提示信息
+            hint_text = self.font.render("按任意键返回主菜单", True, (100, 100, 100))
+            hint_rect = hint_text.get_rect(center=(self.width // 2, self.height - 50))
+            self.screen.blit(hint_text, hint_rect)
+            
+            pygame.display.flip()
+            
+            # 等待用户输入
+            waiting = True
+            while waiting:
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        # 关闭按钮也当作任意键处理，返回主菜单
+                        waiting = False
+                    elif event.type == pygame.KEYDOWN:
+                        waiting = False
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        waiting = False
+            
+            # 结束游戏运行，回到主菜单
+            self.running = False
             return
         
         # 其他情况
-        self.message = "游戏结束！你顺利毕业了。"
-        self.message_timer = 300
+        # 加载普通就业图片作为默认结局图片
+        normalwork_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'normalwork.png')
+        normalwork_image = None
+        try:
+            if os.path.exists(normalwork_path):
+                normalwork_image = pygame.image.load(normalwork_path)
+        except Exception as e:
+            print(f"加载默认结局图片失败: {e}")
+        
+        # 绘制默认结局
+        self.screen.fill((240, 240, 240))
+        
+        # 绘制图片（如果成功加载）
+        if normalwork_image:
+            # 计算图片位置（居中显示）
+            image_width, image_height = normalwork_image.get_size()
+            # 调整图片大小，使其适合屏幕
+            max_width = self.width * 0.8
+            max_height = self.height * 0.6
+            scale_factor = min(max_width / image_width, max_height / image_height)
+            new_width = int(image_width * scale_factor)
+            new_height = int(image_height * scale_factor)
+            scaled_normalwork = pygame.transform.scale(normalwork_image, (new_width, new_height))
+            image_x = (self.width - new_width) // 2
+            image_y = (self.height - new_height) // 2 - 50
+            self.screen.blit(scaled_normalwork, (image_x, image_y))
+        
+        # 绘制标题
+        title_text = self.large_font.render("顺利毕业", True, (0, 128, 0))
+        title_rect = title_text.get_rect(center=(self.width // 2, 50))
+        self.screen.blit(title_text, title_rect)
+        
+        # 绘制结局消息
+        message_text = self.font.render("游戏结束！你顺利毕业了。", True, (0, 0, 0))
+        message_rect = message_text.get_rect(center=(self.width // 2, self.height - 100))
+        self.screen.blit(message_text, message_rect)
+        
+        # 绘制提示信息
+        hint_text = self.font.render("按任意键返回主菜单", True, (100, 100, 100))
+        hint_rect = hint_text.get_rect(center=(self.width // 2, self.height - 50))
+        self.screen.blit(hint_text, hint_rect)
+        
+        pygame.display.flip()
+        
+        # 等待用户输入
+        waiting = True
+        while waiting:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    # 关闭按钮也当作任意键处理，返回主菜单
+                    waiting = False
+                elif event.type == pygame.KEYDOWN:
+                    waiting = False
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    waiting = False
+        
+        # 结束游戏运行，回到主菜单
+        self.running = False
     
     def _draw_final_exam(self):
         """绘制期末成绩单"""
@@ -1396,7 +1905,7 @@ class Game:
         
         # 绘制成绩单边框
         transcript_width = 400
-        transcript_height = 350
+        transcript_height = 500  # 与_handle_final_exam方法中的高度保持一致
         transcript_x = self.width // 2 - transcript_width // 2
         transcript_y = self.height // 2 - transcript_height // 2
         
@@ -1428,9 +1937,9 @@ class Game:
             self.draw_text(f"{subject}", transcript_x + 50, transcript_y + y_offset + i * 40, (0, 0, 0))
             if subject == "理论实验":
                 if mood < 50:
-                    self.draw_text(f"{score}/150", transcript_x + 250, transcript_y + y_offset + i * 40, (0, 0, 0))
+                    self.draw_text(f"{score}/100", transcript_x + 250, transcript_y + y_offset + i * 40, (0, 0, 0))
                 else:
-                    self.draw_text(f"{score}/300", transcript_x + 250, transcript_y + y_offset + i * 40, (0, 0, 0))
+                    self.draw_text(f"{score}/200", transcript_x + 250, transcript_y + y_offset + i * 40, (0, 0, 0))
             else:
                 if mood < 50:
                     self.draw_text(f"{score}/50", transcript_x + 250, transcript_y + y_offset + i * 40, (0, 0, 0))
@@ -1448,6 +1957,14 @@ class Game:
         elif self.current_final_grade == "A-":
             self.draw_text("恭喜获得奖学金50！", transcript_x + 50, transcript_y + y_offset + 5 * 40, (0, 150, 0))
         
+        # 绘制补考说明
+        if self.current_need_makeup:
+            self.draw_text("需要补考！", transcript_x + 50, transcript_y + y_offset + 6 * 40, (255, 0, 0))
+            self.draw_text("【心情】-20", transcript_x + 50, transcript_y + y_offset + 7 * 40, (255, 0, 0))
+            self.draw_text("【魅力】-10", transcript_x + 50, transcript_y + y_offset + 8 * 40, (255, 0, 0))
+            self.draw_text("【健康】-10", transcript_x + 50, transcript_y + y_offset + 9 * 40, (255, 0, 0))
+            self.draw_text("无法达成保研结局", transcript_x + 50, transcript_y + y_offset + 10 * 40, (255, 0, 0))
+        
         # 绘制返回按钮
         back_rect = pygame.Rect(self.width // 2 - 50, transcript_y + transcript_height + 20, 100, 50)
         pygame.draw.rect(self.screen, (220, 180, 140), back_rect)
@@ -1458,24 +1975,30 @@ class Game:
         """处理期末成绩单事件"""
         # 定义返回按钮区域
         transcript_width = 400
-        transcript_height = 300
+        transcript_height = 500  # 与_draw_final_exam方法中的高度保持一致
         transcript_y = self.height // 2 - transcript_height // 2
         back_rect = pygame.Rect(self.width // 2 - 50, transcript_y + transcript_height + 20, 100, 50)
         
+        # 处理事件
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    # 按ESC返回主游戏
-                    self.current_state = STATE_MAIN_GAME
+                    # 按ESC返回宿舍场景
+                    self.current_state = STATE_DORM
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
-                # 返回主游戏
+                # 返回宿舍场景
                 if back_rect.collidepoint(pos):
-                    self.current_state = STATE_MAIN_GAME
+                    self.current_state = STATE_DORM
     
     def run(self):
+        """运行游戏"""
         while self.running:
+            # 限制帧率为60fps
+            self.clock.tick(60)
+            
+            # 处理事件
             self.handle_events()
+            
+            # 绘制游戏
             self.draw()
-            self.clock.tick(FPS)
-        pygame.quit()

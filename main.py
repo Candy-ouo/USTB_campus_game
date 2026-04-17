@@ -115,6 +115,8 @@ def main():
                     else:
                         success, msg = result
                     game.run()
+                    # 游戏结束后回到主菜单
+                    current_scene = 'START_SCENE'
                     break
                 elif not running:
                     if current_scene != 'GAME_SCENE':
@@ -177,7 +179,9 @@ def main():
                     continue
             # 重置save_file_path，避免下次误加载
             save_file_path = None
-            break
+            # 游戏结束后回到主菜单
+            current_scene = 'START_SCENE'
+            continue
 
 
 if __name__ == "__main__":
