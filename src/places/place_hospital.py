@@ -46,7 +46,7 @@ class Hospital:
             button_width = 150
             button_height = 78
             # 计算按钮位置
-            self.zhibing_button_rect = pygame.Rect(400, 200, button_width, button_height)
+            self.zhibing_button_rect = pygame.Rect(550, 325, button_width, button_height)
             # 缩放按钮图片
             scaled_button = pygame.transform.scale(self.zhibing_button, (button_width, button_height))
             self.screen.blit(scaled_button, self.zhibing_button_rect)
@@ -66,9 +66,9 @@ class Hospital:
         if self.zhibing_button:
             button_width = 150
             button_height = 78
-            zhibing_button_rect = pygame.Rect(400, 200, button_width, button_height)
+            zhibing_button_rect = pygame.Rect(550, 325, button_width, button_height)
         else:
-            zhibing_button_rect = pygame.Rect(400, 200, 500, 50)
+            zhibing_button_rect = pygame.Rect(550, 325, 500, 50)
 
         for event in events:
             if event.type == pygame.KEYDOWN:

@@ -234,6 +234,17 @@ class Game:
         except Exception as e:
             print(f"加载地图背景失败: {e}")
         
+        # 加载日程安排背景图片
+        self.schedule_background = None
+        schedule_image_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'scedule_background.png')
+        try:
+            if os.path.exists(schedule_image_path):
+                self.schedule_background = pygame.image.load(schedule_image_path)
+                # 缩放到屏幕大小
+                self.schedule_background = pygame.transform.scale(self.schedule_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        except Exception as e:
+            print(f"加载日程安排背景失败: {e}")
+        
         if character:
             # 角色创建完成，将Character属性传递给Player
             # 主属性
@@ -641,11 +652,16 @@ class Game:
     def _draw_schedule(self):
         """绘制日程安排页面"""
         # 绘制背景
-        self.screen.fill((220, 180, 140))
+        if self.schedule_background:
+            self.screen.blit(self.schedule_background, (0, 0))
+        else:
+            self.screen.fill((220, 180, 140))
         
         # 绘制标题
-        title_text = self.large_font.render("每回合日程安排", True, (150, 100, 50))
-        title_rect = title_text.get_rect(center=(self.width // 2, 60))
+        # 创建更大的字体用于标题
+        title_font = pygame.font.Font(os.path.join(os.path.dirname(__file__), '..', 'fonts', 'fonts_start.ttf'), 30)
+        title_text = title_font.render("日程安排", True, (150, 100, 50))
+        title_rect = title_text.get_rect(center=(self.width // 2, 90))
         self.screen.blit(title_text, title_rect)
         
         # 绘制边框
@@ -705,13 +721,15 @@ class Game:
             column_y = 140
             
             # 绘制分类标题
-            category_text = self.large_font.render(category, True, (150, 100, 50))
+            # 创建更大的字体用于分类标题
+            category_font = pygame.font.Font(os.path.join(os.path.dirname(__file__), '..', 'fonts', 'fonts_start.ttf'), 24)
+            category_text = category_font.render(category, True, (150, 100, 50))
             category_rect = category_text.get_rect(center=(column_x + column_width // 2, column_y))
             self.screen.blit(category_text, category_rect)
             
             # 绘制日程项
-            item_spacing = 40
-            items_per_column = 6
+            item_spacing = 80
+            items_per_column = 3
             
             # 计算当前显示的课程范围
             start_index = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
@@ -738,8 +756,8 @@ class Game:
                 item = visible_items[j]
                 # 计算日程项位置
                 item_x = column_x + 10
-                item_width = column_width - 20
-                item_height = 30
+                item_width = column_width - 30  # 为滚动条留出空间
+                item_height = 60
                 
                 # 检查是否被选中
                 is_selected = any(selected['name'] == item['name'] for selected in self.schedule_selected)
@@ -757,15 +775,45 @@ class Game:
                         pygame.draw.rect(self.screen, (254, 247, 201), (item_x, item_y, item_width, item_height))
                         pygame.draw.rect(self.screen, (150, 100, 50), (item_x, item_y, item_width, item_height), 2)
                 
-                # 绘制日程项文本
+                # 绘制日程项文本 - 换行显示
+                course_name = item['name']
+                study_count = self.course_study_counts.get(course_name, 0)
+                
+                # 绘制课程名
                 if self.has_scheduled:
                     # 已经安排了日程，使用灰色文本
-                    item_text = self.font.render(f"{item['name']}: {item['hours']}学时, {self._get_attribute_name(item['attribute'])}+{item['value']}", True, (100, 100, 100))
+                    name_text = self.font.render(course_name, True, (100, 100, 100))
                 else:
-                    item_text = self.font.render(f"{item['name']}: {item['hours']}学时, {self._get_attribute_name(item['attribute'])}+{item['value']}", True, (150, 100, 50))
-                self.screen.blit(item_text, (item_x + 10, item_y + 5))
+                    name_text = self.font.render(course_name, True, (150, 100, 50))
+                self.screen.blit(name_text, (item_x + 10, item_y + 10))
+                
+                # 绘制学时和属性信息
+                attribute_name = self._get_attribute_name(item['attribute'])
+                if self.has_scheduled:
+                    info_text = self.font.render(f"{study_count}/{item['hours']} 学时  {attribute_name}:+{item['value']}", True, (100, 100, 100))
+                else:
+                    info_text = self.font.render(f"{study_count}/{item['hours']} 学时  {attribute_name}:+{item['value']}", True, (150, 100, 50))
+                self.screen.blit(info_text, (item_x + 10, item_y + 40))
                 
                 item_y += item_spacing
+            
+            # 绘制滚动条
+            if len(visible_items) > items_per_column:
+                # 计算滚动条位置和大小
+                scrollbar_width = 10
+                scrollbar_x = column_x + column_width - scrollbar_width - 5
+                scrollbar_y = column_y + 40
+                scrollbar_height = items_per_column * item_spacing
+                
+                # 计算滚动条滑块的大小和位置
+                total_height = len(visible_items) * item_spacing
+                slider_height = max(20, (scrollbar_height / total_height) * scrollbar_height)
+                slider_y = scrollbar_y + (-self.schedule_scroll_offsets[i] / (total_height - scrollbar_height)) * (scrollbar_height - slider_height)
+                
+                # 绘制滚动条背景
+                pygame.draw.rect(self.screen, (200, 200, 200), (scrollbar_x, scrollbar_y, scrollbar_width, scrollbar_height))
+                # 绘制滚动条滑块
+                pygame.draw.rect(self.screen, (150, 100, 50), (scrollbar_x, slider_y, scrollbar_width, slider_height))
         
         # 绘制已选择的日程信息
         selected_info_y = 450  # 移到方框内部，课程列表下方
@@ -786,8 +834,8 @@ class Game:
         self.draw_text("选择课程并执行后立即进入下一周", 100, selected_info_y + 60, (150, 100, 50))
         
         # 绘制操作按钮
-        confirm_button_rect = pygame.Rect(self.width // 2 - 200, self.height - 80, 180, 50)
-        cancel_button_rect = pygame.Rect(self.width // 2 + 20, self.height - 80, 180, 50)
+        confirm_button_rect = pygame.Rect(self.width // 2 - 200, self.height - 100, 180, 50)
+        cancel_button_rect = pygame.Rect(self.width // 2 + 20, self.height - 100, 180, 50)
         
         # 执行并进入下一回合按钮
         if len(self.schedule_selected) > 0 and not self.has_scheduled:
@@ -844,7 +892,7 @@ class Game:
                 {"name": "材料性能实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
                 {"name": "大学英语", "hours": 8, "attribute": "theory_experiment", "value": 50},
                 {"name": "思修与法律基础", "hours": 8, "attribute": "theory_experiment", "value": 50},
-                {"name": "大学体育", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                
             ],
             "创新创业": [
                 {"name": "科研项目实训", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
@@ -869,6 +917,7 @@ class Game:
                 {"name": "心理健康", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
                 {"name": "安全教育", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
                 {"name": "通识课任选", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
+                {"name": "大学体育", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
             ]
         }
         
@@ -877,8 +926,13 @@ class Game:
         categories = list(schedules.keys())
         
         # 处理操作按钮点击
-        confirm_button_rect = pygame.Rect(self.width // 2 - 200, self.height - 80, 180, 50)
-        cancel_button_rect = pygame.Rect(self.width // 2 + 20, self.height - 80, 180, 50)
+        confirm_button_rect = pygame.Rect(self.width // 2 - 200, self.height - 100, 180, 50)
+        cancel_button_rect = pygame.Rect(self.width // 2 + 20, self.height - 100, 180, 50)
+        
+        # 滚动条拖动状态
+        dragging_scrollbar = None
+        drag_start_y = 0
+        drag_start_offset = 0
         
         # 处理所有事件
         for event in events:
@@ -982,16 +1036,53 @@ class Game:
                     # 返回之前的场景
                     self.current_state = self.previous_state
                 else:
-                    # 检查日程项点击
-                    if not self.has_scheduled:
+                    # 检查滚动条点击
+                    for i in range(3):
+                        column_x = 50 + i * column_width
+                        column_y = 140
+                        
+                        # 过滤出未修满的课程
+                        visible_items = []
+                        for item in schedules[categories[i]]:
+                            course_name = item['name']
+                            study_count = self.course_study_counts.get(course_name, 0)
+                            if study_count < item['hours']:
+                                visible_items.append(item)
+                        
+                        # 检查是否需要滚动条
+                        items_per_column = 3
+                        item_spacing = 80
+                        if len(visible_items) > items_per_column:
+                            # 计算滚动条位置
+                            scrollbar_width = 10
+                            scrollbar_x = column_x + column_width - scrollbar_width - 5
+                            scrollbar_y = column_y + 40
+                            scrollbar_height = items_per_column * item_spacing
+                            
+                            # 计算滚动条滑块的大小和位置
+                            total_height = len(visible_items) * item_spacing
+                            slider_height = max(20, (scrollbar_height / total_height) * scrollbar_height)
+                            slider_y = scrollbar_y + (-self.schedule_scroll_offsets[i] / (total_height - scrollbar_height)) * (scrollbar_height - slider_height)
+                            
+                            # 检查是否点击了滚动条滑块
+                            slider_rect = pygame.Rect(scrollbar_x, slider_y, scrollbar_width, slider_height)
+                            if slider_rect.collidepoint(pos):
+                                # 开始拖动滚动条
+                                dragging_scrollbar = i
+                                drag_start_y = pos[1]
+                                drag_start_offset = self.schedule_scroll_offsets[i]
+                                break
+                    
+                    # 如果没有拖动滚动条，检查日程项点击
+                    if dragging_scrollbar is None and not self.has_scheduled:
                         for i, category in enumerate(categories):
                             # 计算列的位置
                             column_x = 50 + i * column_width
                             column_y = 140
                             
                             # 绘制日程项
-                            item_spacing = 40
-                            items_per_column = 6
+                            item_spacing = 80
+                            items_per_column = 3
                             
                             # 计算当前显示的课程范围
                             start_index = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
@@ -1013,13 +1104,13 @@ class Game:
                             visible_end = min(len(visible_items), visible_start + items_per_column)
                             
                             # 检查可见课程的点击
-                            item_y = column_y + 40
+                            item_y = column_y + 40 + self.schedule_scroll_offsets[i]
                             for j in range(visible_start, visible_end):
                                 item = visible_items[j]
                                 # 计算日程项位置
                                 item_x = column_x + 10
-                                item_width = column_width - 20
-                                item_height = 30
+                                item_width = column_width - 30  # 为滚动条留出空间
+                                item_height = 60
                                 item_rect = pygame.Rect(item_x, item_y, item_width, item_height)
                                 
                                 if item_rect.collidepoint(pos):
@@ -1037,6 +1128,45 @@ class Game:
                                         self.schedule_selected.append(item)
                                 
                                 item_y += item_spacing
+            elif event.type == pygame.MOUSEBUTTONUP:
+                # 结束拖动滚动条
+                if event.button == 1:
+                    dragging_scrollbar = None
+            elif event.type == pygame.MOUSEMOTION:
+                # 处理滚动条拖动
+                if dragging_scrollbar is not None:
+                    pos = pygame.mouse.get_pos()
+                    delta_y = pos[1] - drag_start_y
+                    
+                    # 计算滚动条参数
+                    i = dragging_scrollbar
+                    column_x = 50 + i * column_width
+                    column_y = 140
+                    
+                    # 过滤出未修满的课程
+                    visible_items = []
+                    for item in schedules[categories[i]]:
+                        course_name = item['name']
+                        study_count = self.course_study_counts.get(course_name, 0)
+                        if study_count < item['hours']:
+                            visible_items.append(item)
+                    
+                    # 计算滚动参数
+                    items_per_column = 3
+                    item_spacing = 80
+                    total_height = len(visible_items) * item_spacing
+                    scrollbar_height = items_per_column * item_spacing
+                    max_scroll = (len(visible_items) - items_per_column) * item_spacing
+                    if max_scroll < 0:
+                        max_scroll = 0
+                    
+                    # 计算新的滚动偏移量
+                    scroll_range = scrollbar_height - max(20, (scrollbar_height / total_height) * scrollbar_height)
+                    new_offset = drag_start_offset - (delta_y / scroll_range) * max_scroll
+                    
+                    # 限制滚动范围
+                    new_offset = max(-max_scroll, min(0, new_offset))
+                    self.schedule_scroll_offsets[i] = new_offset
             elif event.type == pygame.MOUSEWHEEL:
                 # 处理鼠标滚轮事件，实现每列独立滚动
                 pos = pygame.mouse.get_pos()
@@ -1053,8 +1183,8 @@ class Game:
                                 visible_items.append(item)
                         
                         # 计算最大滚动偏移量
-                        items_per_column = 6
-                        item_spacing = 40
+                        items_per_column = 3
+                        item_spacing = 80
                         max_scroll = (len(visible_items) - items_per_column) * item_spacing
                         if max_scroll < 0:
                             max_scroll = 0

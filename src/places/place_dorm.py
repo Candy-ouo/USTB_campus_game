@@ -67,7 +67,7 @@ class Dorm:
                 button_width = 150
                 button_height = 78
                 # 计算按钮位置
-                self.playgame_button_rect = pygame.Rect(400, 200, button_width, button_height)
+                self.playgame_button_rect = pygame.Rect(800, 350, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.playgame_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.playgame_button_rect)
@@ -85,7 +85,7 @@ class Dorm:
                 button_width = 150
                 button_height = 78
                 # 计算按钮位置
-                self.reading_button_rect = pygame.Rect(400, 280, button_width, button_height)
+                self.reading_button_rect = pygame.Rect(350, 300, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.reading_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.reading_button_rect)
@@ -103,7 +103,7 @@ class Dorm:
                 button_width = 180
                 button_height = 78
                 # 计算按钮位置
-                self.bed_button_rect = pygame.Rect(400, 360, button_width, button_height)
+                self.bed_button_rect = pygame.Rect(450, 150, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.bed_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.bed_button_rect)
@@ -123,7 +123,7 @@ class Dorm:
         if self.playgame_button:
             button_width = 150
             button_height = 78
-            playgame_button_rect = pygame.Rect(400, 200, button_width, button_height)
+            playgame_button_rect = pygame.Rect(800, 350, button_width, button_height)
         else:
             playgame_button_rect = pygame.Rect(400, 200, 500, 50)
         
@@ -131,7 +131,7 @@ class Dorm:
         if self.reading_button:
             button_width = 150
             button_height = 78
-            reading_button_rect = pygame.Rect(400, 280, button_width, button_height)
+            reading_button_rect = pygame.Rect(350, 300, button_width, button_height)
         else:
             reading_button_rect = pygame.Rect(400, 280, 500, 50)
         
@@ -139,7 +139,7 @@ class Dorm:
         if self.bed_button:
             button_width = 180
             button_height = 78
-            bed_button_rect = pygame.Rect(400, 360, button_width, button_height)
+            bed_button_rect = pygame.Rect(450, 150, button_width, button_height)
         else:
             bed_button_rect = pygame.Rect(400, 360, 500, 50)
 
