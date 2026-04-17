@@ -321,7 +321,7 @@ class UIHUD:
         
         # 绘制file_icon，bag_icon，relationship_icon在页面底部
         icon_spacing = 20
-        bottom_margin = 10
+        bottom_margin = 8
         
         if self.file_icon:
             self.file_icon_rect = pygame.Rect(
