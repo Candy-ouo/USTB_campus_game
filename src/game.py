@@ -1310,15 +1310,11 @@ class Game:
 
         
         if self.message_timer > 0:
-            self.draw_text(self.message, self.width // 2 - 150, self.height - 80, WHITE, self.large_font)
-            self.message_timer -= 1
-
-        if self.message_timer > 0:
-            # 消息显示配置，可根据需要修改
-            message_x = SCREEN_WIDTH // 2 - 150  # 消息X坐标
-            message_y = SCREEN_HEIGHT - 80  # 消息Y坐标
+            # 消息显示在游戏窗口底部居中位置，在底部图标之上
+            message_x = SCREEN_WIDTH // 2 - 150  # 消息X坐标（居中）
+            message_y = SCREEN_HEIGHT - 110  # 消息Y坐标（在底部图标之上）
             message_color = WHITE  # 消息颜色
-            message_font = self.large_font  # 消息字体（可改为self.font或其他字体）
+            message_font = self.large_font  # 消息字体
             self.draw_text(self.message, message_x, message_y, message_color, message_font)
             self.message_timer -= 1
     
