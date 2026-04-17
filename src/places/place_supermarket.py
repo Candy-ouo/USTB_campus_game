@@ -15,6 +15,8 @@ class Supermarket:
         self.cloth_button = None
         self.book_button = None
         self.jianshen_button = None
+        self.unhealth_button = None
+        self.tili_button = None
         self._load_images()
 
     def _load_images(self):
@@ -57,6 +59,22 @@ class Supermarket:
                 self.jianshen_button = pygame.image.load(jianshen_button_path)
         except:
             pass
+        
+        # 加载不健康的零食按钮图片
+        unhealth_button_path = os.path.join(os.path.dirname(__file__), '..', '..', 'image', 'unhealth_button.png')
+        try:
+            if os.path.exists(unhealth_button_path):
+                self.unhealth_button = pygame.image.load(unhealth_button_path)
+        except:
+            pass
+        
+        # 加载体力药水按钮图片
+        tili_button_path = os.path.join(os.path.dirname(__file__), '..', '..', 'image', 'tili_button.png')
+        try:
+            if os.path.exists(tili_button_path):
+                self.tili_button = pygame.image.load(tili_button_path)
+        except:
+            pass
 
     def draw(self):
         """绘制超市场景"""
@@ -75,10 +93,8 @@ class Supermarket:
             # 绘制美味蛋糕按钮
             if self.cake_button:
                 # 保持图片原始比例，计算显示大小
-                button_width = 500
-                button_height = int(button_width * (self.cake_button.get_height() / self.cake_button.get_width()))
-                # 确保按钮高度不超过50
-                button_height = min(button_height, 50)
+                button_width = 150
+                button_height = 78
                 # 计算按钮位置
                 self.cake_button_rect = pygame.Rect(400, 150, button_width, button_height)
                 # 缩放按钮图片
@@ -94,10 +110,8 @@ class Supermarket:
             # 绘制潮流衣服按钮
             if self.cloth_button:
                 # 保持图片原始比例，计算显示大小
-                button_width = 500
-                button_height = int(button_width * (self.cloth_button.get_height() / self.cloth_button.get_width()))
-                # 确保按钮高度不超过50
-                button_height = min(button_height, 50)
+                button_width = 150
+                button_height = 78
                 # 计算按钮位置
                 self.cloth_button_rect = pygame.Rect(400, 200, button_width, button_height)
                 # 缩放按钮图片
@@ -113,10 +127,8 @@ class Supermarket:
             # 绘制课外教材按钮
             if self.book_button:
                 # 保持图片原始比例，计算显示大小
-                button_width = 500
-                button_height = int(button_width * (self.book_button.get_height() / self.book_button.get_width()))
-                # 确保按钮高度不超过50
-                button_height = min(button_height, 50)
+                button_width = 150
+                button_height = 78
                 # 计算按钮位置
                 self.book_button_rect = pygame.Rect(400, 250, button_width, button_height)
                 # 缩放按钮图片
@@ -132,10 +144,8 @@ class Supermarket:
             # 绘制健身器材按钮
             if self.jianshen_button:
                 # 保持图片原始比例，计算显示大小
-                button_width = 500
-                button_height = int(button_width * (self.jianshen_button.get_height() / self.jianshen_button.get_width()))
-                # 确保按钮高度不超过50
-                button_height = min(button_height, 50)
+                button_width = 150
+                button_height = 78
                 # 计算按钮位置
                 self.jianshen_button_rect = pygame.Rect(400, 300, button_width, button_height)
                 # 缩放按钮图片
@@ -149,13 +159,38 @@ class Supermarket:
                 self.game.draw_text("健身器材：金钱-30 体能+10", self.jianshen_button_rect.x + 10, self.jianshen_button_rect.y + 10, (254, 247, 201))
 
             # 绘制不健康的零食按钮
-            pygame.draw.rect(self.screen, (220, 180, 140), option5_rect)
-            pygame.draw.rect(self.screen, (150, 100, 50), option5_rect, 2)
-            self.game.draw_text("不健康的零食：金钱-15 心情+40 健康-5", option5_rect.x + 10, option5_rect.y + 10, (254, 247, 201))
+            if self.unhealth_button:
+                # 保持图片原始比例，计算显示大小
+                button_width = 198
+                button_height = 78
+                # 计算按钮位置
+                self.unhealth_button_rect = pygame.Rect(400, 350, button_width, button_height)
+                # 缩放按钮图片
+                scaled_button = pygame.transform.scale(self.unhealth_button, (button_width, button_height))
+                self.screen.blit(scaled_button, self.unhealth_button_rect)
+            else:
+                # 如果图片加载失败，绘制默认矩形
+                self.unhealth_button_rect = pygame.Rect(400, 350, 500, 50)
+                pygame.draw.rect(self.screen, (220, 180, 140), self.unhealth_button_rect)
+                pygame.draw.rect(self.screen, (150, 100, 50), self.unhealth_button_rect, 2)
+                self.game.draw_text("不健康的零食：金钱-15 心情+40 健康-5", self.unhealth_button_rect.x + 10, self.unhealth_button_rect.y + 10, (254, 247, 201))
 
-            pygame.draw.rect(self.screen, (220, 180, 140), option6_rect)
-            pygame.draw.rect(self.screen, (150, 100, 50), option6_rect, 2)
-            self.game.draw_text("体力药水：金钱-30 行动点+1", option6_rect.x + 10, option6_rect.y + 10, (254, 247, 201))
+            # 绘制体力药水按钮
+            if self.tili_button:
+                # 保持图片原始比例，计算显示大小
+                button_width = 150
+                button_height = 78
+                # 计算按钮位置
+                self.tili_button_rect = pygame.Rect(400, 400, button_width, button_height)
+                # 缩放按钮图片
+                scaled_button = pygame.transform.scale(self.tili_button, (button_width, button_height))
+                self.screen.blit(scaled_button, self.tili_button_rect)
+            else:
+                # 如果图片加载失败，绘制默认矩形
+                self.tili_button_rect = pygame.Rect(400, 400, 500, 50)
+                pygame.draw.rect(self.screen, (220, 180, 140), self.tili_button_rect)
+                pygame.draw.rect(self.screen, (150, 100, 50), self.tili_button_rect, 2)
+                self.game.draw_text("体力药水：金钱-30 行动点+1", self.tili_button_rect.x + 10, self.tili_button_rect.y + 10, (254, 247, 201))
         else:
             self.game.message = "今日购买次数已达上限"
             self.game.message_timer = 90
@@ -167,43 +202,52 @@ class Supermarket:
         """处理超市场景事件"""
         # 计算美味蛋糕按钮矩形
         if self.cake_button:
-            button_width = 500
-            button_height = int(button_width * (self.cake_button.get_height() / self.cake_button.get_width()))
-            button_height = min(button_height, 50)
+            button_width = 150
+            button_height = 78
             cake_button_rect = pygame.Rect(400, 150, button_width, button_height)
         else:
             cake_button_rect = pygame.Rect(400, 150, 500, 50)
         
         # 计算潮流衣服按钮矩形
         if self.cloth_button:
-            button_width = 500
-            button_height = int(button_width * (self.cloth_button.get_height() / self.cloth_button.get_width()))
-            button_height = min(button_height, 50)
+            button_width = 150
+            button_height = 78
             cloth_button_rect = pygame.Rect(400, 200, button_width, button_height)
         else:
             cloth_button_rect = pygame.Rect(400, 200, 500, 50)
         
         # 计算课外教材按钮矩形
         if self.book_button:
-            button_width = 500
-            button_height = int(button_width * (self.book_button.get_height() / self.book_button.get_width()))
-            button_height = min(button_height, 50)
+            button_width = 150
+            button_height = 78
             book_button_rect = pygame.Rect(400, 250, button_width, button_height)
         else:
             book_button_rect = pygame.Rect(400, 250, 500, 50)
         
         # 计算健身器材按钮矩形
         if self.jianshen_button:
-            button_width = 500
-            button_height = int(button_width * (self.jianshen_button.get_height() / self.jianshen_button.get_width()))
-            button_height = min(button_height, 50)
+            button_width = 150
+            button_height = 78
             jianshen_button_rect = pygame.Rect(400, 300, button_width, button_height)
         else:
             jianshen_button_rect = pygame.Rect(400, 300, 500, 50)
         
-        # 其他按钮矩形
-        option5_rect = pygame.Rect(400, 350, 500, 50)
-        option6_rect = pygame.Rect(400, 400, 500, 50)
+        # 计算不健康的零食按钮矩形
+        if self.unhealth_button:
+            button_width = 198
+            button_height = 78
+            unhealth_button_rect = pygame.Rect(400, 350, button_width, button_height)
+        else:
+            unhealth_button_rect = pygame.Rect(400, 350, 500, 50)
+        
+        # 计算体力药水按钮矩形
+        if self.tili_button:
+            button_width = 150
+            button_height = 78
+            button_height = min(button_height, 50)
+            tili_button_rect = pygame.Rect(400, 400, button_width, button_height)
+        else:
+            tili_button_rect = pygame.Rect(400, 400, 500, 50)
 
         for event in events:
             if event.type == pygame.KEYDOWN:
@@ -260,7 +304,7 @@ class Supermarket:
                         else:
                             self.game.message = "金钱不足！"
                             self.game.message_timer = 60
-                    elif option5_rect.collidepoint(pos):
+                    elif unhealth_button_rect.collidepoint(pos):
                         if self.game.player.living_expenses >= 15:
                             self.game.player.living_expenses -= 15
                             self.game.player.add_mood(40)
@@ -270,15 +314,15 @@ class Supermarket:
                             self.game.message = "你购买了不健康的零食，金钱-15，心情+40，健康-5，人脉+1"
                             self.game.message_timer = 90
                         else:
-                            self.game.message = "金钱不足！"
-                            self.game.message_timer = 60
-                    elif option6_rect.collidepoint(pos):
+                            self.game.message = "金钱不足"
+                            self.game.message_timer = 90
+                    elif tili_button_rect.collidepoint(pos):
                         if self.game.player.living_expenses >= 30:
                             self.game.player.living_expenses -= 30
-                            self.game.player.action_points += 1
+                            self.game.player.add_action_points(1)
                             self.game.supermarket_purchases += 1
                             self.game.message = "你购买了体力药水，金钱-30，行动点+1"
                             self.game.message_timer = 90
                         else:
-                            self.game.message = "金钱不足！"
-                            self.game.message_timer = 60
+                            self.game.message = "金钱不足"
+                            self.game.message_timer = 90
