@@ -55,10 +55,6 @@ class StudentCenter:
         pygame.draw.rect(self.screen, (150, 100, 50), option5_rect, 2)
         self.game.draw_text("实习：技能+20 心情-10", option5_rect.x + 10, option5_rect.y + 10, (254, 247, 201))
 
-        if self.game.message_timer > 0:
-            self.game.draw_text(self.game.message, SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT - 110, (254, 247, 201), self.large_font)
-            self.game.message_timer -= 1
-
         time_display = self.game.time_system.get_time_display()
         self.game.ui_hud.draw_all(time_display, self.game.player)
 

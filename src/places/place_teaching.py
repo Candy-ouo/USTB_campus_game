@@ -9,6 +9,7 @@ class Teaching:
         self.screen = game.screen
         self.font = game.font
         self.large_font = game.large_font
+        self.start_font = game.start_font
         self.classroom_background = None
         self._load_images()
 
@@ -41,11 +42,7 @@ class Teaching:
             pygame.draw.rect(self.screen, (150, 100, 50), option2_rect, 2)
             self.game.draw_text("自习：行动点-1 学识+15 心情-20 健康值-5", option2_rect.x + 10, option2_rect.y + 10, (254, 247, 201))
         else:
-            self.game.draw_text("已学习", SCREEN_WIDTH // 2 - 50, 200, (254, 247, 201), self.large_font)
-
-        if self.game.message_timer > 0:
-            self.game.draw_text(self.game.message, SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT - 110, (254, 247, 201), self.large_font)
-            self.game.message_timer -= 1
+            self.game.draw_text("已学习", SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT - 50, (141, 54, 25), self.start_font)
 
         time_display = self.game.time_system.get_time_display()
         self.game.ui_hud.draw_all(time_display, self.game.player)

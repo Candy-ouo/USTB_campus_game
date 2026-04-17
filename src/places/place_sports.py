@@ -46,11 +46,7 @@ class Sports:
             pygame.draw.rect(self.screen, (150, 100, 50), option3_rect, 2)
             self.game.draw_text("游泳：行动点-2 金钱-20 体能+15", option3_rect.x + 10, option3_rect.y + 10, (254, 247, 201))
         else:
-            self.game.draw_text("已运动", SCREEN_WIDTH // 2 - 50, 200, (254, 247, 201), self.large_font)
-
-        if self.game.message_timer > 0:
-            self.game.draw_text(self.game.message, SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT - 110, (254, 247, 201), self.large_font)
-            self.game.message_timer -= 1
+            self.game.draw_text("已运动", SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT - 50, (141, 54, 25), self.start_font)
 
         time_display = self.game.time_system.get_time_display()
         self.game.ui_hud.draw_all(time_display, self.game.player)

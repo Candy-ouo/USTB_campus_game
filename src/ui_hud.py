@@ -7,8 +7,9 @@ from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, WHITE
 
 
 class UIHUD:
-    def __init__(self, screen):
+    def __init__(self, screen, game=None):
         self.screen = screen
+        self.game = game
         self.font = None
         self.large_font = None
         self.action_font = None  # 行动属性字体
@@ -223,7 +224,7 @@ class UIHUD:
         if player.health < 60:
             max_action_points = max(1, max_action_points // 2)
         action_text = self.action_font.render(f"{action_points}/{max_action_points}", True, (225, 182, 83))
-        action_rect = action_text.get_rect(center=(580, y_offset))
+        action_rect = action_text.get_rect(center=(600, y_offset))
         self.screen.blit(action_text, action_rect)
         
         # 绘制心情
@@ -342,7 +343,7 @@ class UIHUD:
         # 绘制file_icon，bag_icon，relationship_icon在页面底部
         icon_spacing = 20
         bottom_margin = 8
-        
+
         if self.file_icon:
             self.file_icon_rect = pygame.Rect(
                 210,
@@ -351,7 +352,7 @@ class UIHUD:
                 self.file_icon.get_height()
             )
             self.screen.blit(self.file_icon, self.file_icon_rect)
-        
+
         if self.bag_icon:
             self.bag_icon_rect = pygame.Rect(
                 210 + (self.file_icon.get_width() if self.file_icon else 0) + icon_spacing,
@@ -360,7 +361,7 @@ class UIHUD:
                 self.bag_icon.get_height()
             )
             self.screen.blit(self.bag_icon, self.bag_icon_rect)
-        
+
         if self.relationship_icon:
             self.relationship_icon_rect = pygame.Rect(
                 210 + (self.file_icon.get_width() if self.file_icon else 0) + (self.bag_icon.get_width() if self.bag_icon else 0) + icon_spacing * 2,
@@ -369,6 +370,18 @@ class UIHUD:
                 self.relationship_icon.get_height()
             )
             self.screen.blit(self.relationship_icon, self.relationship_icon_rect)
+
+        # 绘制存档按钮在右下角
+        save_button_width = 80
+        save_button_height = 35
+        save_button_x = SCREEN_WIDTH - save_button_width - 10
+        save_button_y = SCREEN_HEIGHT - bottom_margin - save_button_height - 5
+        self.save_button_rect = pygame.Rect(save_button_x, save_button_y, save_button_width, save_button_height)
+        pygame.draw.rect(self.screen, (220, 180, 140), self.save_button_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), self.save_button_rect, 2)
+        save_text = self.font.render("存档", True, (95, 58, 31))
+        save_text_rect = save_text.get_rect(center=self.save_button_rect.center)
+        self.screen.blit(save_text, save_text_rect)
         
         # 绘制行动属性
         living_expenses = player.get_living_expenses()
@@ -386,6 +399,15 @@ class UIHUD:
         reputation = player.get_reputation()
         mood = player.get_mood()
         self.draw_main_attributes(knowledge, knowledge_level, charm, charm_level, physical, physical_level, skill, social, reputation, mood)
+
+        # 绘制消息（在所有UI元素之上）
+        if self.game.message_timer > 0:
+            message_x = SCREEN_WIDTH // 2 - 150
+            message_y = SCREEN_HEIGHT - 45
+            message_color = (141, 54, 25)
+            message_font = self.large_font
+            self.game.draw_text(self.game.message, message_x, message_y, message_color, message_font)
+            self.game.message_timer -= 1
     
     def handle_events(self, events):
         """处理UI事件"""
@@ -407,4 +429,7 @@ class UIHUD:
                 # 检查是否点击了relationship_icon
                 if hasattr(self, 'relationship_icon_rect') and self.relationship_icon_rect.collidepoint(mouse_pos):
                     return 'RELATIONSHIP'
+                # 检查是否点击了存档按钮
+                if hasattr(self, 'save_button_rect') and self.save_button_rect.collidepoint(mouse_pos):
+                    return 'SAVE'
         return None
