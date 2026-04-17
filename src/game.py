@@ -409,7 +409,10 @@ class Game:
         is_current_final_week = self.time_system.is_final_exam_week()
         current_year = self.time_system.get_year()  # 保存结算前的学年
         
-        self.time_system.next_day()
+        month_changed = self.time_system.next_day()
+        # 如果月份变化了，增加200块生活费
+        if month_changed:
+            self.player.add_living_expenses(200)
         # 设置行动点，健康值低于60时减半
         if self.player.health < 60:
             self.player.action_points = DAILY_ACTION_POINTS // 2
@@ -610,58 +613,68 @@ class Game:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if self.map_system.is_map_showing():
                     pos = pygame.mouse.get_pos()
-                    area_id = self.map_system.get_area_at(pos, self.player.is_sick)
-                    if area_id:
-                        # 检查是否生病
-                        if self.player.is_sick:
-                            if area_id == 'hospital':
-                                # 切换到校医院场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_HOSPITAL
-                            else:
-                                # 生病时只能去校医院
-                                self.message = "你生病了，只能去校医院！"
-                                self.message_timer = 90
-                        else:
-                            if area_id == 'canteen':
-                                # 切换到食堂场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_CANTEEN
-                            elif area_id == 'teaching':
-                                # 切换到教学区场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_TEACHING
-                            elif area_id == 'sports':
-                                # 切换到操场场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_SPORTS
-                            elif area_id == 'food':
-                                # 切换到超市场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_SUPERMARKET
-                            elif area_id == 'dorm':
-                                # 切换到宿舍场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_DORM
-                            elif area_id == 'supermarket':
-                                # 切换到学生活动中心场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_STUDENT_CENTER
-                            elif area_id == 'hospital':
-                                # 切换到校医院场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_HOSPITAL
-                            else:
-                                self.map_system.set_active_area(area_id)
+                    # 检查"安排"图标是否被点击
+                    if hasattr(self.ui_hud, 'scedule_icon_rect') and self.ui_hud.scedule_icon_rect.collidepoint(pos):
+                        # 跳转到日程安排页面
+                        self.map_system.toggle_map()  # 关闭地图
+                        self.current_state = STATE_SCHEDULE
+                        # 如果还没有安排日程，重置已选择的日程
+                        if not self.has_scheduled:
+                            self.schedule_selected = []
                     else:
-                        self.map_system.clear_active_area()
+                        area_id = self.map_system.get_area_at(pos, self.player.is_sick)
+                        if area_id:
+                            # 检查是否生病
+                            if self.player.is_sick:
+                                if area_id == 'hospital':
+                                    # 切换到校医院场景
+                                    self.map_system.toggle_map()  # 确保地图不显示
+                                    self.current_state = STATE_HOSPITAL
+                                else:
+                                    # 生病时只能去校医院
+                                    self.message = "你生病了，只能去校医院！"
+                                    self.message_timer = 90
+                            else:
+                                if area_id == 'canteen':
+                                    # 切换到食堂场景
+                                    self.map_system.toggle_map()  # 确保地图不显示
+                                    self.current_state = STATE_CANTEEN
+                                elif area_id == 'teaching':
+                                    # 切换到教学区场景
+                                    self.map_system.toggle_map()  # 确保地图不显示
+                                    self.current_state = STATE_TEACHING
+                                elif area_id == 'sports':
+                                    # 切换到操场场景
+                                    self.map_system.toggle_map()  # 确保地图不显示
+                                    self.current_state = STATE_SPORTS
+                                elif area_id == 'food':
+                                    # 切换到超市场景
+                                    self.map_system.toggle_map()  # 确保地图不显示
+                                    self.current_state = STATE_SUPERMARKET
+                                elif area_id == 'dorm':
+                                    # 切换到宿舍场景
+                                    self.map_system.toggle_map()  # 确保地图不显示
+                                    self.current_state = STATE_DORM
+                                elif area_id == 'supermarket':
+                                    # 切换到学生活动中心场景
+                                    self.map_system.toggle_map()  # 确保地图不显示
+                                    self.current_state = STATE_STUDENT_CENTER
+                                elif area_id == 'hospital':
+                                    # 切换到校医院场景
+                                    self.map_system.toggle_map()  # 确保地图不显示
+                                    self.current_state = STATE_HOSPITAL
+                                else:
+                                    self.map_system.set_active_area(area_id)
+                        else:
+                            self.map_system.clear_active_area()
                 else:
                     # 处理主界面的鼠标点击
                     pos = pygame.mouse.get_pos()
                     # 检查"安排"图标是否被点击
                     # 根据截图，"安排"图标位于界面右侧，地图图标的下方
-                    schedule_icon_rect = pygame.Rect(self.width - 100, self.height - 150, 80, 80)
-                    if schedule_icon_rect.collidepoint(pos):
+                    if hasattr(self.ui_hud, 'scedule_icon_rect') and self.ui_hud.scedule_icon_rect.collidepoint(pos):
+                        # 记录当前场景
+                        self.previous_state = self.current_state
                         # 跳转到日程安排页面
                         self.current_state = STATE_SCHEDULE
                         # 如果还没有安排日程，重置已选择的日程
@@ -678,9 +691,22 @@ class Game:
         title_rect = title_text.get_rect(center=(self.width // 2, 60))
         self.screen.blit(title_text, title_rect)
         
-        # 绘制边框
-        border_rect = pygame.Rect(50, 100, self.width - 100, self.height - 200)
-        pygame.draw.rect(self.screen, (150, 100, 50), border_rect, 3)
+        # 检查健康状态，生病时不能选课
+        if self.player.health < 40:
+            # 健康值低，清空选课列表
+            self.schedule_selected = []
+            # 显示提示信息
+            sick_text = self.font.render("你生病了，无法选课！", True, (255, 0, 0))
+            sick_rect = sick_text.get_rect(center=(self.width // 2, 100))
+            self.screen.blit(sick_text, sick_rect)
+            
+            advice_text = self.font.render("但可以通过安排进入下一回合", True, (150, 100, 50))
+            advice_rect = advice_text.get_rect(center=(self.width // 2, 130))
+            self.screen.blit(advice_text, advice_rect)
+        else:
+            # 绘制边框
+            border_rect = pygame.Rect(50, 100, self.width - 100, self.height - 200)
+            pygame.draw.rect(self.screen, (150, 100, 50), border_rect, 3)
         
         # 定义日程数据
         schedules = {
@@ -729,73 +755,75 @@ class Game:
         column_width = (self.width - 100) // 3
         categories = list(schedules.keys())
         
-        for i, category in enumerate(categories):
-            # 计算列的位置
-            column_x = 50 + i * column_width
-            column_y = 140
-            
-            # 绘制分类标题
-            category_text = self.large_font.render(category, True, (150, 100, 50))
-            category_rect = category_text.get_rect(center=(column_x + column_width // 2, column_y))
-            self.screen.blit(category_text, category_rect)
-            
-            # 绘制日程项
-            item_spacing = 40
-            items_per_column = 6
-            
-            # 计算当前显示的课程范围
-            start_index = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
-            end_index = min(len(schedules[category]), start_index + items_per_column)
-            
-            # 绘制课程（过滤掉已修满的课程）
-            item_y = column_y + 40
-            visible_items = []
-            
-            # 先过滤出未修满的课程
-            for j in range(len(schedules[category])):
-                item = schedules[category][j]
-                course_name = item['name']
-                study_count = self.course_study_counts.get(course_name, 0)
-                if study_count < item['hours']:
-                    visible_items.append(item)
-            
-            # 计算可见课程的显示范围
-            visible_start = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
-            visible_end = min(len(visible_items), visible_start + items_per_column)
-            
-            # 绘制可见的课程
-            for j in range(visible_start, visible_end):
-                item = visible_items[j]
-                # 计算日程项位置
-                item_x = column_x + 10
-                item_width = column_width - 20
-                item_height = 30
+        # 检查健康状态，生病时不显示课程列表
+        if self.player.health >= 40:
+            for i, category in enumerate(categories):
+                # 计算列的位置
+                column_x = 50 + i * column_width
+                column_y = 140
                 
-                # 检查是否被选中
-                is_selected = any(selected['name'] == item['name'] for selected in self.schedule_selected)
+                # 绘制分类标题
+                category_text = self.large_font.render(category, True, (150, 100, 50))
+                category_rect = category_text.get_rect(center=(column_x + column_width // 2, column_y))
+                self.screen.blit(category_text, category_rect)
                 
-                # 绘制日程项背景
-                if is_selected:
-                    pygame.draw.rect(self.screen, (255, 215, 0), (item_x, item_y, item_width, item_height))
-                    pygame.draw.rect(self.screen, (218, 165, 32), (item_x, item_y, item_width, item_height), 2)
-                else:
-                    if self.has_scheduled:
-                        # 已经安排了日程，禁用未选中的日程项
-                        pygame.draw.rect(self.screen, (200, 200, 200), (item_x, item_y, item_width, item_height))
-                        pygame.draw.rect(self.screen, (100, 100, 100), (item_x, item_y, item_width, item_height), 2)
+                # 绘制日程项
+                item_spacing = 40
+                items_per_column = 6
+                
+                # 计算当前显示的课程范围
+                start_index = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
+                end_index = min(len(schedules[category]), start_index + items_per_column)
+                
+                # 绘制课程（过滤掉已修满的课程）
+                item_y = column_y + 40
+                visible_items = []
+                
+                # 先过滤出未修满的课程
+                for j in range(len(schedules[category])):
+                    item = schedules[category][j]
+                    course_name = item['name']
+                    study_count = self.course_study_counts.get(course_name, 0)
+                    if study_count < item['hours']:
+                        visible_items.append(item)
+                
+                # 计算可见课程的显示范围
+                visible_start = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
+                visible_end = min(len(visible_items), visible_start + items_per_column)
+                
+                # 绘制可见的课程
+                for j in range(visible_start, visible_end):
+                    item = visible_items[j]
+                    # 计算日程项位置
+                    item_x = column_x + 10
+                    item_width = column_width - 20
+                    item_height = 30
+                    
+                    # 检查是否被选中
+                    is_selected = any(selected['name'] == item['name'] for selected in self.schedule_selected)
+                    
+                    # 绘制日程项背景
+                    if is_selected:
+                        pygame.draw.rect(self.screen, (255, 215, 0), (item_x, item_y, item_width, item_height))
+                        pygame.draw.rect(self.screen, (218, 165, 32), (item_x, item_y, item_width, item_height), 2)
                     else:
-                        pygame.draw.rect(self.screen, (254, 247, 201), (item_x, item_y, item_width, item_height))
-                        pygame.draw.rect(self.screen, (150, 100, 50), (item_x, item_y, item_width, item_height), 2)
-                
-                # 绘制日程项文本
-                if self.has_scheduled:
-                    # 已经安排了日程，使用灰色文本
-                    item_text = self.font.render(f"{item['name']}: {item['hours']}学时, {self._get_attribute_name(item['attribute'])}+{item['value']}", True, (100, 100, 100))
-                else:
-                    item_text = self.font.render(f"{item['name']}: {item['hours']}学时, {self._get_attribute_name(item['attribute'])}+{item['value']}", True, (150, 100, 50))
-                self.screen.blit(item_text, (item_x + 10, item_y + 5))
-                
-                item_y += item_spacing
+                        if self.has_scheduled:
+                            # 已经安排了日程，禁用未选中的日程项
+                            pygame.draw.rect(self.screen, (200, 200, 200), (item_x, item_y, item_width, item_height))
+                            pygame.draw.rect(self.screen, (100, 100, 100), (item_x, item_y, item_width, item_height), 2)
+                        else:
+                            pygame.draw.rect(self.screen, (254, 247, 201), (item_x, item_y, item_width, item_height))
+                            pygame.draw.rect(self.screen, (150, 100, 50), (item_x, item_y, item_width, item_height), 2)
+                    
+                    # 绘制日程项文本
+                    if self.has_scheduled:
+                        # 已经安排了日程，使用灰色文本
+                        item_text = self.font.render(f"{item['name']}: {item['hours']}学时, {self._get_attribute_name(item['attribute'])}+{item['value']}", True, (100, 100, 100))
+                    else:
+                        item_text = self.font.render(f"{item['name']}: {item['hours']}学时, {self._get_attribute_name(item['attribute'])}+{item['value']}", True, (150, 100, 50))
+                    self.screen.blit(item_text, (item_x + 10, item_y + 5))
+                    
+                    item_y += item_spacing
         
         # 绘制已选择的日程信息
         selected_info_y = 450  # 移到方框内部，课程列表下方
@@ -827,8 +855,16 @@ class Game:
             text_surface = self.large_font.render("执行", True, (254, 247, 201))
             text_x = confirm_button_rect.x + (confirm_button_rect.width - text_surface.get_width()) // 2
             self.draw_text("执行", text_x, confirm_button_rect.y + 15, (254, 247, 201), self.large_font)
+        elif self.player.health < 40:
+            # 生病状态下始终显示可点击的执行按钮
+            pygame.draw.rect(self.screen, (220, 180, 140), confirm_button_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), confirm_button_rect, 2)
+            # 计算文本宽度，使文本居中
+            text_surface = self.large_font.render("执行", True, (254, 247, 201))
+            text_x = confirm_button_rect.x + (confirm_button_rect.width - text_surface.get_width()) // 2
+            self.draw_text("执行", text_x, confirm_button_rect.y + 15, (254, 247, 201), self.large_font)
         else:
-            pygame.draw.rect(self.screen, (100, 100, 100), confirm_button_rect)
+            pygame.draw.rect(self.screen, (100,100, 100), confirm_button_rect)
             pygame.draw.rect(self.screen, (50, 50, 50), confirm_button_rect, 2)
             # 计算文本宽度，使文本居中
             text_surface = self.large_font.render("执行", True, (200, 200, 200))
@@ -925,8 +961,41 @@ class Game:
                 
                 # 检查确认按钮
                 if confirm_button_rect.collidepoint(pos):
+                    # 生病状态下可以直接进入下一回合
+                    if self.player.health < 40:
+                        # 直接进入下一回合
+                        month_changed = self.time_system.next_week()
+                        # 如果月份变化了，增加200块生活费
+                        if month_changed:
+                            self.player.add_living_expenses(200)
+                        # 更新UIHUD的时间信息
+                        year = self.time_system.get_year()
+                        month = self.time_system.get_month()
+                        week = self.time_system.get_week_in_month()
+                        self.ui_hud.update_time(year, month, week)
+                        # 重置行动点（考虑健康状态）
+                        self.player.reset_daily()
+                        # 重置超市购买次数
+                        self.supermarket_purchases = 0
+                        # 重置已用餐状态
+                        self.has_eaten = False
+                        # 重置已运动状态
+                        self.has_exercised = False
+                        # 重置已休息状态
+                        self.has_rested = False
+                        # 重置已学习状态
+                        self.has_studied = False
+                        # 重置已玩游戏状态
+                        self.has_played_games = False
+                        # 重置已看书状态
+                        self.has_read_book = False
+                        # 重置日程安排相关属性
+                        self.schedule_selected = []
+                        self.has_scheduled = False
+                        # 返回之前的场景
+                        self.current_state = self.previous_state
                     # 执行并进入下一回合
-                    if len(self.schedule_selected) > 0 and not self.has_scheduled:
+                    elif len(self.schedule_selected) > 0 and not self.has_scheduled:
                         # 记录属性变化前的值
                         before_theory = self.player.theory_experiment
                         before_employment = self.player.employment_entrepreneurship
@@ -977,35 +1046,39 @@ class Game:
                             count = self.course_study_counts.get(course_name, 0)
                             print(f"{course_name}: {count}/{item['hours']} 学时")
                         print("=====================\n")
-                        
-                        # 进入下一回合
-                        self.time_system.next_week()
-                        # 更新UIHUD的时间信息
-                        year = self.time_system.get_year()
-                        month = self.time_system.get_month()
-                        week = self.time_system.get_week_in_month()
-                        self.ui_hud.update_time(year, month, week)
-                        # 重置行动点
-                        self.player.action_points = DAILY_ACTION_POINTS
-                        # 重置超市购买次数
-                        self.supermarket_purchases = 0
-                        # 重置已用餐状态
-                        self.has_eaten = False
-                        # 重置已运动状态
-                        self.has_exercised = False
-                        # 重置已休息状态
-                        self.has_rested = False
-                        # 重置已学习状态
-                        self.has_studied = False
-                        # 重置已玩游戏状态
-                        self.has_played_games = False
-                        # 重置已看书状态
-                        self.has_read_book = False
-                        # 重置日程安排相关属性
-                        self.schedule_selected = []
-                        self.has_scheduled = False
-                        # 返回之前的场景
-                        self.current_state = self.previous_state
+                    
+                    # 无论是否选择了课程，都进入下一回合
+                    # 进入下一回合
+                    month_changed = self.time_system.next_week()
+                    # 如果月份变化了，增加200块生活费
+                    if month_changed:
+                        self.player.add_living_expenses(200)
+                    # 更新UIHUD的时间信息
+                    year = self.time_system.get_year()
+                    month = self.time_system.get_month()
+                    week = self.time_system.get_week_in_month()
+                    self.ui_hud.update_time(year, month, week)
+                    # 重置行动点（考虑健康状态）
+                    self.player.reset_daily()
+                    # 重置超市购买次数
+                    self.supermarket_purchases = 0
+                    # 重置已用餐状态
+                    self.has_eaten = False
+                    # 重置已运动状态
+                    self.has_exercised = False
+                    # 重置已休息状态
+                    self.has_rested = False
+                    # 重置已学习状态
+                    self.has_studied = False
+                    # 重置已玩游戏状态
+                    self.has_played_games = False
+                    # 重置已看书状态
+                    self.has_read_book = False
+                    # 重置日程安排相关属性
+                    self.schedule_selected = []
+                    self.has_scheduled = False
+                    # 返回之前的场景
+                    self.current_state = self.previous_state
                 elif cancel_button_rect.collidepoint(pos):
                     # 取消选择
                     self.schedule_selected = []
@@ -1053,6 +1126,12 @@ class Game:
                                 item_rect = pygame.Rect(item_x, item_y, item_width, item_height)
                                 
                                 if item_rect.collidepoint(pos):
+                                    # 检查健康状态，生病时不能选课
+                                    if self.player.health < 40:
+                                        self.message = "你生病了，无法选课！"
+                                        self.message_timer = 60
+                                        continue
+                                    
                                     # 检查是否已经选择了该日程
                                     is_selected = any(selected['name'] == item['name'] for selected in self.schedule_selected)
                                     if is_selected:
@@ -1100,12 +1179,31 @@ class Game:
                 # 注意：鼠标滚轮事件不需要返回之前的场景
                     
     def do_action(self, action_name):
-        if self.player.action_points <= 0:
-            self.message = "行动点不足！"
-            self.message_timer = 60
-            return
+        # 打工操作不受行动点限制，但生病时不能打工
+        if action_name == "打工":
+            # 生病时（健康值低于40）不能打工
+            if self.player.health < 40:
+                self.message = "你生病了，不能打工！"
+                self.message_timer = 60
+                return
+        else:
+            # 其他操作需要行动点
+            # 检查健康状态，生病时行动点为0
+            if self.player.health < 40:
+                self.message = "你生病了，无法进行此操作！"
+                self.message_timer = 60
+                return
+            # 检查行动点
+            if self.player.action_points <= 0:
+                self.message = "行动点不足！"
+                self.message_timer = 60
+                return
+            # 消耗行动点
+            self.player.action_points -= 1
+            # 确保行动点不低于0
+            if self.player.action_points < 0:
+                self.player.action_points = 0
         
-        self.player.action_points -= 1
         current_year = self.time_system.get_year()
         
         if action_name == "学习":
@@ -1257,6 +1355,12 @@ class Game:
         pygame.display.flip()
     
     def draw(self):
+        # 检查健康值，如果低于40且当前状态不是宿舍、校医院或日程安排，则跳转到宿舍
+        if self.player.health < 40 and self.current_state not in [STATE_DORM, STATE_HOSPITAL, STATE_CREATE_CHARACTER, STATE_SCHEDULE]:
+            self.current_state = STATE_DORM
+            self.message = "你生病了，只能待在宿舍或去校医院！"
+            self.message_timer = 90
+        
         if self.map_system.is_map_showing():
             self.draw_map()
             return

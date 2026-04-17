@@ -219,9 +219,12 @@ class UIHUD:
         self.screen.blit(expense_text, expense_rect)
         
         # 绘制行动力
-        max_action_points = 5 + (player.physical_level - 1)
-        if player.health < 60:
-            max_action_points = max(1, max_action_points // 2)
+        if player.health < 40:
+            max_action_points = 0
+        else:
+            max_action_points = 5 + (player.physical_level - 1)
+            if player.health < 60:
+                max_action_points = max(1, max_action_points // 2)
         action_text = self.action_font.render(f"{action_points}/{max_action_points}", True, (225, 182, 83))
         action_rect = action_text.get_rect(center=(580, y_offset))
         self.screen.blit(action_text, action_rect)

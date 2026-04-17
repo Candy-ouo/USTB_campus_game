@@ -64,7 +64,7 @@ class Teaching:
                 pos = pygame.mouse.get_pos()
                 if option1_rect.collidepoint(pos):
                     if self.game.player.action_points >= 2:
-                        self.game.player.action_points -= 2
+                        self.game.player.add_action_points(-2)
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_knowledge(30, current_year)
                         self.game.player.add_mood(-30)
@@ -76,7 +76,7 @@ class Teaching:
                         self.game.message_timer = 60
                 elif option2_rect.collidepoint(pos):
                     if self.game.player.action_points >= 1:
-                        self.game.player.action_points -= 1
+                        self.game.player.add_action_points(-1)
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_knowledge(15, current_year)
                         self.game.player.add_mood(-20)

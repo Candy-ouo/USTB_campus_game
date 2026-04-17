@@ -94,7 +94,15 @@ class Player:
         
         # 体能升级时增加行动力上限
         if self.physical_level > old_level:
-            self.action_points = 5 + (self.physical_level - 1)
+            # 生病时（健康值低于40），行动点始终为0
+            if self.health < 40:
+                self.action_points = 0
+            else:
+                max_points = 5 + (self.physical_level - 1)
+                # 健康值低于60时，行动点减半
+                if self.health < 60:
+                    max_points = max(1, max_points // 2)
+                self.action_points = max_points
         
         return self.physical_level
     
@@ -107,15 +115,27 @@ class Player:
     
     def add_action_points(self, amount):
         """增加行动力"""
+        # 生病时（健康值低于40），行动点始终为0，不可增加
+        if self.health < 40:
+            self.action_points = 0
+            return 0
+        
         max_points = 5 + (self.physical_level - 1)
-        # 健康值影响
+        # 健康值低于60时，行动点减半
         if self.health < 60:
             max_points = max(1, max_points // 2)
-        self.action_points += amount
-        if self.action_points > max_points:
+        
+        # 计算新的行动点
+        new_action_points = self.action_points + amount
+        
+        # 确保行动点不超过上限
+        if new_action_points > max_points:
             self.action_points = max_points
-        if self.action_points < 0:
+        elif new_action_points < 0:
             self.action_points = 0
+        else:
+            self.action_points = new_action_points
+        
         return self.action_points
     
     def add_mood(self, amount):
@@ -150,16 +170,51 @@ class Player:
     
     def add_health(self, amount):
         """增加健康值"""
+        old_health = self.health
         self.health += amount
         if self.health > 100:
             self.health = 100
         if self.health < 0:
             self.health = 0
-        # 检查是否生病
-        if self.health < 40:
+        
+        # 检查健康状态变化
+        if old_health >= 40 and self.health < 40:
+            # 健康值从40以上降到40以下，进入生病状态
             self.is_sick = True
-        else:
+            # 生病时行动点强制为0
+            self.action_points = 0
+        elif old_health < 40 and self.health >= 40:
+            # 健康值从40以下升到40以上，恢复健康状态
             self.is_sick = False
+            # 恢复健康状态后，重置行动点到当前上限
+            self.reset_daily()
+        elif old_health >= 60 and self.health < 60:
+            # 健康值从60以上降到60以下，行动点上限减半
+            # 检查当前行动点是否超过新的上限
+            max_points = 5 + (self.physical_level - 1)
+            max_points = max(1, max_points // 2)
+            if self.action_points > max_points:
+                self.action_points = max_points
+        elif old_health < 60 and self.health >= 60:
+            # 健康值从60以下升到60以上，行动点上限恢复
+            # 检查当前行动点是否超过新的上限
+            max_points = 5 + (self.physical_level - 1)
+            if self.action_points > max_points:
+                self.action_points = max_points
+        else:
+            # 其他健康状态变化，检查当前行动点是否超过当前上限
+            if self.health < 40:
+                # 生病时行动点强制为0
+                self.action_points = 0
+                self.is_sick = True
+            else:
+                self.is_sick = False
+                max_points = 5 + (self.physical_level - 1)
+                if self.health < 60:
+                    max_points = max(1, max_points // 2)
+                if self.action_points > max_points:
+                    self.action_points = max_points
+        
         return self.health
     
     def add_theory_experiment(self, amount):
@@ -305,8 +360,13 @@ class Player:
     
     def reset_daily(self):
         """每天重置行动点"""
+        # 生病时（健康值低于40），行动点始终为0
+        if self.health < 40:
+            self.action_points = 0
+            return
+        
         max_points = 5 + (self.physical_level - 1)
-        # 健康值影响
+        # 健康值低于60时，行动点减半
         if self.health < 60:
             max_points = max(1, max_points // 2)
         self.action_points = max_points

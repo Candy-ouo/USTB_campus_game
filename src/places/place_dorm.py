@@ -74,7 +74,7 @@ class Dorm:
                 # 只有未玩游戏时才能点击玩游戏选项
                 if not self.game.has_played_games and option1_rect.collidepoint(pos):
                     if self.game.player.action_points >= 1:
-                        self.game.player.action_points -= 1
+                        self.game.player.add_action_points(-1)
                         self.game.player.add_mood(40)
                         self.game.has_played_games = True
                         self.game.message = "你选择了玩游戏，心情+40，行动点-1"
@@ -85,7 +85,7 @@ class Dorm:
                 # 只有未看书时才能点击看书选项
                 elif not self.game.has_read_book and option2_rect.collidepoint(pos):
                     if self.game.player.action_points >= 1:
-                        self.game.player.action_points -= 1
+                        self.game.player.add_action_points(-1)
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_knowledge(10, current_year)
                         self.game.player.add_mood(-10)
@@ -97,7 +97,7 @@ class Dorm:
                         self.game.message_timer = 60
                 # 只有未休息时才能点击休息选项
                 elif not self.game.has_rested and option3_rect.collidepoint(pos):
-                    self.game.player.action_points += 2
+                    self.game.player.add_action_points(2)
                     self.game.player.add_health(5)
                     self.game.has_rested = True
                     self.game.message = "你选择了休息，行动点+2，健康值+5"

@@ -70,7 +70,7 @@ class Sports:
                 pos = pygame.mouse.get_pos()
                 if option1_rect.collidepoint(pos):
                     if self.game.player.action_points >= 1:
-                        self.game.player.action_points -= 1
+                        self.game.player.add_action_points(-1)
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_physical(5, current_year)
                         self.game.message = "你选择了散步，行动点-1，体能+5"
@@ -80,7 +80,7 @@ class Sports:
                         self.game.message_timer = 60
                 elif option2_rect.collidepoint(pos):
                     if self.game.player.action_points >= 2:
-                        self.game.player.action_points -= 2
+                        self.game.player.add_action_points(-2)
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_physical(10, current_year)
                         self.game.message = "你选择了跑步，行动点-2，体能+10"
@@ -90,7 +90,7 @@ class Sports:
                         self.game.message_timer = 60
                 elif option3_rect.collidepoint(pos):
                     if self.game.player.action_points >= 2 and self.game.player.living_expenses >= 20:
-                        self.game.player.action_points -= 2
+                        self.game.player.add_action_points(-2)
                         self.game.player.living_expenses -= 20
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_physical(15, current_year)

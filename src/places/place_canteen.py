@@ -74,7 +74,7 @@ class Canteen:
                             self.game.player.living_expenses -= 10
                             self.game.player.add_mood(10)
                             self.game.player.add_health(10)
-                            self.game.player.action_points += 1
+                            self.game.player.add_action_points(1)
                             self.game.has_eaten = True
                             self.game.message = "你选择了鸡腿套餐，金钱-10，心情+10，健康值+10，行动点+1"
                             self.game.message_timer = 90
@@ -86,7 +86,7 @@ class Canteen:
                             self.game.player.living_expenses -= 15
                             self.game.player.add_mood(20)
                             self.game.player.add_health(10)
-                            self.game.player.action_points += 2
+                            self.game.player.add_action_points(2)
                             self.game.has_eaten = True
                             self.game.message = "你选择了营养套餐，金钱-15，心情+20，健康值+10，行动点+2"
                             self.game.message_timer = 90
@@ -98,7 +98,7 @@ class Canteen:
                             self.game.player.living_expenses -= 20
                             self.game.player.add_mood(30)
                             self.game.player.add_health(10)
-                            self.game.player.action_points += 3
+                            self.game.player.add_action_points(3)
                             self.game.has_eaten = True
                             self.game.message = "你选择了特色美食，金钱-20，心情+30，健康值+10，行动点+3"
                             self.game.message_timer = 90

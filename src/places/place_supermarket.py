@@ -146,7 +146,7 @@ class Supermarket:
                     elif option6_rect.collidepoint(pos):
                         if self.game.player.living_expenses >= 30:
                             self.game.player.living_expenses -= 30
-                            self.game.player.action_points += 1
+                            self.game.player.add_action_points(1)
                             self.game.supermarket_purchases += 1
                             self.game.message = "你购买了体力药水，金钱-30，行动点+1"
                             self.game.message_timer = 90

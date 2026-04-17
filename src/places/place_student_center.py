@@ -79,7 +79,7 @@ class StudentCenter:
                 pos = pygame.mouse.get_pos()
                 if option1_rect.collidepoint(pos):
                     if self.game.player.action_points >= 1:
-                        self.game.player.action_points -= 1
+                        self.game.player.add_action_points(-1)
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_knowledge(20, current_year)
                         self.game.player.add_mood(10)
@@ -90,7 +90,7 @@ class StudentCenter:
                         self.game.message_timer = 60
                 elif option2_rect.collidepoint(pos):
                     if self.game.player.action_points >= 1:
-                        self.game.player.action_points -= 1
+                        self.game.player.add_action_points(-1)
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_physical(20, current_year)
                         self.game.player.add_mood(10)
@@ -101,7 +101,7 @@ class StudentCenter:
                         self.game.message_timer = 60
                 elif option3_rect.collidepoint(pos):
                     if self.game.player.action_points >= 1:
-                        self.game.player.action_points -= 1
+                        self.game.player.add_action_points(-1)
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_charm(20, current_year)
                         self.game.player.add_mood(10)
@@ -112,7 +112,7 @@ class StudentCenter:
                         self.game.message_timer = 60
                 elif option4_rect.collidepoint(pos):
                     if self.game.player.action_points >= 1:
-                        self.game.player.action_points -= 1
+                        self.game.player.add_action_points(-1)
                         self.game.player.add_mood(10)
                         self.game.message = "你选择了学生活动，技能+20，心情+10"
                         self.game.message_timer = 90
@@ -121,7 +121,7 @@ class StudentCenter:
                         self.game.message_timer = 60
                 elif option5_rect.collidepoint(pos):
                     if self.game.player.action_points >= 1:
-                        self.game.player.action_points -= 1
+                        self.game.player.add_action_points(-1)
                         self.game.player.add_mood(-10)
                         self.game.message = "你选择了实习，技能+20，心情-10"
                         self.game.message_timer = 90
