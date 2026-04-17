@@ -77,7 +77,8 @@ class Dorm:
                 elif option2_rect.collidepoint(pos):
                     if self.game.player.action_points >= 1:
                         self.game.player.action_points -= 1
-                        self.game.player.add_knowledge(10)
+                        current_year = self.game.time_system.get_year()
+                        self.game.player.add_knowledge(10, current_year)
                         self.game.player.add_mood(-10)
                         self.game.message = "你选择了看书，学识+10，心情-10，行动点-1"
                         self.game.message_timer = 90

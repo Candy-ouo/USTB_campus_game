@@ -102,7 +102,8 @@ class Supermarket:
                     elif option2_rect.collidepoint(pos):
                         if self.game.player.living_expenses >= 30:
                             self.game.player.living_expenses -= 30
-                            self.game.player.add_charm(10)
+                            current_year = self.game.time_system.get_year()
+                            self.game.player.add_charm(10, current_year)
                             self.game.supermarket_purchases += 1
                             self.game.message = "你购买了潮流衣服，金钱-30，魅力+10"
                             self.game.message_timer = 90
@@ -112,7 +113,8 @@ class Supermarket:
                     elif option3_rect.collidepoint(pos):
                         if self.game.player.living_expenses >= 20:
                             self.game.player.living_expenses -= 20
-                            self.game.player.add_knowledge(10)
+                            current_year = self.game.time_system.get_year()
+                            self.game.player.add_knowledge(10, current_year)
                             self.game.supermarket_purchases += 1
                             self.game.message = "你购买了课外教材，金钱-20，学识+10"
                             self.game.message_timer = 90
@@ -122,7 +124,8 @@ class Supermarket:
                     elif option4_rect.collidepoint(pos):
                         if self.game.player.living_expenses >= 30:
                             self.game.player.living_expenses -= 30
-                            self.game.player.add_physical(10)
+                            current_year = self.game.time_system.get_year()
+                            self.game.player.add_physical(10, current_year)
                             self.game.supermarket_purchases += 1
                             self.game.message = "你购买了健身器材，金钱-30，体能+10"
                             self.game.message_timer = 90

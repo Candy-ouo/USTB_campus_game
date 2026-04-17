@@ -80,7 +80,8 @@ class StudentCenter:
                 if option1_rect.collidepoint(pos):
                     if self.game.player.action_points >= 1:
                         self.game.player.action_points -= 1
-                        self.game.player.add_knowledge(20)
+                        current_year = self.game.time_system.get_year()
+                        self.game.player.add_knowledge(20, current_year)
                         self.game.player.add_mood(10)
                         self.game.message = "你选择了科技协会/文学社团，学识+20，心情+10"
                         self.game.message_timer = 90
@@ -90,7 +91,8 @@ class StudentCenter:
                 elif option2_rect.collidepoint(pos):
                     if self.game.player.action_points >= 1:
                         self.game.player.action_points -= 1
-                        self.game.player.add_physical(20)
+                        current_year = self.game.time_system.get_year()
+                        self.game.player.add_physical(20, current_year)
                         self.game.player.add_mood(10)
                         self.game.message = "你选择了体育协会，体能+20，心情+10"
                         self.game.message_timer = 90
@@ -100,7 +102,8 @@ class StudentCenter:
                 elif option3_rect.collidepoint(pos):
                     if self.game.player.action_points >= 1:
                         self.game.player.action_points -= 1
-                        self.game.player.add_charm(20)
+                        current_year = self.game.time_system.get_year()
+                        self.game.player.add_charm(20, current_year)
                         self.game.player.add_mood(10)
                         self.game.message = "你选择了街舞社/音乐社，魅力+20，心情+10"
                         self.game.message_timer = 90

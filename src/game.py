@@ -41,6 +41,7 @@ STATE_SUPERMARKET = "SUPERMARKET"
 STATE_DORM = "DORM"
 STATE_STUDENT_CENTER = "STUDENT_CENTER"
 STATE_HOSPITAL = "HOSPITAL"
+STATE_FINAL_EXAM = "FINAL_EXAM"
 STATE_SCHEDULE = "SCHEDULE"
 
 class Game:
@@ -210,6 +211,11 @@ class Game:
         # 期末成绩记录
         self.final_scores = []
         self.final_gpas = []
+        # 当前期末成绩信息
+        self.current_final_score = 0
+        self.current_final_grade = ""
+        self.current_final_gpa = 0.0
+        self.current_need_makeup = False
         
         # 加载地图背景图片
         self.map_background = None
@@ -302,17 +308,28 @@ class Game:
             self.message = f"加载失败: {str(e)}"
             self.message_timer = 120
     
-    def calculate_final_score(self):
+    def calculate_final_score(self, current_year=None):
         """计算期末成绩"""
         knowledge = self.player.knowledge
+        knowledge_level = self.player.knowledge_level
         theory_experiment = self.player.theory_experiment
+        mood = self.player.mood
+        if current_year is None:
+            current_year = self.time_system.get_year()
+        
+        # 检查学识等级是否符合当前学年要求
+        if knowledge_level < current_year:
+            return 0, "F", 1.0, True
         
         # 检查学识是否低于30
         if knowledge < 30:
-            return 0, "F", 1.0, False
+            return 0, "F", 1.0, True
+        
+        # 心情影响：心情低于50时，属性效果减半
+        mood_multiplier = 0.5 if mood < 50 else 1.0
         
         # 计算分数
-        score = (knowledge / 100) * 60 + (theory_experiment / 300) * 40
+        score = (knowledge * mood_multiplier / 100) * 60 + (theory_experiment * mood_multiplier / 300) * 40
         score = max(0, min(100, score))
         score = round(score, 1)
         
@@ -347,9 +364,12 @@ class Game:
         
         return score, grade, gpa, need_makeup
     
-    def handle_final_exam_week(self):
+    def handle_final_exam_week(self, current_year=None):
         """处理期末周结算"""
-        score, grade, gpa, need_makeup = self.calculate_final_score()
+        # 保存结算前的理论实验值
+        self.current_theory_experiment = self.player.theory_experiment
+        
+        score, grade, gpa, need_makeup = self.calculate_final_score(current_year)
         
         # 记录成绩
         self.final_scores.append(score)
@@ -360,38 +380,21 @@ class Game:
             self.player.add_mood(-20)
             self.player.add_charm(-10)
             self.player.add_health(-10)
-            message = f"📚 期末周结果 📚\n" \
-                     f"成绩：{score}分\n" \
-                     f"评级：{grade}\n" \
-                     f"绩点：{gpa}\n" \
-                     f"⚠️ 需要补考！\n" \
-                     f"💢 心情-20\n" \
-                     f"😳 魅力-10\n" \
-                     f"❤️ 健康-10"
         else:
             # 奖学金机制
             if grade == "A":
                 self.player.add_living_expenses(100)
-                message = f"🎉 期末周结果 🎉\n" \
-                         f"成绩：{score}分\n" \
-                         f"评级：{grade}\n" \
-                         f"绩点：{gpa}\n" \
-                         f"💰 获得奖学金100！"
             elif grade == "A-":
                 self.player.add_living_expenses(50)
-                message = f"🎉 期末周结果 🎉\n" \
-                         f"成绩：{score}分\n" \
-                         f"评级：{grade}\n" \
-                         f"绩点：{gpa}\n" \
-                         f"💰 获得奖学金50！"
-            else:
-                message = f"📚 期末周结果 📚\n" \
-                         f"成绩：{score}分\n" \
-                         f"评级：{grade}\n" \
-                         f"绩点：{gpa}"
         
-        self.message = message
-        self.message_timer = 600  # 延长显示时间，让玩家有足够时间查看
+        # 存储当前期末成绩信息
+        self.current_final_score = score
+        self.current_final_grade = grade
+        self.current_final_gpa = gpa
+        self.current_need_makeup = need_makeup
+        
+        # 切换到期末成绩显示状态
+        self.current_state = STATE_FINAL_EXAM
     
     def advance_day(self):
         if self.time_system.is_ended():
@@ -399,12 +402,17 @@ class Game:
             self.message_timer = 120
             return
         
-        # 记录当前天数和是否是期末周
+        # 记录当前天数、是否是期末周、当前学年
         current_day = self.time_system.day
         is_current_final_week = self.time_system.is_final_exam_week()
+        current_year = self.time_system.get_year()  # 保存结算前的学年
         
         self.time_system.next_day()
-        self.player.action_points = DAILY_ACTION_POINTS
+        # 设置行动点，健康值低于60时减半
+        if self.player.health < 60:
+            self.player.action_points = DAILY_ACTION_POINTS // 2
+        else:
+            self.player.action_points = DAILY_ACTION_POINTS
         # 重置区域状态
         self.has_eaten = False  # 重置用餐状态
         self.has_studied = False  # 重置学习状态
@@ -419,7 +427,9 @@ class Game:
         
         # 处理期末周结算（在期末周结束后显示）
         if is_current_final_week:
-            self.handle_final_exam_week()
+            self.handle_final_exam_week(current_year)  # 传递结算前的学年
+            # 期末周结算后重置理论实验
+            self.player.theory_experiment = 0
         
         if self.time_system.is_ended():
             # 游戏结束，进行结局判定
@@ -600,36 +610,47 @@ class Game:
                     pos = pygame.mouse.get_pos()
                     area_id = self.map_system.get_area_at(pos)
                     if area_id:
-                        if area_id == 'canteen':
-                            # 切换到食堂场景
-                            self.map_system.toggle_map()  # 确保地图不显示
-                            self.current_state = STATE_CANTEEN
-                        elif area_id == 'teaching':
-                            # 切换到教学区场景
-                            self.map_system.toggle_map()  # 确保地图不显示
-                            self.current_state = STATE_TEACHING
-                        elif area_id == 'sports':
-                            # 切换到操场场景
-                            self.map_system.toggle_map()  # 确保地图不显示
-                            self.current_state = STATE_SPORTS
-                        elif area_id == 'food':
-                            # 切换到超市场景
-                            self.map_system.toggle_map()  # 确保地图不显示
-                            self.current_state = STATE_SUPERMARKET
-                        elif area_id == 'dorm':
-                            # 切换到宿舍场景
-                            self.map_system.toggle_map()  # 确保地图不显示
-                            self.current_state = STATE_DORM
-                        elif area_id == 'supermarket':
-                            # 切换到学生活动中心场景
-                            self.map_system.toggle_map()  # 确保地图不显示
-                            self.current_state = STATE_STUDENT_CENTER
-                        elif area_id == 'hospital':
-                            # 切换到校医院场景
-                            self.map_system.toggle_map()  # 确保地图不显示
-                            self.current_state = STATE_HOSPITAL
+                        # 检查是否生病
+                        if self.player.is_sick:
+                            if area_id == 'hospital':
+                                # 切换到校医院场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_HOSPITAL
+                            else:
+                                # 生病时只能去校医院
+                                self.message = "你生病了，只能去校医院！"
+                                self.message_timer = 90
                         else:
-                            self.map_system.set_active_area(area_id)
+                            if area_id == 'canteen':
+                                # 切换到食堂场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_CANTEEN
+                            elif area_id == 'teaching':
+                                # 切换到教学区场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_TEACHING
+                            elif area_id == 'sports':
+                                # 切换到操场场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_SPORTS
+                            elif area_id == 'food':
+                                # 切换到超市场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_SUPERMARKET
+                            elif area_id == 'dorm':
+                                # 切换到宿舍场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_DORM
+                            elif area_id == 'supermarket':
+                                # 切换到学生活动中心场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_STUDENT_CENTER
+                            elif area_id == 'hospital':
+                                # 切换到校医院场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_HOSPITAL
+                            else:
+                                self.map_system.set_active_area(area_id)
                     else:
                         self.map_system.clear_active_area()
                 else:
@@ -1070,20 +1091,21 @@ class Game:
             return
         
         self.player.action_points -= 1
+        current_year = self.time_system.get_year()
         
         if action_name == "学习":
-            self.player.add_knowledge(5)
+            self.player.add_knowledge(5, current_year)
             self.player.add_mood(-3)
-            self.player.add_physical(-2)
+            self.player.add_physical(-2, current_year)
             self.message = "努力学习，学识+5"
         elif action_name == "运动":
-            self.player.add_physical(5)
+            self.player.add_physical(5, current_year)
             self.player.add_mood(2)
-            self.player.add_charm(2)
+            self.player.add_charm(2, current_year)
             self.message = "运动健身，体能+5"
         elif action_name == "休息":
             self.player.add_mood(5)
-            self.player.add_physical(2)
+            self.player.add_physical(2, current_year)
             self.message = "好好休息，恢复体力"
         elif action_name == "打工":
             self.player.add_living_expenses(100)
@@ -1091,7 +1113,7 @@ class Game:
             self.player.add_skill(2)
             self.message = "辛苦打工，生活费+100"
         elif action_name == "社交":
-            self.player.add_charm(3)
+            self.player.add_charm(3, current_year)
             self.player.add_mood(5)
             self.player.add_social(2)
             self.player.add_living_expenses(-20)
@@ -1241,6 +1263,8 @@ class Game:
             self.hospital.draw()
         elif self.current_state == STATE_SCHEDULE:
             self._draw_schedule()
+        elif self.current_state == STATE_FINAL_EXAM:
+            self._draw_final_exam()
         
         pygame.display.flip()
     
@@ -1390,6 +1414,90 @@ class Game:
         # 其他情况
         self.message = "游戏结束！你顺利毕业了。"
         self.message_timer = 300
+    
+    def _draw_final_exam(self):
+        """绘制期末成绩单"""
+        # 绘制背景
+        self.screen.fill((240, 240, 240))
+        
+        # 绘制成绩单边框
+        transcript_width = 400
+        transcript_height = 350
+        transcript_x = self.width // 2 - transcript_width // 2
+        transcript_y = self.height // 2 - transcript_height // 2
+        
+        # 绘制成绩单背景
+        pygame.draw.rect(self.screen, (255, 255, 255), (transcript_x, transcript_y, transcript_width, transcript_height))
+        pygame.draw.rect(self.screen, (0, 0, 0), (transcript_x, transcript_y, transcript_width, transcript_height), 2)
+        
+        # 绘制标题
+        self.draw_text("成绩单", transcript_x + 150, transcript_y + 20, (0, 0, 0), self.large_font)
+        
+        # 绘制科目和成绩
+        subjects = ["学识", "理论实验"]
+        mood = self.player.mood
+        mood_multiplier = 0.5 if mood < 50 else 1.0
+        
+        if mood < 50:
+            scores = [
+                int(self.player.knowledge * mood_multiplier),
+                int(self.current_theory_experiment * mood_multiplier)
+            ]
+        else:
+            scores = [
+                int(self.player.knowledge),
+                int(self.current_theory_experiment)
+            ]
+        
+        y_offset = 70
+        for i, (subject, score) in enumerate(zip(subjects, scores)):
+            self.draw_text(f"{subject}", transcript_x + 50, transcript_y + y_offset + i * 40, (0, 0, 0))
+            if subject == "理论实验":
+                if mood < 50:
+                    self.draw_text(f"{score}/150", transcript_x + 250, transcript_y + y_offset + i * 40, (0, 0, 0))
+                else:
+                    self.draw_text(f"{score}/300", transcript_x + 250, transcript_y + y_offset + i * 40, (0, 0, 0))
+            else:
+                if mood < 50:
+                    self.draw_text(f"{score}/50", transcript_x + 250, transcript_y + y_offset + i * 40, (0, 0, 0))
+                else:
+                    self.draw_text(f"{score}/100", transcript_x + 250, transcript_y + y_offset + i * 40, (0, 0, 0))
+        
+        # 绘制期末周结果
+        self.draw_text(f"期末成绩：{self.current_final_score}分", transcript_x + 50, transcript_y + y_offset + 2 * 40, (0, 0, 0))
+        self.draw_text(f"评级：{self.current_final_grade}", transcript_x + 50, transcript_y + y_offset + 3 * 40, (0, 0, 0))
+        self.draw_text(f"绩点：{self.current_final_gpa}", transcript_x + 50, transcript_y + y_offset + 4 * 40, (0, 0, 0))
+        
+        # 绘制奖学金信息
+        if self.current_final_grade == "A":
+            self.draw_text("恭喜获得奖学金100！", transcript_x + 50, transcript_y + y_offset + 5 * 40, (0, 150, 0))
+        elif self.current_final_grade == "A-":
+            self.draw_text("恭喜获得奖学金50！", transcript_x + 50, transcript_y + y_offset + 5 * 40, (0, 150, 0))
+        
+        # 绘制返回按钮
+        back_rect = pygame.Rect(self.width // 2 - 50, transcript_y + transcript_height + 20, 100, 50)
+        pygame.draw.rect(self.screen, (220, 180, 140), back_rect)
+        pygame.draw.rect(self.screen, (150, 100, 50), back_rect, 2)
+        self.draw_text("返回", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
+    
+    def _handle_final_exam(self, events):
+        """处理期末成绩单事件"""
+        # 定义返回按钮区域
+        transcript_width = 400
+        transcript_height = 300
+        transcript_y = self.height // 2 - transcript_height // 2
+        back_rect = pygame.Rect(self.width // 2 - 50, transcript_y + transcript_height + 20, 100, 50)
+        
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    # 按ESC返回主游戏
+                    self.current_state = STATE_MAIN_GAME
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                pos = pygame.mouse.get_pos()
+                # 返回主游戏
+                if back_rect.collidepoint(pos):
+                    self.current_state = STATE_MAIN_GAME
     
     def run(self):
         while self.running:
