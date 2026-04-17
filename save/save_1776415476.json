@@ -1,9 +1,9 @@
 {
   "character": {
-    "name": "姚春意",
-    "gender": "女",
-    "height": 134,
-    "weight": 222,
+    "name": "啊啊啊",
+    "gender": "男",
+    "height": 223,
+    "weight": 333,
     "birthday": "01-01",
     "college": "材料",
     "major": "材料化学",
@@ -43,7 +43,7 @@
     "aesthetic_cultivation": 0
   },
   "time_system": {
-    "day": 2,
+    "day": 1,
     "ended": false
   },
   "game_state": {
@@ -62,11 +62,7 @@
       0,
       0
     ],
-    "course_study_counts": {
-      "专利撰写与申报": 1,
-      "创业大赛指导": 1,
-      "本科就业指导": 1
-    },
+    "course_study_counts": {},
     "final_scores": [],
     "final_gpas": [],
     "current_final_score": 0,

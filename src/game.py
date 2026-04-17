@@ -102,7 +102,8 @@ class Game:
             self.start_font = self.font
         
         # 游戏状态
-        self.current_state = STATE_DORM if character else STATE_CREATE_CHARACTER
+        # 从存档加载时，即使character为None也应该进入游戏界面
+        self.current_state = STATE_DORM
         self.previous_state = self.current_state  # 初始化前一个状态
         print(f"游戏状态设置为: {self.current_state}")
         
@@ -198,6 +199,7 @@ class Game:
         self.ui_hud = UIHUD(self.screen, self)
         self.time_season_panel = TimeSeasonPanel(self.screen)
         self.save_system = SaveSystem()
+        self.current_save_path = None  # 当前加载的存档文件路径
         # 初始化场景对象
         self.canteen = Canteen(self)
         self.teaching = Teaching(self)
@@ -278,15 +280,8 @@ class Game:
     
     def save_game(self):
         try:
-            save_data = {
-                'player': self.player.to_dict(),
-                'time_system': self.time_system.to_dict(),
-                'course_study_counts': self.course_study_counts
-            }
-            os.makedirs(os.path.dirname(SAVE_FILE), exist_ok=True)
-            with open(SAVE_FILE, 'w', encoding='utf-8') as f:
-                json.dump(save_data, f, ensure_ascii=False, indent=2)
-            self.message = "游戏已保存！"
+            success, msg = self.save_system.save_game(self, save_file_path=self.current_save_path)
+            self.message = msg
             self.message_timer = 120
         except Exception as e:
             self.message = f"保存失败: {str(e)}"
@@ -487,7 +482,7 @@ class Game:
             pass
         elif ui_event == 'SAVE':
             # 处理存档事件
-            success, msg = self.save_system.save_game(self)
+            success, msg = self.save_system.save_game(self, save_file_path=self.current_save_path)
             self.message = msg
             self.message_timer = 120
 
