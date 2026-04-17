@@ -562,16 +562,6 @@ class Game:
                 self.hospital.handle_events(events)
             elif self.current_state == STATE_SCHEDULE:
                 self._handle_schedule(events)
-            elif self.current_state == STATE_FILE:
-                result = self.file_scene.handle_events(events)
-                if result:
-                    self.current_state = result
-            elif self.current_state == STATE_FINAL_EXAM:
-                # 处理期末成绩显示界面的事件
-                for event in events:
-                    if event.type == pygame.MOUSEBUTTONDOWN or (event.type == pygame.KEYDOWN and event.key != pygame.K_m):
-                        # 点击鼠标或按下任意键（除了M键）退出期末成绩显示
-                        self.current_state = STATE_DORM
     
     def _handle_create_character(self, events):
         """处理角色创建"""
@@ -911,6 +901,12 @@ class Game:
                 
                 # 检查确认按钮
                 if confirm_button_rect.collidepoint(pos):
+                    # 检查游戏是否已经结束
+                    if self.time_system.is_ended():
+                        self.message = "游戏已结束，无法继续安排日程！"
+                        self.message_timer = 120
+                        return
+                    
                     # 执行并进入下一回合
                     if len(self.schedule_selected) > 0 and not self.has_scheduled:
                         # 记录属性变化前的值
@@ -964,8 +960,29 @@ class Game:
                             print(f"{course_name}: {count}/{item['hours']} 学时")
                         print("=====================\n")
                         
+                        # 检查当前是否是期末周
+                        current_day_before = self.time_system.day
+                        is_current_final_week = self.time_system.is_final_exam_week()
+                        current_year = self.time_system.get_year()  # 保存结算前的学年
+                        
                         # 进入下一回合
                         self.time_system.next_week()
+                        
+                        # 处理期末周结算
+                        if is_current_final_week:
+                            self.handle_final_exam_week(current_year)  # 传递结算前的学年
+                            # 期末周结算后重置理论实验
+                            self.player.theory_experiment = 0
+                            # 重置日程安排相关属性
+                            self.schedule_selected = []
+                            self.has_scheduled = False
+                            # 检查游戏是否结束
+                            if self.time_system.is_ended():
+                                # 游戏结束，进行结局判定
+                                self.handle_game_end()
+                            # 不返回之前的场景，显示成绩单
+                            return
+                        
                         # 更新UIHUD的时间信息
                         year = self.time_system.get_year()
                         month = self.time_system.get_month()
@@ -1471,12 +1488,15 @@ class Game:
         pygame.draw.rect(self.screen, (220, 180, 140), back_rect)
         pygame.draw.rect(self.screen, (150, 100, 50), back_rect, 2)
         self.draw_text("返回", back_rect.x + 10, back_rect.y + 10, (254, 247, 201))
+        
+        # 绘制消息
+        self.draw_message()
     
     def _handle_final_exam(self, events):
         """处理期末成绩单事件"""
         # 定义返回按钮区域
         transcript_width = 400
-        transcript_height = 300
+        transcript_height = 350  # 与 _draw_final_exam 保持一致
         transcript_y = self.height // 2 - transcript_height // 2
         back_rect = pygame.Rect(self.width // 2 - 50, transcript_y + transcript_height + 20, 100, 50)
         
@@ -1484,12 +1504,18 @@ class Game:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     # 按ESC返回主游戏
-                    self.current_state = STATE_MAIN_GAME
+                    if hasattr(self, 'previous_state') and self.previous_state is not None:
+                        self.current_state = self.previous_state
+                    else:
+                        self.current_state = STATE_MAIN_GAME
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 # 返回主游戏
                 if back_rect.collidepoint(pos):
-                    self.current_state = STATE_MAIN_GAME
+                    if hasattr(self, 'previous_state') and self.previous_state is not None:
+                        self.current_state = self.previous_state
+                    else:
+                        self.current_state = STATE_MAIN_GAME
     
     def run(self):
         while self.running:

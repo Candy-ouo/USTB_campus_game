@@ -25,53 +25,49 @@
     "aesthetic_cultivation": 0
   },
   "player": {
-    "knowledge": 100,
+    "knowledge": 40,
     "knowledge_level": 1,
     "charm": 30,
     "charm_level": 1,
     "physical": 30,
     "physical_level": 1,
-    "living_expenses": 180,
-    "action_points": 8,
+    "living_expenses": 200,
+    "action_points": 6,
     "mood": 90,
     "health": 85,
-    "skill": 18,
-    "social": 7,
-    "reputation": 1,
+    "skill": 0,
+    "social": 0,
+    "reputation": 0,
     "theory_experiment": 0,
-    "employment_entrepreneurship": 0,
-    "aesthetic_cultivation": 0
+    "employment_entrepreneurship": 250,
+    "aesthetic_cultivation": 325
   },
   "time_system": {
-    "day": 3,
+    "day": 1,
     "ended": false
   },
   "game_state": {
-    "current_state": "CANTEEN",
-    "has_eaten": true,
+    "current_state": "DORM",
+    "has_eaten": false,
     "has_studied": false,
     "has_exercised": false,
-    "has_played_games": true,
+    "has_played_games": false,
     "has_read_book": true,
     "supermarket_purchases": 0,
-    "has_rested": true,
+    "has_rested": false,
     "schedule_selected": [],
     "has_scheduled": false,
     "schedule_scroll_offsets": [
       0,
       0,
-      0
+      -200
     ],
-    "course_study_counts": {
-      "大学物理实验": 2,
-      "数理方法": 2,
-      "材料合成与制备": 2
-    },
+    "course_study_counts": {},
     "final_scores": [],
     "final_gpas": [],
     "current_final_score": 0,
-    "current_final_grade": "",
-    "current_final_gpa": 0.0,
-    "current_need_makeup": false
+    "current_final_grade": "F",
+    "current_final_gpa": 1.0,
+    "current_need_makeup": true
   }
 }
