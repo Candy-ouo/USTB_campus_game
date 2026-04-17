@@ -25,6 +25,27 @@ from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS
 def main():
     # 初始化pygame
     pygame.init()
+    # 初始化音乐 mixer
+    pygame.mixer.init()
+    
+    # 加载背景音乐
+    music_path = os.path.join(os.path.dirname(__file__), 'music')
+    if os.path.exists(music_path):
+        # 查找 mp3 文件
+        mp3_files = [f for f in os.listdir(music_path) if f.endswith('.mp3')]
+        if mp3_files:
+            bgm_path = os.path.join(music_path, mp3_files[0])
+            try:
+                pygame.mixer.music.load(bgm_path)
+                pygame.mixer.music.set_volume(0.5)  # 设置音量
+                pygame.mixer.music.play(-1)  # 循环播放
+                print(f"背景音乐已加载: {mp3_files[0]}")
+            except Exception as e:
+                print(f"加载背景音乐失败: {e}")
+        else:
+            print("music 文件夹中没有 mp3 文件")
+    else:
+        print("music 文件夹不存在")
     # 创建不可调整大小的窗口（默认就是不可调整的）
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pygame.display.set_caption("北科校园物语")

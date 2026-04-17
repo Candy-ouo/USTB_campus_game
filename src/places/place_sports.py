@@ -67,7 +67,7 @@ class Sports:
                 button_width = 150
                 button_height = 78
                 # 计算按钮位置
-                self.walking_button_rect = pygame.Rect(400, 200, button_width, button_height)
+                self.walking_button_rect = pygame.Rect(450, 550, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.walking_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.walking_button_rect)
@@ -84,7 +84,7 @@ class Sports:
                 button_width = 150
                 button_height = 78
                 # 计算按钮位置
-                self.running_button_rect = pygame.Rect(400, 280, button_width, button_height)
+                self.running_button_rect = pygame.Rect(800, 500, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.running_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.running_button_rect)
@@ -101,7 +101,7 @@ class Sports:
                 button_width = 150
                 button_height = 78
                 # 计算按钮位置
-                self.swimming_button_rect = pygame.Rect(400, 360, button_width, button_height)
+                self.swimming_button_rect = pygame.Rect(300, 300, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.swimming_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.swimming_button_rect)
@@ -123,25 +123,25 @@ class Sports:
         if self.walking_button:
             button_width = 150
             button_height = 78
-            walking_button_rect = pygame.Rect(400, 200, button_width, button_height)
+            walking_button_rect = pygame.Rect(450, 550, button_width, button_height)
         else:
-            walking_button_rect = pygame.Rect(400, 200, 500, 50)
+            walking_button_rect = pygame.Rect(400, 550, 500, 50)
         
         # 计算跑步按钮矩形
         if self.running_button:
             button_width = 150
             button_height = 78
-            running_button_rect = pygame.Rect(400, 280, button_width, button_height)
+            running_button_rect = pygame.Rect(800, 500, button_width, button_height)
         else:
-            running_button_rect = pygame.Rect(400, 280, 500, 50)
+            running_button_rect = pygame.Rect(800, 500, 500, 50)
         
         # 计算游泳按钮矩形
         if self.swimming_button:
             button_width = 150
             button_height = 78
-            swimming_button_rect = pygame.Rect(400, 360, button_width, button_height)
+            swimming_button_rect = pygame.Rect(300, 300, button_width, button_height)
         else:
-            swimming_button_rect = pygame.Rect(400, 360, 500, 50)
+            swimming_button_rect = pygame.Rect(300, 300, 500, 50)
 
         for event in events:
             if event.type == pygame.KEYDOWN:

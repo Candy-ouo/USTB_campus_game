@@ -96,7 +96,7 @@ class Supermarket:
                 button_width = 150
                 button_height = 78
                 # 计算按钮位置
-                self.cake_button_rect = pygame.Rect(400, 150, button_width, button_height)
+                self.cake_button_rect = pygame.Rect(475, 200, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.cake_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.cake_button_rect)
@@ -113,7 +113,7 @@ class Supermarket:
                 button_width = 150
                 button_height = 78
                 # 计算按钮位置
-                self.cloth_button_rect = pygame.Rect(400, 200, button_width, button_height)
+                self.cloth_button_rect = pygame.Rect(850, 325, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.cloth_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.cloth_button_rect)
@@ -130,7 +130,7 @@ class Supermarket:
                 button_width = 150
                 button_height = 78
                 # 计算按钮位置
-                self.book_button_rect = pygame.Rect(400, 250, button_width, button_height)
+                self.book_button_rect = pygame.Rect(1000, 425, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.book_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.book_button_rect)
@@ -147,7 +147,7 @@ class Supermarket:
                 button_width = 150
                 button_height = 78
                 # 计算按钮位置
-                self.jianshen_button_rect = pygame.Rect(400, 300, button_width, button_height)
+                self.jianshen_button_rect = pygame.Rect(475, 375, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.jianshen_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.jianshen_button_rect)
@@ -164,7 +164,7 @@ class Supermarket:
                 button_width = 198
                 button_height = 78
                 # 计算按钮位置
-                self.unhealth_button_rect = pygame.Rect(400, 350, button_width, button_height)
+                self.unhealth_button_rect = pygame.Rect(325, 500, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.unhealth_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.unhealth_button_rect)
@@ -181,7 +181,7 @@ class Supermarket:
                 button_width = 150
                 button_height = 78
                 # 计算按钮位置
-                self.tili_button_rect = pygame.Rect(400, 400, button_width, button_height)
+                self.tili_button_rect = pygame.Rect(225, 350, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.tili_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.tili_button_rect)
@@ -204,7 +204,7 @@ class Supermarket:
         if self.cake_button:
             button_width = 150
             button_height = 78
-            cake_button_rect = pygame.Rect(400, 150, button_width, button_height)
+            cake_button_rect = pygame.Rect(475, 200, button_width, button_height)
         else:
             cake_button_rect = pygame.Rect(400, 150, 500, 50)
         
@@ -212,7 +212,7 @@ class Supermarket:
         if self.cloth_button:
             button_width = 150
             button_height = 78
-            cloth_button_rect = pygame.Rect(400, 200, button_width, button_height)
+            cloth_button_rect = pygame.Rect(850, 325, button_width, button_height)
         else:
             cloth_button_rect = pygame.Rect(400, 200, 500, 50)
         
@@ -220,7 +220,7 @@ class Supermarket:
         if self.book_button:
             button_width = 150
             button_height = 78
-            book_button_rect = pygame.Rect(400, 250, button_width, button_height)
+            book_button_rect = pygame.Rect(1000, 425, button_width, button_height)
         else:
             book_button_rect = pygame.Rect(400, 250, 500, 50)
         
@@ -228,7 +228,7 @@ class Supermarket:
         if self.jianshen_button:
             button_width = 150
             button_height = 78
-            jianshen_button_rect = pygame.Rect(400, 300, button_width, button_height)
+            jianshen_button_rect = pygame.Rect(475, 375, button_width, button_height)
         else:
             jianshen_button_rect = pygame.Rect(400, 300, 500, 50)
         
@@ -236,7 +236,7 @@ class Supermarket:
         if self.unhealth_button:
             button_width = 198
             button_height = 78
-            unhealth_button_rect = pygame.Rect(400, 350, button_width, button_height)
+            unhealth_button_rect = pygame.Rect(325, 500, button_width, button_height)
         else:
             unhealth_button_rect = pygame.Rect(400, 350, 500, 50)
         
@@ -245,7 +245,7 @@ class Supermarket:
             button_width = 150
             button_height = 78
             button_height = min(button_height, 50)
-            tili_button_rect = pygame.Rect(400, 400, button_width, button_height)
+            tili_button_rect = pygame.Rect(225, 350, button_width, button_height)
         else:
             tili_button_rect = pygame.Rect(400, 400, 500, 50)
 

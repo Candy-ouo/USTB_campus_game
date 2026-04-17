@@ -64,7 +64,7 @@ class Canteen:
                 button_width = 150
                 button_height = 78
                 # 计算按钮位置
-                self.food_1_button_rect = pygame.Rect(400, 200, button_width, button_height)
+                self.food_1_button_rect = pygame.Rect(950, 280, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.food_1_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.food_1_button_rect)
@@ -81,13 +81,13 @@ class Canteen:
                 button_width = 150
                 button_height = 78
                 # 计算按钮位置
-                self.food_2_button_rect = pygame.Rect(400, 280, button_width, button_height)
+                self.food_2_button_rect = pygame.Rect(650, 280, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.food_2_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.food_2_button_rect)
             else:
                 # 如果图片加载失败，绘制默认矩形
-                self.food_2_button_rect = pygame.Rect(400, 280, 500, 50)
+                self.food_2_button_rect = pygame.Rect(550, 280, 500, 50)
                 pygame.draw.rect(self.screen, (220, 180, 140), self.food_2_button_rect)
                 pygame.draw.rect(self.screen, (150, 100, 50), self.food_2_button_rect, 2)
                 self.game.draw_text("营养套餐：金钱-15 心情+20 健康值+10 行动点+2", self.food_2_button_rect.x + 10, self.food_2_button_rect.y + 10, (254, 247, 201))
@@ -98,7 +98,7 @@ class Canteen:
                 button_width = 150
                 button_height = 78
                 # 计算按钮位置
-                self.food_3_button_rect = pygame.Rect(400, 360, button_width, button_height)
+                self.food_3_button_rect = pygame.Rect(400, 280, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.food_3_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.food_3_button_rect)
@@ -120,25 +120,25 @@ class Canteen:
         if self.food_1_button:
             button_width = 150
             button_height = 78
-            food_1_button_rect = pygame.Rect(400, 200, button_width, button_height)
+            food_1_button_rect = pygame.Rect(950, 280, button_width, button_height)
         else:
-            food_1_button_rect = pygame.Rect(400, 200, 500, 50)
+            food_1_button_rect = pygame.Rect(950, 280, 500, 50)
         
         # 计算营养套餐按钮矩形
         if self.food_2_button:
             button_width = 150
             button_height = 78
-            food_2_button_rect = pygame.Rect(400, 280, button_width, button_height)
+            food_2_button_rect = pygame.Rect(650, 280, button_width, button_height)
         else:
-            food_2_button_rect = pygame.Rect(400, 280, 500, 50)
+            food_2_button_rect = pygame.Rect(650, 280, 500, 50)
         
         # 计算特色美食按钮矩形
         if self.food_3_button:
             button_width = 150
             button_height = 78
-            food_3_button_rect = pygame.Rect(400, 360, button_width, button_height)
+            food_3_button_rect = pygame.Rect(400, 280, button_width, button_height)
         else:
-            food_3_button_rect = pygame.Rect(400, 360, 500, 50)
+            food_3_button_rect = pygame.Rect(400, 280, 500, 50)
 
         for event in events:
             if event.type == pygame.KEYDOWN:

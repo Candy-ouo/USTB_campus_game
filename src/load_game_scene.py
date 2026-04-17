@@ -18,12 +18,39 @@ class LoadGameScene:
         except Exception as e:
             print(f"加载背景图片失败: {e}")
         
+        # 加载存档框图片
+        self.save_frame = None
+        save_frame_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'save_frame.png')
+        try:
+            if os.path.exists(save_frame_path):
+                self.save_frame = pygame.image.load(save_frame_path)
+        except Exception as e:
+            print(f"加载存档框图片失败: {e}")
+        
+        # 加载读档标题图片
+        self.dudang_image = None
+        dudang_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'dudang.png')
+        try:
+            if os.path.exists(dudang_path):
+                self.dudang_image = pygame.image.load(dudang_path)
+        except Exception as e:
+            print(f"加载读档标题图片失败: {e}")
+        
+        # 加载返回按钮图片
+        self.arrow_image = None
+        arrow_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'arrow.png')
+        try:
+            if os.path.exists(arrow_path):
+                self.arrow_image = pygame.image.load(arrow_path)
+        except Exception as e:
+            print(f"加载返回按钮图片失败: {e}")
+        
         # 加载字体
         self.font = None
-        font_path = os.path.join(os.path.dirname(__file__), '..', 'fonts', 'msyh.ttf')
+        font_path = os.path.join(os.path.dirname(__file__), '..', 'fonts', 'fonts_start.ttf')
         try:
             if os.path.exists(font_path):
-                self.font = pygame.font.Font(font_path, 24)
+                self.font = pygame.font.Font(font_path, 20)
             else:
                 self.font = pygame.font.SysFont('SimHei', 24)
         except:
@@ -110,9 +137,9 @@ class LoadGameScene:
         else:
             week_in_month = (week_in_semester % 4) + 1
         if week_in_month == "期末周":
-            return f"第 {year} 年 {month} 月 期末周"
+            return f"第{year}年 {month}月 期末周"
         else:
-            return f"第 {year} 年 {month} 月 第 {week_in_month} 周"
+            return f"第{year}年 {month}月 第{week_in_month}周"
     
     def handle_events(self, events):
         """处理事件"""
@@ -139,8 +166,8 @@ class LoadGameScene:
         # 检查存档项和删除按钮
         y_start = 150
         for i, save_file in enumerate(self.save_files):
-            save_rect = pygame.Rect(340, y_start + i * 80 - self.scroll_offset, 600, 60)
-            delete_button_rect = pygame.Rect(880, y_start + i * 80 + 15 - self.scroll_offset, 60, 30)
+            save_rect = pygame.Rect(340, y_start + i * 95 - self.scroll_offset, 600, 60)
+            delete_button_rect = pygame.Rect(875, y_start + i * 95 + 20 - self.scroll_offset, 60, 30)
             
             if delete_button_rect.collidepoint(pos):
                 # 删除存档
@@ -169,19 +196,31 @@ class LoadGameScene:
             self.screen.fill((0, 0, 0))
         
         # 绘制标题
-        title = self.title_font.render("读档", True, (197, 110, 57))
-        title_rect = title.get_rect(center=(640, 80))
-        self.screen.blit(title, title_rect)
+        if self.dudang_image:
+            # 计算图片位置，使其在窗口顶部居中
+            dudang_rect = self.dudang_image.get_rect(center=(640, 80))
+            self.screen.blit(self.dudang_image, dudang_rect)
+        else:
+            # 如果图片加载失败，绘制默认文字标题
+            title = self.title_font.render("读档", True, (197, 110, 57))
+            title_rect = title.get_rect(center=(640, 80))
+            self.screen.blit(title, title_rect)
         
         # 绘制存档列表
         y_start = 150
         for i, save_file in enumerate(self.save_files):
-            save_rect = pygame.Rect(340, y_start + i * 80 - self.scroll_offset, 600, 60)
-            delete_button_rect = pygame.Rect(880, y_start + i * 80 + 15 - self.scroll_offset, 60, 30)
+            save_rect = pygame.Rect(345, y_start + i * 95 - self.scroll_offset, 600, 60)
+            delete_button_rect = pygame.Rect(865, y_start + i * 95 + 20 - self.scroll_offset, 60, 30)
             
-            # 绘制存档框（暖色调）
-            pygame.draw.rect(self.screen, (220, 180, 140), save_rect)
-            pygame.draw.rect(self.screen, (197, 110, 57), save_rect, 2)
+            # 绘制存档框
+            if self.save_frame:
+                # 缩放存档框图片以适应矩形大小
+                scaled_frame = pygame.transform.scale(self.save_frame, (600, 70))
+                self.screen.blit(scaled_frame, save_rect)
+            else:
+                # 如果图片加载失败，绘制默认矩形
+                pygame.draw.rect(self.screen, (220, 180, 140), save_rect)
+                pygame.draw.rect(self.screen, (197, 110, 57), save_rect, 2)
             
             # 绘制删除按钮
             pygame.draw.rect(self.screen, (180, 80, 50), delete_button_rect)
@@ -197,12 +236,18 @@ class LoadGameScene:
             self.screen.blit(name_text, (save_rect.x + 20, save_rect.y + 10))
             self.screen.blit(time_text, (save_rect.x + 20, save_rect.y + 35))
         
-        # 绘制返回按钮（暖色调）
-        pygame.draw.rect(self.screen, (220, 180, 140), self.back_button)
-        pygame.draw.rect(self.screen, (197, 110, 57), self.back_button, 2)
-        back_text = self.font.render("返回", True, (254, 247, 201))
-        back_text_rect = back_text.get_rect(center=self.back_button.center)
-        self.screen.blit(back_text, back_text_rect)
+        # 绘制返回按钮
+        if self.arrow_image:
+            # 使用箭头图片的原始大小，计算位置使其在按钮区域内
+            arrow_rect = self.arrow_image.get_rect(center=self.back_button.center)
+            self.screen.blit(self.arrow_image, arrow_rect)
+        else:
+            # 如果图片加载失败，绘制默认矩形按钮
+            pygame.draw.rect(self.screen, (220, 180, 140), self.back_button)
+            pygame.draw.rect(self.screen, (197, 110, 57), self.back_button, 2)
+            back_text = self.font.render("返回", True, (254, 247, 201))
+            back_text_rect = back_text.get_rect(center=self.back_button.center)
+            self.screen.blit(back_text, back_text_rect)
         
         # 绘制提示文字
         if not self.save_files:

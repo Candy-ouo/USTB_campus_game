@@ -58,7 +58,7 @@ class Teaching:
                 button_width = 150
                 button_height = 78
                 # 计算按钮位置
-                self.shangke_button_rect = pygame.Rect(400, 200, button_width, button_height)
+                self.shangke_button_rect = pygame.Rect(800, 200, button_width, button_height)
                 # 缩放按钮图片
                 scaled_button = pygame.transform.scale(self.shangke_button, (button_width, button_height))
                 self.screen.blit(scaled_button, self.shangke_button_rect)
@@ -98,7 +98,7 @@ class Teaching:
             button_width = 150
             button_height = 78
             button_height = min(button_height, 50)
-            shangke_button_rect = pygame.Rect(400, 200, button_width, button_height)
+            shangke_button_rect = pygame.Rect(800, 200, button_width, button_height)
         else:
             shangke_button_rect = pygame.Rect(400, 200, 500, 50)
         
