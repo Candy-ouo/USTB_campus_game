@@ -64,10 +64,8 @@ class Dorm:
         if not self.game.has_played_games:
             if self.playgame_button:
                 # 保持图片原始比例，计算显示大小
-                button_width = 500
-                button_height = int(button_width * (self.playgame_button.get_height() / self.playgame_button.get_width()))
-                # 确保按钮高度不超过50
-                button_height = min(button_height, 50)
+                button_width = 150
+                button_height = 78
                 # 计算按钮位置
                 self.playgame_button_rect = pygame.Rect(400, 200, button_width, button_height)
                 # 缩放按钮图片
@@ -84,10 +82,8 @@ class Dorm:
         if not self.game.has_read_book:
             if self.reading_button:
                 # 保持图片原始比例，计算显示大小
-                button_width = 500
-                button_height = int(button_width * (self.reading_button.get_height() / self.reading_button.get_width()))
-                # 确保按钮高度不超过50
-                button_height = min(button_height, 50)
+                button_width = 150
+                button_height = 78
                 # 计算按钮位置
                 self.reading_button_rect = pygame.Rect(400, 280, button_width, button_height)
                 # 缩放按钮图片
@@ -104,10 +100,8 @@ class Dorm:
         if not self.game.has_rested:
             if self.bed_button:
                 # 保持图片原始比例，计算显示大小
-                button_width = 500
-                button_height = int(button_width * (self.bed_button.get_height() / self.bed_button.get_width()))
-                # 确保按钮高度不超过50
-                button_height = min(button_height, 50)
+                button_width = 180
+                button_height = 78
                 # 计算按钮位置
                 self.bed_button_rect = pygame.Rect(400, 360, button_width, button_height)
                 # 缩放按钮图片
@@ -127,27 +121,24 @@ class Dorm:
         """处理宿舍场景事件"""
         # 计算玩游戏按钮矩形
         if self.playgame_button:
-            button_width = 500
-            button_height = int(button_width * (self.playgame_button.get_height() / self.playgame_button.get_width()))
-            button_height = min(button_height, 50)
+            button_width = 150
+            button_height = 78
             playgame_button_rect = pygame.Rect(400, 200, button_width, button_height)
         else:
             playgame_button_rect = pygame.Rect(400, 200, 500, 50)
         
         # 计算看书按钮矩形
         if self.reading_button:
-            button_width = 500
-            button_height = int(button_width * (self.reading_button.get_height() / self.reading_button.get_width()))
-            button_height = min(button_height, 50)
+            button_width = 150
+            button_height = 78
             reading_button_rect = pygame.Rect(400, 280, button_width, button_height)
         else:
             reading_button_rect = pygame.Rect(400, 280, 500, 50)
         
         # 计算床按钮矩形
         if self.bed_button:
-            button_width = 500
-            button_height = int(button_width * (self.bed_button.get_height() / self.bed_button.get_width()))
-            button_height = min(button_height, 50)
+            button_width = 180
+            button_height = 78
             bed_button_rect = pygame.Rect(400, 360, button_width, button_height)
         else:
             bed_button_rect = pygame.Rect(400, 360, 500, 50)
@@ -163,10 +154,9 @@ class Dorm:
                 if not self.game.has_played_games and playgame_button_rect.collidepoint(pos):
                     if self.game.player.action_points >= 1:
                         self.game.player.action_points -= 1
-                        self.game.player.add_mood(40)
-                        self.game.player.add_social(2)  # 增加人脉
+                        self.game.player.add_mood(30)
                         self.game.has_played_games = True
-                        self.game.message = "你选择了玩游戏，心情+40，行动点-1，人脉+2"
+                        self.game.message = "你选择了玩游戏，心情+30，行动点-1"
                         self.game.message_timer = 90
                     else:
                         self.game.message = "行动点不足！"
@@ -177,10 +167,9 @@ class Dorm:
                         self.game.player.action_points -= 1
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_knowledge(10, current_year)
-                        self.game.player.add_skill(3)  # 增加技能
-                        self.game.player.add_mood(-10)
+                        self.game.player.add_mood(10)
                         self.game.has_read_book = True
-                        self.game.message = "你选择了看书，学识+10，技能+3，心情-10，行动点-1"
+                        self.game.message = "你选择了看书，学识+10 心情+10 行动点-1"
                         self.game.message_timer = 90
                     else:
                         self.game.message = "行动点不足！"
@@ -189,7 +178,6 @@ class Dorm:
                 elif not self.game.has_rested and bed_button_rect.collidepoint(pos):
                     self.game.player.action_points += 2
                     self.game.player.add_health(5)
-                    self.game.player.add_mood(10)  # 增加心情
                     self.game.has_rested = True
-                    self.game.message = "你选择了休息，行动点+2，健康值+5，心情+10"
+                    self.game.message = "你选择了休息，行动点+2，健康值+5"
                     self.game.message_timer = 90

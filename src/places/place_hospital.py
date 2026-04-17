@@ -43,10 +43,8 @@ class Hospital:
         # 绘制治病按钮
         if self.zhibing_button:
             # 保持图片原始比例，计算显示大小
-            button_width = 500
-            button_height = int(button_width * (self.zhibing_button.get_height() / self.zhibing_button.get_width()))
-            # 确保按钮高度不超过50
-            button_height = min(button_height, 50)
+            button_width = 150
+            button_height = 78
             # 计算按钮位置
             self.zhibing_button_rect = pygame.Rect(400, 200, button_width, button_height)
             # 缩放按钮图片
@@ -66,9 +64,8 @@ class Hospital:
         """处理校医院场景事件"""
         # 计算治病按钮矩形
         if self.zhibing_button:
-            button_width = 500
-            button_height = int(button_width * (self.zhibing_button.get_height() / self.zhibing_button.get_width()))
-            button_height = min(button_height, 50)
+            button_width = 150
+            button_height = 78
             zhibing_button_rect = pygame.Rect(400, 200, button_width, button_height)
         else:
             zhibing_button_rect = pygame.Rect(400, 200, 500, 50)
