@@ -9,6 +9,7 @@ class Canteen:
         self.screen = game.screen
         self.font = game.font
         self.large_font = game.large_font
+        self.start_font = game.start_font
         self.canteen_background = None
         self._load_images()
 
@@ -47,10 +48,6 @@ class Canteen:
             self.game.draw_text("特色美食：金钱-20 心情+30 健康值+10 行动点+3", option3_rect.x + 10, option3_rect.y + 10, (254, 247, 201))
         else:
             self.game.draw_text("已用餐", SCREEN_WIDTH // 2 - 50, 200, (254, 247, 201), self.large_font)
-
-        if self.game.message_timer > 0:
-            self.game.draw_text(self.game.message, SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT - 110, (254, 247, 201), self.large_font)
-            self.game.message_timer -= 1
 
         time_display = self.game.time_system.get_time_display()
         self.game.ui_hud.draw_all(time_display, self.game.player)

@@ -9,6 +9,7 @@ class Supermarket:
         self.screen = game.screen
         self.font = game.font
         self.large_font = game.large_font
+        self.start_font = game.start_font
         self.supermarket_background = None
         self._load_images()
 
@@ -63,11 +64,8 @@ class Supermarket:
             pygame.draw.rect(self.screen, (150, 100, 50), option6_rect, 2)
             self.game.draw_text("体力药水：金钱-30 行动点+1", option6_rect.x + 10, option6_rect.y + 10, (254, 247, 201))
         else:
-            self.game.draw_text("今日购买次数已达上限", SCREEN_WIDTH // 2 - 150, 200, (254, 247, 201), self.large_font)
-
-        if self.game.message_timer > 0:
-            self.game.draw_text(self.game.message, SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT - 110, (254, 247, 201), self.large_font)
-            self.game.message_timer -= 1
+            self.game.message = "今日购买次数已达上限"
+            self.game.message_timer = 90
 
         time_display = self.game.time_system.get_time_display()
         self.game.ui_hud.draw_all(time_display, self.game.player)

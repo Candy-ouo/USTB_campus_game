@@ -14,6 +14,7 @@ from src.map import MapSystem
 from src.character import Character
 from src.create_character_scene import CreateCharacterScene
 from src.ui_hud import UIHUD
+from src.save_system import SaveSystem
 from src.places.place_canteen import Canteen
 from src.places.place_teaching import Teaching
 from src.places.place_sports import Sports
@@ -194,8 +195,9 @@ class Game:
         self.player = Player()
         self.time_system = TimeSystem()
         self.map_system = MapSystem()
-        self.ui_hud = UIHUD(self.screen)
+        self.ui_hud = UIHUD(self.screen, self)
         self.time_season_panel = TimeSeasonPanel(self.screen)
+        self.save_system = SaveSystem()
         # 初始化场景对象
         self.canteen = Canteen(self)
         self.teaching = Teaching(self)
@@ -483,6 +485,11 @@ class Game:
             self.previous_state = self.current_state
             # 处理关系事件
             pass
+        elif ui_event == 'SAVE':
+            # 处理存档事件
+            success, msg = self.save_system.save_game(self)
+            self.message = msg
+            self.message_timer = 120
 
         # 如果地图显示，处理地图相关事件
         if self.map_system.is_map_showing():
@@ -1306,17 +1313,6 @@ class Game:
         # 绘制其他UI
         time_display = self.time_system.get_time_display()
         self.ui_hud.draw_all(time_display, self.player)
-        
-
-        
-        if self.message_timer > 0:
-            # 消息显示在游戏窗口底部居中位置，在底部图标之上
-            message_x = SCREEN_WIDTH // 2 - 150  # 消息X坐标（居中）
-            message_y = SCREEN_HEIGHT - 110  # 消息Y坐标（在底部图标之上）
-            message_color = WHITE  # 消息颜色
-            message_font = self.large_font  # 消息字体
-            self.draw_text(self.message, message_x, message_y, message_color, message_font)
-            self.message_timer -= 1
     
     def handle_game_end(self):
         """处理游戏结束，进行结局判定"""
