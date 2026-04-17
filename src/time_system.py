@@ -24,6 +24,18 @@ class TimeSystem:
         
         return True
     
+    def next_week(self):
+        if self.ended:
+            return False
+        
+        # 进入下一周（增加1天，因为游戏中一周就是1天）
+        self.day += 1
+        
+        if self.day > 136:
+            self.ended = True
+        
+        return True
+    
     def get_year(self):
         # 每过两个期末周（两个学期）才算一个学年
         semester = self.get_semester()
