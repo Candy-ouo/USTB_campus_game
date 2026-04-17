@@ -613,48 +613,16 @@ class Game:
                 if self.map_system.is_map_showing():
                     pos = pygame.mouse.get_pos()
                     area_id = self.map_system.get_area_at(pos, self.player.is_sick)
-                    if area_id:
-                        # 检查是否生病
-                        if self.player.is_sick:
-                            if area_id == 'hospital':
-                                # 切换到校医院场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_HOSPITAL
-                            else:
-                                # 生病时只能去校医院
-                                self.message = "你生病了，只能去校医院！"
-                                self.message_timer = 90
-                        else:
-                            if area_id == 'canteen':
-                                # 切换到食堂场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_CANTEEN
-                            elif area_id == 'teaching':
-                                # 切换到教学区场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_TEACHING
-                            elif area_id == 'sports':
-                                # 切换到操场场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_SPORTS
-                            elif area_id == 'food':
-                                # 切换到超市场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_SUPERMARKET
-                            elif area_id == 'dorm':
-                                # 切换到宿舍场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_DORM
-                            elif area_id == 'supermarket':
-                                # 切换到学生活动中心场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_STUDENT_CENTER
-                            elif area_id == 'hospital':
-                                # 切换到校医院场景
-                                self.map_system.toggle_map()  # 确保地图不显示
-                                self.current_state = STATE_HOSPITAL
-                            else:
-                                self.map_system.set_active_area(area_id)
+                    if area_id:                        # 检查是否生病                        
+                        if self.player.is_sick:                            
+                            if area_id == 'hospital':                                # 切换到校医院场景
+                                self.map_system.toggle_map()  # 确保地图不显示                                
+                                self.current_state = STATE_HOSPITAL                            
+                            else:                                # 生病时只能去校医院                                
+                                self.message = "你生病了，只能去校医院！"                                
+                                self.message_timer = 90                        
+                        else:                            # 点击地图区域时，设置活跃区域，允许在地图界面执行行动                            
+                             self.map_system.set_active_area(area_id)
                     else:
                         self.map_system.clear_active_area()
                 else:
