@@ -103,8 +103,11 @@ class MapSystem:
         self.active_area = None
         self.show_map = False
     
-    def get_area_at(self, pos):
+    def get_area_at(self, pos, is_sick=False):
         for area_id, area in self.areas.items():
+            # 生病时只检测校医院
+            if is_sick and area_id != 'hospital':
+                continue
             if area['rect'].collidepoint(pos):
                 return area_id
         return None

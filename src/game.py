@@ -185,6 +185,8 @@ class Game:
         self.has_eaten = False
         self.has_studied = False
         self.has_exercised = False
+        self.has_played_games = False  # 玩游戏状态
+        self.has_read_book = False  # 看书状态
         self.supermarket_purchases = 0
         self.has_rested = False
         
@@ -608,7 +610,7 @@ class Game:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if self.map_system.is_map_showing():
                     pos = pygame.mouse.get_pos()
-                    area_id = self.map_system.get_area_at(pos)
+                    area_id = self.map_system.get_area_at(pos, self.player.is_sick)
                     if area_id:
                         # 检查是否生病
                         if self.player.is_sick:
@@ -978,18 +980,37 @@ class Game:
                         
                         # 进入下一回合
                         self.time_system.next_week()
+                        # 更新UIHUD的时间信息
+                        year = self.time_system.get_year()
+                        month = self.time_system.get_month()
+                        week = self.time_system.get_week_in_month()
+                        self.ui_hud.update_time(year, month, week)
                         # 重置行动点
                         self.player.action_points = DAILY_ACTION_POINTS
+                        # 重置超市购买次数
+                        self.supermarket_purchases = 0
+                        # 重置已用餐状态
+                        self.has_eaten = False
+                        # 重置已运动状态
+                        self.has_exercised = False
+                        # 重置已休息状态
+                        self.has_rested = False
+                        # 重置已学习状态
+                        self.has_studied = False
+                        # 重置已玩游戏状态
+                        self.has_played_games = False
+                        # 重置已看书状态
+                        self.has_read_book = False
                         # 重置日程安排相关属性
                         self.schedule_selected = []
                         self.has_scheduled = False
-                        # 返回主界面
-                        self.current_state = STATE_MAIN_GAME
+                        # 返回之前的场景
+                        self.current_state = self.previous_state
                 elif cancel_button_rect.collidepoint(pos):
                     # 取消选择
                     self.schedule_selected = []
-                    # 返回主界面
-                    self.current_state = STATE_MAIN_GAME
+                    # 返回之前的场景
+                    self.current_state = self.previous_state
                 else:
                     # 检查日程项点击
                     if not self.has_scheduled:
@@ -1076,13 +1097,7 @@ class Game:
                             self.schedule_scroll_offsets[i] = min(0, self.schedule_scroll_offsets[i] + scroll_speed)
                         else:  # 向下滚动
                             self.schedule_scroll_offsets[i] = max(-max_scroll, self.schedule_scroll_offsets[i] - scroll_speed)
-                        # 返回之前的场景
-                        self.current_state = self.previous_state
-                elif cancel_button_rect.collidepoint(pos):
-                    # 取消选择
-                    self.schedule_selected = []
-                    # 返回之前的场景
-                    self.current_state = self.previous_state
+                # 注意：鼠标滚轮事件不需要返回之前的场景
                     
     def do_action(self, action_name):
         if self.player.action_points <= 0:
@@ -1213,6 +1228,10 @@ class Game:
         
         # 绘制各个区域（使用map_button作为背景）
         for area_id, area in self.map_system.areas.items():
+            # 健康值低于40时只显示校医院
+            if self.player.health < 40 and area_id != 'hospital':
+                continue
+            
             # 绘制区域背景
             if self.map_button_image:
                 # 缩放按钮图片以适应区域大小

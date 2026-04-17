@@ -57,8 +57,9 @@ class Hospital:
                     if self.game.player.get_health() < 60:
                         if self.game.player.living_expenses >= 50:
                             self.game.player.living_expenses -= 50
-                            self.game.player.add_health(100)
-                            self.game.message = "你在医院治疗，金钱-50，健康状态已恢复"
+                            # 恢复健康状态到80
+                            self.game.player.add_health(80 - self.game.player.get_health())
+                            self.game.message = "你在医院治疗，金钱-50，健康状态已恢复到80"
                             self.game.message_timer = 90
                         else:
                             self.game.message = "金钱不足，无法治疗！"

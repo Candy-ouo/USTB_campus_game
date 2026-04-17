@@ -69,7 +69,7 @@ class UIHUD:
     def _load_ui_images(self):
         """加载UI图片"""
         # 加载ui_top_button.png
-        ui_top_button_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'ui_top_button.png')
+        ui_top_button_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'ui_top_bottom.png')
         try:
             if os.path.exists(ui_top_button_path):
                 self.ui_top_button = pygame.image.load(ui_top_button_path)
@@ -207,7 +207,7 @@ class UIHUD:
             week_text = self.font.render(f"第{self.week}周", True, (0, 0, 0))
         self.screen.blit(week_text, (text_x, text_y + line_height * 2))
     
-    def draw_action_attributes(self, living_expenses, action_points, mood, health):
+    def draw_action_attributes(self, living_expenses, action_points, mood, health, player):
         """绘制行动属性（顶部中间）"""
         # 每个属性的Y坐标，可以根据需要修改
         y_offset = 36
@@ -219,7 +219,10 @@ class UIHUD:
         self.screen.blit(expense_text, expense_rect)
         
         # 绘制行动力
-        action_text = self.action_font.render(f"{action_points}", True, (225, 182, 83))
+        max_action_points = 5 + (player.physical_level - 1)
+        if player.health < 60:
+            max_action_points = max(1, max_action_points // 2)
+        action_text = self.action_font.render(f"{action_points}/{max_action_points}", True, (225, 182, 83))
         action_rect = action_text.get_rect(center=(580, y_offset))
         self.screen.blit(action_text, action_rect)
         
@@ -372,7 +375,7 @@ class UIHUD:
         action_points = player.get_action_points()
         mood = player.get_mood()
         health = player.get_health()
-        self.draw_action_attributes(living_expenses, action_points, mood, health)
+        self.draw_action_attributes(living_expenses, action_points, mood, health, player)
         
         # 绘制主属性和副属性（一起绘制，避免重叠）
         knowledge, knowledge_level = player.get_knowledge()
