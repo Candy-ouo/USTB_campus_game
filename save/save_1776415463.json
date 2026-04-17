@@ -1,12 +1,12 @@
 {
   "character": {
-    "name": "姚春意",
-    "gender": "女",
-    "height": 134,
-    "weight": 222,
+    "name": "大碗大碗的",
+    "gender": "男",
+    "height": 222,
+    "weight": 33,
     "birthday": "01-01",
-    "college": "材料",
-    "major": "材料化学",
+    "college": "冶金",
+    "major": "钢铁冶金",
     "knowledge": 30,
     "knowledge_level": 1,
     "charm": 30,
@@ -25,16 +25,16 @@
     "aesthetic_cultivation": 0
   },
   "player": {
-    "knowledge": 30,
+    "knowledge": 40,
     "knowledge_level": 1,
     "charm": 30,
     "charm_level": 1,
     "physical": 30,
     "physical_level": 1,
     "living_expenses": 200,
-    "action_points": 5,
-    "mood": 100,
-    "health": 80,
+    "action_points": 6,
+    "mood": 90,
+    "health": 85,
     "skill": 0,
     "social": 0,
     "reputation": 0,
@@ -43,7 +43,7 @@
     "aesthetic_cultivation": 0
   },
   "time_system": {
-    "day": 2,
+    "day": 1,
     "ended": false
   },
   "game_state": {
@@ -52,9 +52,9 @@
     "has_studied": false,
     "has_exercised": false,
     "has_played_games": false,
-    "has_read_book": false,
+    "has_read_book": true,
     "supermarket_purchases": 0,
-    "has_rested": false,
+    "has_rested": true,
     "schedule_selected": [],
     "has_scheduled": false,
     "schedule_scroll_offsets": [
@@ -62,11 +62,7 @@
       0,
       0
     ],
-    "course_study_counts": {
-      "专利撰写与申报": 1,
-      "创业大赛指导": 1,
-      "本科就业指导": 1
-    },
+    "course_study_counts": {},
     "final_scores": [],
     "final_gpas": [],
     "current_final_score": 0,

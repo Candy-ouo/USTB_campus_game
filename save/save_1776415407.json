@@ -1,12 +1,12 @@
 {
   "character": {
-    "name": "姚春意",
+    "name": "汤圆",
     "gender": "女",
-    "height": 134,
+    "height": 1456,
     "weight": 222,
     "birthday": "01-01",
     "college": "材料",
-    "major": "材料化学",
+    "major": "材料物理",
     "knowledge": 30,
     "knowledge_level": 1,
     "charm": 30,
@@ -25,7 +25,7 @@
     "aesthetic_cultivation": 0
   },
   "player": {
-    "knowledge": 30,
+    "knowledge": 40,
     "knowledge_level": 1,
     "charm": 30,
     "charm_level": 1,
@@ -33,8 +33,8 @@
     "physical_level": 1,
     "living_expenses": 200,
     "action_points": 5,
-    "mood": 100,
-    "health": 80,
+    "mood": 90,
+    "health": 85,
     "skill": 0,
     "social": 0,
     "reputation": 0,
@@ -43,7 +43,7 @@
     "aesthetic_cultivation": 0
   },
   "time_system": {
-    "day": 2,
+    "day": 4,
     "ended": false
   },
   "game_state": {
@@ -63,9 +63,13 @@
       0
     ],
     "course_study_counts": {
-      "专利撰写与申报": 1,
-      "创业大赛指导": 1,
-      "本科就业指导": 1
+      "本科就业指导": 1,
+      "数理方法": 1,
+      "材料合成与制备": 1,
+      "西方哲学史": 1,
+      "影视鉴赏": 2,
+      "国画赏析": 2,
+      "中国书法艺术": 1
     },
     "final_scores": [],
     "final_gpas": [],

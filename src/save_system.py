@@ -2,6 +2,7 @@ import pygame
 import os
 import json
 import sys
+import time
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from data.config import SAVE_FILE
@@ -21,8 +22,10 @@ class SaveSystem:
             return
         self._initialized = True
         self.save_file = SAVE_FILE
+        self.save_dir = os.path.dirname(self.save_file)
+        self.max_saves = 5
 
-    def save_game(self, game):
+    def save_game(self, game, is_new_game=False, save_file_path=None):
         try:
             save_data = {
                 'character': self._get_character_data(game),
@@ -49,19 +52,54 @@ class SaveSystem:
                     'current_need_makeup': game.current_need_makeup
                 }
             }
-            os.makedirs(os.path.dirname(self.save_file), exist_ok=True)
-            with open(self.save_file, 'w', encoding='utf-8') as f:
-                json.dump(save_data, f, ensure_ascii=False, indent=2)
-            return True, "游戏已保存！"
+            os.makedirs(self.save_dir, exist_ok=True)
+            
+            if save_file_path:
+                # 读档后修改旧存档
+                with open(save_file_path, 'w', encoding='utf-8') as f:
+                    json.dump(save_data, f, ensure_ascii=False, indent=2)
+                return True, "游戏已保存！"
+            elif is_new_game:
+                # 新游戏创建新存档
+                # 获取所有存档文件（排除savegame.json）
+                save_files = [f for f in os.listdir(self.save_dir) if f.endswith('.json') and f != 'savegame.json']
+                
+                # 如果存档数量达到上限，删除最旧的存档
+                if len(save_files) >= self.max_saves:
+                    # 获取每个存档的修改时间
+                    save_files_with_time = []
+                    for file_name in save_files:
+                        file_path = os.path.join(self.save_dir, file_name)
+                        mtime = os.path.getmtime(file_path)
+                        save_files_with_time.append((file_path, mtime))
+                    
+                    # 按修改时间排序，删除最旧的
+                    save_files_with_time.sort(key=lambda x: x[1])
+                    oldest_save = save_files_with_time[0][0]
+                    os.remove(oldest_save)
+                
+                # 创建新存档
+                timestamp = int(time.time())
+                new_save_path = os.path.join(self.save_dir, f'save_{timestamp}.json')
+                with open(new_save_path, 'w', encoding='utf-8') as f:
+                    json.dump(save_data, f, ensure_ascii=False, indent=2)
+                # 返回新创建的存档路径
+                return True, "游戏已保存！", new_save_path
+            else:
+                # 常规保存（覆盖默认存档）
+                with open(self.save_file, 'w', encoding='utf-8') as f:
+                    json.dump(save_data, f, ensure_ascii=False, indent=2)
+                return True, "游戏已保存！"
         except Exception as e:
             return False, f"保存失败: {str(e)}"
 
-    def load_game(self, game):
+    def load_game(self, game, file_path=None):
         try:
-            if not os.path.exists(self.save_file):
+            load_path = file_path if file_path else self.save_file
+            if not os.path.exists(load_path):
                 return False, "没有找到存档！"
 
-            with open(self.save_file, 'r', encoding='utf-8') as f:
+            with open(load_path, 'r', encoding='utf-8') as f:
                 save_data = json.load(f)
 
             if 'character' in save_data:

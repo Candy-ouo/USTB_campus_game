@@ -142,13 +142,7 @@ class StartScene:
                 if button_name == 'new_game':
                     return 'CREATE_CHARACTER_SCENE'
                 elif button_name == 'load_game':
-                    # 尝试读取存档
-                    save_file = os.path.join(os.path.dirname(__file__), '..', 'save', 'savegame.json')
-                    if os.path.exists(save_file):
-                        return 'GAME_SCENE'
-                    else:
-                        # 存档不存在，可以添加提示
-                        print("存档不存在")
+                    return 'LOAD_GAME_SCENE'
                 elif button_name == 'exit':
                     self._exit_game()
         return None

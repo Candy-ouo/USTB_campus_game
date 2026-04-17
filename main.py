@@ -17,6 +17,7 @@ sys.path.append(os.path.dirname(__file__))
 from src.game import Game
 from src.start_scene import StartScene
 from src.create_character_scene import CreateCharacterScene
+from src.load_game_scene import LoadGameScene
 from src.save_system import SaveSystem
 from data.config import SCREEN_WIDTH, SCREEN_HEIGHT, FPS
 
@@ -53,6 +54,7 @@ def main():
 
     current_scene = 'START_SCENE'
     character = None
+    save_file_path = None
 
     while True:
         if current_scene == 'START_SCENE':
@@ -72,9 +74,9 @@ def main():
                 if next_scene == 'CREATE_CHARACTER_SCENE':
                     running = False
                     current_scene = 'CREATE_CHARACTER_SCENE'
-                elif next_scene == 'GAME_SCENE':
+                elif next_scene == 'LOAD_GAME_SCENE':
                     running = False
-                    current_scene = 'GAME_SCENE'
+                    current_scene = 'LOAD_GAME_SCENE'
                     character = None
 
                 pygame.display.flip()
@@ -99,33 +101,82 @@ def main():
 
                 if character:
                     running = False
-                    # 删除旧存档（如果有的话）
-                    save_system = SaveSystem()
-                    if save_system.has_save_file():
-                        save_system.delete_save()
                     # 直接进入游戏场景
                     print(f"传递给Game的character参数: {character}")
                     game = Game(character, screen)
+                    # 新游戏创建新存档
+                    save_system = SaveSystem()
+                    result = save_system.save_game(game, is_new_game=True)
+                    # 检查返回值是否包含存档路径
+                    if len(result) == 3:
+                        success, msg, new_save_path = result
+                        game.current_save_path = new_save_path
+                        print(f"新游戏存档路径: {new_save_path}")
+                    else:
+                        success, msg = result
                     game.run()
                     break
                 elif not running:
                     if current_scene != 'GAME_SCENE':
                         current_scene = 'START_SCENE'
 
+        elif current_scene == 'LOAD_GAME_SCENE':
+            load_scene = LoadGameScene(screen)
+            running = True
+            while running:
+                events = pygame.event.get()
+                for event in events:
+                    if event.type == pygame.QUIT:
+                        running = False
+                        break
+
+                next_scene = load_scene.handle_events(events)
+                load_scene.update()
+                load_scene.draw()
+
+                if isinstance(next_scene, dict) and 'GAME_SCENE' in next_scene:
+                    running = False
+                    current_scene = 'GAME_SCENE'
+                    save_file_path = next_scene['GAME_SCENE']
+                elif next_scene == 'START_SCENE':
+                    running = False
+                    current_scene = 'START_SCENE'
+
+                pygame.display.flip()
+                clock.tick(FPS)
+
         elif current_scene == 'GAME_SCENE':
             save_system = SaveSystem()
-            if save_system.has_save_file():
-                print(f"读档进入游戏")
-                character = save_system.load_character_from_save()
+            if save_file_path:
+                # 从指定存档文件加载
+                print(f"从存档文件加载: {save_file_path}")
+                character = None
                 game = Game(character, screen)
-                success, msg = save_system.load_game(game)
+                # 设置当前存档路径
+                game.current_save_path = save_file_path
+                # 使用SaveSystem的load_game方法加载存档
+                success, msg = save_system.load_game(game, save_file_path)
                 if success:
                     print(msg)
+                else:
+                    print(f"加载失败: {msg}")
                 game.run()
             else:
-                print("没有存档，自动进入新游戏")
-                current_scene = 'CREATE_CHARACTER_SCENE'
-                continue
+                # 常规加载
+                if save_system.has_save_file():
+                    print(f"读档进入游戏")
+                    character = save_system.load_character_from_save()
+                    game = Game(character, screen)
+                    success, msg = save_system.load_game(game)
+                    if success:
+                        print(msg)
+                    game.run()
+                else:
+                    print("没有存档，自动进入新游戏")
+                    current_scene = 'CREATE_CHARACTER_SCENE'
+                    continue
+            # 重置save_file_path，避免下次误加载
+            save_file_path = None
             break
 
 
