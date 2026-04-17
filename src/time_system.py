@@ -8,55 +8,33 @@ class TimeSystem:
     def __init__(self):
         self.day = 1  # 内部计数，从1到136
         self.ended = False
-        self.last_month = 9  # 记录上一次的月份，初始为9月
     
     def reset(self):
         self.day = 1
         self.ended = False
-        self.last_month = 9
     
     def next_day(self):
         if self.ended:
             return False
         
-        # 记录当前月份
-        current_month = self.get_month()
-        
         self.day += 1
-        
-        # 检查月份是否变化
-        new_month = self.get_month()
-        month_changed = (current_month != new_month)
-        
-        # 更新上一次的月份
-        self.last_month = current_month
         
         if self.day > 136:
             self.ended = True
         
-        return month_changed
+        return True
     
     def next_week(self):
         if self.ended:
             return False
         
-        # 记录当前月份
-        current_month = self.get_month()
-        
         # 进入下一周（增加1天，因为游戏中一周就是1天）
         self.day += 1
-        
-        # 检查月份是否变化
-        new_month = self.get_month()
-        month_changed = (current_month != new_month)
-        
-        # 更新上一次的月份
-        self.last_month = current_month
         
         if self.day > 136:
             self.ended = True
         
-        return month_changed
+        return True
     
     def get_year(self):
         # 每过两个期末周（两个学期）才算一个学年
@@ -146,8 +124,7 @@ class TimeSystem:
     def to_dict(self):
         return {
             'day': self.day,
-            'ended': self.ended,
-            'last_month': self.last_month
+            'ended': self.ended
         }
     
     def from_dict(self, data):
@@ -155,5 +132,3 @@ class TimeSystem:
             self.day = data['day']
         if 'ended' in data:
             self.ended = data['ended']
-        if 'last_month' in data:
-            self.last_month = data['last_month']

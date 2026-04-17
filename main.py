@@ -114,7 +114,11 @@ def main():
                         print(f"新游戏存档路径: {new_save_path}")
                     else:
                         success, msg = result
-                    game.run()
+                    # 运行游戏并获取退出原因
+                    exit_reason = game.run()
+                    # 只有结局退出才回到主菜单，其他退出直接结束程序
+                    if exit_reason != 'ending':
+                        return
                     # 游戏结束后回到主菜单
                     current_scene = 'START_SCENE'
                     break
@@ -162,7 +166,11 @@ def main():
                     print(msg)
                 else:
                     print(f"加载失败: {msg}")
-                game.run()
+                # 运行游戏并获取退出原因
+                exit_reason = game.run()
+                # 只有结局退出才回到主菜单，其他退出直接结束程序
+                if exit_reason != 'ending':
+                    return
             else:
                 # 常规加载
                 if save_system.has_save_file():
@@ -172,7 +180,11 @@ def main():
                     success, msg = save_system.load_game(game)
                     if success:
                         print(msg)
-                    game.run()
+                    # 运行游戏并获取退出原因
+                    exit_reason = game.run()
+                    # 只有结局退出才回到主菜单，其他退出直接结束程序
+                    if exit_reason != 'ending':
+                        return
                 else:
                     print("没有存档，自动进入新游戏")
                     current_scene = 'CREATE_CHARACTER_SCENE'

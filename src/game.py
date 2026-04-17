@@ -1,13 +1,9 @@
+import pygame
 import json
 import os
 import sys
 
-# 忽略libpng警告
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
-os.environ['SDL_VIDEO_X11_WMCLASS'] = 'pygame'
-
-import pygame
-
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from data.config import (
     SCREEN_WIDTH, SCREEN_HEIGHT, FPS, BLACK, WHITE, GRAY,
     DAILY_ACTION_POINTS, SAVE_FILE
@@ -228,49 +224,6 @@ class Game:
         self.current_need_makeup = False
         # 追踪所有学期理论实验的累加总值
         self.total_theory_experiment = 0
-        
-        # 日程安排数据
-        self.schedules = {
-            "理论实验": [
-                {"name": "固体物理", "hours": 16, "attribute": "theory_experiment", "value": 100},
-                {"name": "材料分析技术", "hours": 16, "attribute": "theory_experiment", "value": 100},
-                {"name": "量子力学导论", "hours": 16, "attribute": "theory_experiment", "value": 100},
-                {"name": "大学物理实验", "hours": 16, "attribute": "theory_experiment", "value": 100},
-                {"name": "数理方法", "hours": 16, "attribute": "theory_experiment", "value": 100},
-                {"name": "材料合成与制备", "hours": 12, "attribute": "theory_experiment", "value": 75},
-                {"name": "金相分析实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
-                {"name": "工程制图", "hours": 12, "attribute": "theory_experiment", "value": 75},
-                {"name": "计算机辅助设计", "hours": 12, "attribute": "theory_experiment", "value": 75},
-                {"name": "材料性能实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
-                {"name": "大学英语", "hours": 8, "attribute": "theory_experiment", "value": 50},
-                {"name": "思修与法律基础", "hours": 8, "attribute": "theory_experiment", "value": 50},
-                {"name": "大学体育", "hours": 8, "attribute": "theory_experiment", "value": 50},
-            ],
-            "创新创业": [
-                {"name": "科研项目实训", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
-                {"name": "企业实习实践", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
-                {"name": "专利撰写与申报", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
-                {"name": "创业大赛指导", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
-                {"name": "本科就业指导", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
-                {"name": "科研伦理与规范", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
-                {"name": "科技文献检索", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
-            ],
-            "美育素养": [
-                {"name": "交响乐团鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
-                {"name": "中国书法艺术", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
-                {"name": "国画赏析", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
-                {"name": "影视鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
-                {"name": "西方哲学史", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
-                {"name": "演讲与口才", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "摄影技术", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "舞蹈基础", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "茶文化", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "中外民俗", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "心理健康", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
-                {"name": "安全教育", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
-                {"name": "通识课任选", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
-            ]
-        }
         
         # 加载地图背景图片
         self.map_background = None
@@ -552,12 +505,10 @@ class Game:
         
         for event in events:
             if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+                self.running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
-                    pygame.quit()
-                    sys.exit()
+                    self.running = False
                 # 在任何状态下按SPACE键都可以进入下一回合
                 elif event.key == pygame.K_SPACE:
                     self.advance_day()
@@ -954,9 +905,52 @@ class Game:
     
     def _handle_schedule(self, events):
         """处理日程安排页面事件"""
+        # 定义日程数据
+        schedules = {
+            "理论实验": [
+                {"name": "固体物理", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "材料分析技术", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "量子力学导论", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "大学物理实验", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "数理方法", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "材料合成与制备", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "金相分析实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "工程制图", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "计算机辅助设计", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "材料性能实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "大学英语", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "思修与法律基础", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "大学体育", "hours": 8, "attribute": "theory_experiment", "value": 50},
+            ],
+            "创新创业": [
+                {"name": "科研项目实训", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "企业实习实践", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "专利撰写与申报", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "创业大赛指导", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                {"name": "本科就业指导", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
+                {"name": "科研伦理与规范", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
+                {"name": "科技文献检索", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
+            ],
+            "美育素养": [
+                {"name": "交响乐团鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "中国书法艺术", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "国画赏析", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "影视鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "西方哲学史", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                {"name": "演讲与口才", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "摄影技术", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "舞蹈基础", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "茶文化", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "中外民俗", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "心理健康", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                {"name": "安全教育", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
+                {"name": "通识课任选", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
+            ]
+        }
+        
         # 计算日程项的位置（三列布局）
         column_width = (self.width - 100) // 3
-        categories = list(self.schedules.keys())
+        categories = list(schedules.keys())
         
         # 处理操作按钮点击
         confirm_button_rect = pygame.Rect(self.width // 2 - 200, self.height - 80, 180, 50)
@@ -1100,14 +1094,14 @@ class Game:
                             
                             # 计算当前显示的课程范围
                             start_index = max(0, -self.schedule_scroll_offsets[i] // item_spacing)
-                            end_index = min(len(self.schedules[category]), start_index + items_per_column)
+                            end_index = min(len(schedules[category]), start_index + items_per_column)
                             
                             # 检查日程项点击
                             item_y = column_y + 40
                             # 过滤出未修满的课程
                             visible_items = []
-                            for j in range(len(self.schedules[category])):
-                                item = self.schedules[category][j]
+                            for j in range(len(schedules[category])):
+                                item = schedules[category][j]
                                 course_name = item['name']
                                 study_count = self.course_study_counts.get(course_name, 0)
                                 if study_count < item['hours']:
@@ -1151,7 +1145,7 @@ class Game:
                     if column_rect.collidepoint(pos):
                         # 过滤出未修满的课程
                         visible_items = []
-                        for item in self.schedules[categories[i]]:
+                        for item in schedules[categories[i]]:
                             course_name = item['name']
                             study_count = self.course_study_counts.get(course_name, 0)
                             if study_count < item['hours']:
@@ -1348,7 +1342,8 @@ class Game:
             pygame.display.flip()
             return
         
-        # 绘制场景
+        # 调试输出
+        print(f"[DEBUG] draw: current_state={self.current_state}, should draw final exam")
         if self.current_state == STATE_CREATE_CHARACTER:
             self._draw_create_character()
         elif self.current_state == STATE_MAIN_GAME:
@@ -1469,7 +1464,7 @@ class Game:
             while waiting:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
-                        # 关闭按钮也当作任意键处理，返回主菜单
+                        self.running = False
                         waiting = False
                     elif event.type == pygame.KEYDOWN:
                         waiting = False
@@ -1477,6 +1472,7 @@ class Game:
                         waiting = False
             
             # 结束游戏运行，回到主菜单
+            self._game_ended_with_ending = True
             self.running = False
             return
         
@@ -1543,7 +1539,7 @@ class Game:
             while waiting:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
-                        # 关闭按钮也当作任意键处理，返回主菜单
+                        self.running = False
                         waiting = False
                     elif event.type == pygame.KEYDOWN:
                         waiting = False
@@ -1551,6 +1547,7 @@ class Game:
                         waiting = False
             
             # 结束游戏运行，回到主菜单
+            self._game_ended_with_ending = True
             self.running = False
             return
         
@@ -1614,7 +1611,7 @@ class Game:
             while waiting:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
-                        # 关闭按钮也当作任意键处理，返回主菜单
+                        self.running = False
                         waiting = False
                     elif event.type == pygame.KEYDOWN:
                         waiting = False
@@ -1622,6 +1619,7 @@ class Game:
                         waiting = False
             
             # 结束游戏运行，回到主菜单
+            self._game_ended_with_ending = True
             self.running = False
             return
         
@@ -1685,7 +1683,7 @@ class Game:
             while waiting:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
-                        # 关闭按钮也当作任意键处理，返回主菜单
+                        self.running = False
                         waiting = False
                     elif event.type == pygame.KEYDOWN:
                         waiting = False
@@ -1693,6 +1691,7 @@ class Game:
                         waiting = False
             
             # 结束游戏运行，回到主菜单
+            self._game_ended_with_ending = True
             self.running = False
             return
         
@@ -1756,7 +1755,7 @@ class Game:
             while waiting:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
-                        # 关闭按钮也当作任意键处理，返回主菜单
+                        self.running = False
                         waiting = False
                     elif event.type == pygame.KEYDOWN:
                         waiting = False
@@ -1764,6 +1763,7 @@ class Game:
                         waiting = False
             
             # 结束游戏运行，回到主菜单
+            self._game_ended_with_ending = True
             self.running = False
             return
         
@@ -1827,7 +1827,7 @@ class Game:
             while waiting:
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
-                        # 关闭按钮也当作任意键处理，返回主菜单
+                        self.running = False
                         waiting = False
                     elif event.type == pygame.KEYDOWN:
                         waiting = False
@@ -1835,6 +1835,7 @@ class Game:
                         waiting = False
             
             # 结束游戏运行，回到主菜单
+            self._game_ended_with_ending = True
             self.running = False
             return
         
@@ -1888,7 +1889,7 @@ class Game:
         while waiting:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
-                    # 关闭按钮也当作任意键处理，返回主菜单
+                    self.running = False
                     waiting = False
                 elif event.type == pygame.KEYDOWN:
                     waiting = False
@@ -1896,6 +1897,7 @@ class Game:
                     waiting = False
         
         # 结束游戏运行，回到主菜单
+        self._game_ended_with_ending = True
         self.running = False
     
     def _draw_final_exam(self):
@@ -1992,13 +1994,14 @@ class Game:
                     self.current_state = STATE_DORM
     
     def run(self):
-        """运行游戏"""
+        print("[DEBUG] Game.run() started")
         while self.running:
-            # 限制帧率为60fps
-            self.clock.tick(60)
-            
-            # 处理事件
+            print("[DEBUG] Game loop iteration")
             self.handle_events()
-            
-            # 绘制游戏
             self.draw()
+            self.clock.tick(FPS)
+        print("[DEBUG] Game.run() ended")
+        # 如果是结局退出，返回'ending'，否则返回None
+        if hasattr(self, '_game_ended_with_ending') and self._game_ended_with_ending:
+            return 'ending'
+        return None
