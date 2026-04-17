@@ -36,7 +36,7 @@ class Hospital:
         self.game.draw_text("治病：金钱-50 恢复健康状态", option1_rect.x + 10, option1_rect.y + 10, (254, 247, 201))
 
         if self.game.message_timer > 0:
-            self.game.draw_text(self.game.message, SCREEN_WIDTH // 2 - 300, SCREEN_HEIGHT - 60, (254, 247, 201), self.large_font)
+            self.game.draw_text(self.game.message, SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT - 110, (254, 247, 201), self.large_font)
             self.game.message_timer -= 1
 
         time_display = self.game.time_system.get_time_display()
