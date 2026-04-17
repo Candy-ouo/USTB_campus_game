@@ -402,7 +402,7 @@ class UIHUD:
 
         # 绘制消息（在所有UI元素之上）
         if self.game.message_timer > 0:
-            message_x = SCREEN_WIDTH // 2 - 150
+            message_x = SCREEN_WIDTH // 2 - 210
             message_y = SCREEN_HEIGHT - 45
             message_color = (141, 54, 25)
             message_font = self.large_font

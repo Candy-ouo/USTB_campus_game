@@ -55,49 +55,77 @@ class MapSystem:
                 'rect': pygame.Rect(450, 220, 80, 50),
                 'bg_color': bg_color,
                 'text_color': text_color,
-                'border_color': border_color
+                'border_color': border_color,
+                'actions': [
+                    {'name': '上课', 'effects': {'knowledge': 10, 'skill': 2}},
+                    {'name': '自习', 'effects': {'knowledge': 5, 'skill': 1}}
+                ]
             },
             'food': {
                 'name': '超市',
                 'rect': pygame.Rect(600, 260, 65, 50),
                 'bg_color': bg_color,
                 'text_color': text_color,
-                'border_color': border_color
+                'border_color': border_color,
+                'actions': [
+                    {'name': '购物', 'effects': {'living_expenses': -20, 'mood': 5}},
+                    {'name': '休息', 'effects': {'mood': 10}}
+                ]
             },
             'sports': {
                 'name': '运动场',
                 'rect': pygame.Rect(610, 320, 80, 50),
                 'bg_color': bg_color,
                 'text_color': text_color,
-                'border_color': border_color
+                'border_color': border_color,
+                'actions': [
+                    {'name': '锻炼', 'effects': {'physical': 10, 'health': 5}},
+                    {'name': '比赛', 'effects': {'physical': 5, 'reputation': 2}}
+                ]
             },
             'canteen': {
                 'name': '食堂',
                 'rect': pygame.Rect(450, 460, 65, 50),
                 'bg_color': bg_color,
                 'text_color': text_color,
-                'border_color': border_color
+                'border_color': border_color,
+                'actions': [
+                    {'name': '就餐', 'effects': {'living_expenses': -15, 'mood': 8, 'health': 3}},
+                    {'name': '社交', 'effects': {'charm': 5, 'social': 3}}
+                ]
             },
             'supermarket': {
                 'name': '学生活动中心',
                 'rect': pygame.Rect(550,390, 150, 45),
                 'bg_color': bg_color,
                 'text_color': text_color,
-                'border_color': border_color
+                'border_color': border_color,
+                'actions': [
+                    {'name': '参加活动', 'effects': {'charm': 8, 'social': 5, 'reputation': 2}},
+                    {'name': '组织活动', 'effects': {'charm': 5, 'social': 8, 'reputation': 3}}
+                ]
             },
             'dorm': {
                 'name': '宿舍',
                 'rect': pygame.Rect(610, 450, 65, 50),
                 'bg_color': bg_color,
                 'text_color': text_color,
-                'border_color': border_color
+                'border_color': border_color,
+                'actions': [
+                    {'name': '休息', 'effects': {'mood': 15, 'health': 10}},
+                    {'name': '学习', 'effects': {'knowledge': 3, 'skill': 2}}
+                ]
             },
             'hospital': {
                 'name': '校医院',
                 'rect': pygame.Rect(760, 450, 80, 50),
                 'bg_color': bg_color,
                 'text_color': text_color,
-                'border_color': border_color
+                'border_color': border_color,
+                'actions': [
+                    {'name': '治疗', 'effects': {'living_expenses': -30, 'health': 20}},
+                    {'name': '体检', 'effects': {'living_expenses': -10, 'health': 5}}
+                ]
             }
         }
         self.active_area = None

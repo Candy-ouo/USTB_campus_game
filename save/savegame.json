@@ -32,7 +32,7 @@
     "physical": 100,
     "physical_level": 1,
     "living_expenses": 140,
-    "action_points": 5,
+    "action_points": 3,
     "mood": 100,
     "health": 80,
     "skill": 0,
@@ -47,7 +47,7 @@
     "ended": false
   },
   "game_state": {
-    "current_state": "SPORTS",
+    "current_state": "STUDENT_CENTER",
     "has_eaten": false,
     "has_studied": false,
     "has_exercised": false,

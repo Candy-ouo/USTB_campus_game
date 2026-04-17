@@ -10,6 +10,7 @@ class Hospital:
         self.font = game.font
         self.large_font = game.large_font
         self.hospital_background = None
+        self.zhibing_button = None
         self._load_images()
 
     def _load_images(self):
@@ -18,6 +19,14 @@ class Hospital:
         try:
             if os.path.exists(hospital_path):
                 self.hospital_background = pygame.image.load(hospital_path)
+        except:
+            pass
+        
+        # 加载治病按钮图片
+        zhibing_button_path = os.path.join(os.path.dirname(__file__), '..', '..', 'image', 'zhibing_button.png')
+        try:
+            if os.path.exists(zhibing_button_path):
+                self.zhibing_button = pygame.image.load(zhibing_button_path)
         except:
             pass
 
@@ -31,16 +40,38 @@ class Hospital:
 
         option1_rect = pygame.Rect(400, 200, 500, 50)
 
-        pygame.draw.rect(self.screen, (220, 180, 140), option1_rect)
-        pygame.draw.rect(self.screen, (150, 100, 50), option1_rect, 2)
-        self.game.draw_text("治病：金钱-50 恢复健康状态", option1_rect.x + 10, option1_rect.y + 10, (254, 247, 201))
+        # 绘制治病按钮
+        if self.zhibing_button:
+            # 保持图片原始比例，计算显示大小
+            button_width = 500
+            button_height = int(button_width * (self.zhibing_button.get_height() / self.zhibing_button.get_width()))
+            # 确保按钮高度不超过50
+            button_height = min(button_height, 50)
+            # 计算按钮位置
+            self.zhibing_button_rect = pygame.Rect(400, 200, button_width, button_height)
+            # 缩放按钮图片
+            scaled_button = pygame.transform.scale(self.zhibing_button, (button_width, button_height))
+            self.screen.blit(scaled_button, self.zhibing_button_rect)
+        else:
+            # 如果图片加载失败，绘制默认矩形
+            self.zhibing_button_rect = pygame.Rect(400, 200, 500, 50)
+            pygame.draw.rect(self.screen, (220, 180, 140), self.zhibing_button_rect)
+            pygame.draw.rect(self.screen, (150, 100, 50), self.zhibing_button_rect, 2)
+            self.game.draw_text("治病：金钱-50 恢复健康状态", self.zhibing_button_rect.x + 10, self.zhibing_button_rect.y + 10, (254, 247, 201))
 
         time_display = self.game.time_system.get_time_display()
         self.game.ui_hud.draw_all(time_display, self.game.player)
 
     def handle_events(self, events):
         """处理校医院场景事件"""
-        option1_rect = pygame.Rect(400, 200, 500, 50)
+        # 计算治病按钮矩形
+        if self.zhibing_button:
+            button_width = 500
+            button_height = int(button_width * (self.zhibing_button.get_height() / self.zhibing_button.get_width()))
+            button_height = min(button_height, 50)
+            zhibing_button_rect = pygame.Rect(400, 200, button_width, button_height)
+        else:
+            zhibing_button_rect = pygame.Rect(400, 200, 500, 50)
 
         for event in events:
             if event.type == pygame.KEYDOWN:
@@ -49,7 +80,7 @@ class Hospital:
                     self.game.map_system.toggle_map()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
-                if option1_rect.collidepoint(pos):
+                if zhibing_button_rect.collidepoint(pos):
                     if self.game.player.get_health() < 60:
                         if self.game.player.living_expenses >= 50:
                             self.game.player.living_expenses -= 50

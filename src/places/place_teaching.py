@@ -11,6 +11,8 @@ class Teaching:
         self.large_font = game.large_font
         self.start_font = game.start_font
         self.classroom_background = None
+        self.shangke_button = None
+        self.zixi_button = None
         self._load_images()
 
     def _load_images(self):
@@ -19,6 +21,22 @@ class Teaching:
         try:
             if os.path.exists(classroom_path):
                 self.classroom_background = pygame.image.load(classroom_path)
+        except:
+            pass
+        
+        # 加载上课按钮图片
+        shangke_button_path = os.path.join(os.path.dirname(__file__), '..', '..', 'image', 'shangke_button.png')
+        try:
+            if os.path.exists(shangke_button_path):
+                self.shangke_button = pygame.image.load(shangke_button_path)
+        except:
+            pass
+        
+        # 加载自习按钮图片
+        zixi_button_path = os.path.join(os.path.dirname(__file__), '..', '..', 'image', 'zixi_button.png')
+        try:
+            if os.path.exists(zixi_button_path):
+                self.zixi_button = pygame.image.load(zixi_button_path)
         except:
             pass
 
@@ -34,13 +52,39 @@ class Teaching:
         option2_rect = pygame.Rect(400, 280, 500, 50)
 
         if not self.game.has_studied:
-            pygame.draw.rect(self.screen, (220, 180, 140), option1_rect)
-            pygame.draw.rect(self.screen, (150, 100, 50), option1_rect, 2)
-            self.game.draw_text("上课：行动点-2 学识+30 心情-30 健康值-5", option1_rect.x + 10, option1_rect.y + 10, (254, 247, 201))
+            # 绘制上课按钮
+            if self.shangke_button:
+                # 保持图片原始比例，计算显示大小
+                button_width = 150
+                button_height = 78
+                # 计算按钮位置
+                self.shangke_button_rect = pygame.Rect(400, 200, button_width, button_height)
+                # 缩放按钮图片
+                scaled_button = pygame.transform.scale(self.shangke_button, (button_width, button_height))
+                self.screen.blit(scaled_button, self.shangke_button_rect)
+            else:
+                # 如果图片加载失败，绘制默认矩形
+                self.shangke_button_rect = pygame.Rect(400, 200, 500, 50)
+                pygame.draw.rect(self.screen, (220, 180, 140), self.shangke_button_rect)
+                pygame.draw.rect(self.screen, (150, 100, 50), self.shangke_button_rect, 2)
+                self.game.draw_text("上课：行动点-2 学识+30 心情-30 健康值-5", self.shangke_button_rect.x + 10, self.shangke_button_rect.y + 10, (254, 247, 201))
 
-            pygame.draw.rect(self.screen, (220, 180, 140), option2_rect)
-            pygame.draw.rect(self.screen, (150, 100, 50), option2_rect, 2)
-            self.game.draw_text("自习：行动点-1 学识+15 心情-20 健康值-5", option2_rect.x + 10, option2_rect.y + 10, (254, 247, 201))
+            # 绘制自习按钮
+            if self.zixi_button:
+                # 保持图片原始比例，计算显示大小
+                button_width = 150
+                button_height = 78
+                # 计算按钮位置
+                self.zixi_button_rect = pygame.Rect(400, 280, button_width, button_height)
+                # 缩放按钮图片
+                scaled_button = pygame.transform.scale(self.zixi_button, (button_width, button_height))
+                self.screen.blit(scaled_button, self.zixi_button_rect)
+            else:
+                # 如果图片加载失败，绘制默认矩形
+                self.zixi_button_rect = pygame.Rect(400, 280, 500, 50)
+                pygame.draw.rect(self.screen, (220, 180, 140), self.zixi_button_rect)
+                pygame.draw.rect(self.screen, (150, 100, 50), self.zixi_button_rect, 2)
+                self.game.draw_text("自习：行动点-1 学识+15 心情-20 健康值-5", self.zixi_button_rect.x + 10, self.zixi_button_rect.y + 10, (254, 247, 201))
         else:
             self.game.draw_text("已学习", SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT - 50, (141, 54, 25), self.start_font)
 
@@ -49,8 +93,23 @@ class Teaching:
 
     def handle_events(self, events):
         """处理教学区场景事件"""
-        option1_rect = pygame.Rect(400, 200, 500, 50)
-        option2_rect = pygame.Rect(400, 280, 500, 50)
+        # 计算上课按钮矩形
+        if self.shangke_button:
+            button_width = 150
+            button_height = 78
+            button_height = min(button_height, 50)
+            shangke_button_rect = pygame.Rect(400, 200, button_width, button_height)
+        else:
+            shangke_button_rect = pygame.Rect(400, 200, 500, 50)
+        
+        # 计算自习按钮矩形
+        if self.zixi_button:
+            button_width = 150
+            button_height = 78
+            button_height = min(button_height, 50)
+            zixi_button_rect = pygame.Rect(400, 280, button_width, button_height)
+        else:
+            zixi_button_rect = pygame.Rect(400, 280, 500, 50)
 
         for event in events:
             if event.type == pygame.KEYDOWN:
@@ -59,26 +118,28 @@ class Teaching:
                     self.game.map_system.toggle_map()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
-                if option1_rect.collidepoint(pos):
+                if shangke_button_rect.collidepoint(pos):
                     if self.game.player.action_points >= 2:
                         self.game.player.action_points -= 2
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_knowledge(30, current_year)
+                        self.game.player.add_skill(5)  # 增加技能
                         self.game.player.add_mood(-30)
                         self.game.player.add_health(-5)
-                        self.game.message = "你选择了上课，行动点-2，学识+30，心情-30，健康值-5"
+                        self.game.message = "你选择了上课，行动点-2，学识+30，技能+5，心情-30，健康值-5"
                         self.game.message_timer = 90
                     else:
                         self.game.message = "行动点不足！"
                         self.game.message_timer = 60
-                elif option2_rect.collidepoint(pos):
+                elif zixi_button_rect.collidepoint(pos):
                     if self.game.player.action_points >= 1:
                         self.game.player.action_points -= 1
                         current_year = self.game.time_system.get_year()
                         self.game.player.add_knowledge(15, current_year)
+                        self.game.player.add_skill(2)  # 增加技能
                         self.game.player.add_mood(-20)
                         self.game.player.add_health(-5)
-                        self.game.message = "你选择了自习，行动点-1，学识+15，心情-20，健康值-5"
+                        self.game.message = "你选择了自习，行动点-1，学识+15，技能+2，心情-20，健康值-5"
                         self.game.message_timer = 90
                     else:
                         self.game.message = "行动点不足！"
