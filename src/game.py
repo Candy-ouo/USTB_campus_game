@@ -22,6 +22,7 @@ from src.places.place_supermarket import Supermarket
 from src.places.place_dorm import Dorm
 from src.places.place_student_center import StudentCenter
 from src.places.place_hospital import Hospital
+from src.file_scene import FileScene
 
 # 时间季节面板类
 class TimeSeasonPanel:
@@ -44,6 +45,7 @@ STATE_STUDENT_CENTER = "STUDENT_CENTER"
 STATE_HOSPITAL = "HOSPITAL"
 STATE_FINAL_EXAM = "FINAL_EXAM"
 STATE_SCHEDULE = "SCHEDULE"
+STATE_FILE = "FILE"
 
 class Game:
     def __init__(self, character=None, screen=None):
@@ -208,6 +210,8 @@ class Game:
         self.dorm = Dorm(self)
         self.student_center = StudentCenter(self)
         self.hospital = Hospital(self)
+        # 初始化档案界面
+        self.file_scene = None
         
         # 游戏状态
         self.running = True
@@ -468,8 +472,10 @@ class Game:
         elif ui_event == 'FILE':
             # 记录当前场景
             self.previous_state = self.current_state
-            # 处理档案事件
-            pass
+            # 创建档案界面实例
+            self.file_scene = FileScene(self.screen, self, self.previous_state)
+            # 跳转到档案界面
+            self.current_state = STATE_FILE
         elif ui_event == 'BAG':
             # 记录当前场景
             self.previous_state = self.current_state
@@ -556,6 +562,16 @@ class Game:
                 self.hospital.handle_events(events)
             elif self.current_state == STATE_SCHEDULE:
                 self._handle_schedule(events)
+            elif self.current_state == STATE_FILE:
+                result = self.file_scene.handle_events(events)
+                if result:
+                    self.current_state = result
+            elif self.current_state == STATE_FINAL_EXAM:
+                # 处理期末成绩显示界面的事件
+                for event in events:
+                    if event.type == pygame.MOUSEBUTTONDOWN or (event.type == pygame.KEYDOWN and event.key != pygame.K_m):
+                        # 点击鼠标或按下任意键（除了M键）退出期末成绩显示
+                        self.current_state = STATE_DORM
     
     def _handle_create_character(self, events):
         """处理角色创建"""
@@ -1254,6 +1270,8 @@ class Game:
             self._draw_schedule()
         elif self.current_state == STATE_FINAL_EXAM:
             self._draw_final_exam()
+        elif self.current_state == STATE_FILE:
+            self.file_scene.draw()
         
         pygame.display.flip()
     
@@ -1478,4 +1496,7 @@ class Game:
             self.handle_events()
             self.draw()
             self.clock.tick(FPS)
+        # 退出游戏时自动保存
+        if self.current_save_path:
+            self.save_game()
         pygame.quit()
