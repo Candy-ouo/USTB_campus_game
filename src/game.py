@@ -100,7 +100,9 @@ class Game:
             self.start_font = self.font
         
         # 游戏状态
-        self.current_state = STATE_MAIN_GAME if character else STATE_CREATE_CHARACTER
+        self.current_state = STATE_DORM if character else STATE_CREATE_CHARACTER
+        self.previous_state = self.current_state  # 初始化前一个状态
+        print(f"游戏状态设置为: {self.current_state}")
         
         # 角色和场景
         self.character = character
@@ -211,7 +213,7 @@ class Game:
         
         # 加载地图背景图片
         self.map_background = None
-        map_image_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'map_background.jpg')
+        map_image_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'map_background.png')
         try:
             if os.path.exists(map_image_path):
                 self.map_background = pygame.image.load(map_image_path)
@@ -428,38 +430,110 @@ class Game:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
                     self.running = False
-        
+                # 无论当前状态是什么，只要按M键就切换地图
+                elif event.key == pygame.K_m:
+                    self.map_system.toggle_map()
+                    self.map_system.clear_active_area()
+
         # 处理UI事件
         ui_event = self.ui_hud.handle_events(events)
         if ui_event == 'MAP':
             # 显示地图
             self.map_system.toggle_map()
+        elif ui_event == 'SCHEDULE':
+            # 记录当前场景
+            self.previous_state = self.current_state
+            # 跳转到日程安排页面
+            self.current_state = STATE_SCHEDULE
+            # 如果还没有安排日程，重置已选择的日程
+            if not self.has_scheduled:
+                self.schedule_selected = []
+        elif ui_event == 'FILE':
+            # 记录当前场景
+            self.previous_state = self.current_state
+            # 处理档案事件
+            pass
+        elif ui_event == 'BAG':
+            # 记录当前场景
+            self.previous_state = self.current_state
+            # 处理背包事件
+            pass
+        elif ui_event == 'RELATIONSHIP':
+            # 记录当前场景
+            self.previous_state = self.current_state
+            # 处理关系事件
+            pass
 
-        # 根据状态处理事件
-        if self.current_state == STATE_CREATE_CHARACTER:
-            self._handle_create_character(events)
-            # 更新角色创建场景的窗口大小
-            if self.create_character_scene is not None:
-                self.create_character_scene.width = SCREEN_WIDTH
-                self.create_character_scene.height = SCREEN_HEIGHT
-        elif self.current_state == STATE_MAIN_GAME:
-            self._handle_main_game(events)
-        elif self.current_state == STATE_CANTEEN:
-            self.canteen.handle_events(events)
-        elif self.current_state == STATE_TEACHING:
-            self.teaching.handle_events(events)
-        elif self.current_state == STATE_SPORTS:
-            self.sports.handle_events(events)
-        elif self.current_state == STATE_SUPERMARKET:
-            self.supermarket.handle_events(events)
-        elif self.current_state == STATE_DORM:
-            self.dorm.handle_events(events)
-        elif self.current_state == STATE_STUDENT_CENTER:
-            self.student_center.handle_events(events)
-        elif self.current_state == STATE_HOSPITAL:
-            self._handle_hospital(events)
-        elif self.current_state == STATE_SCHEDULE:
-            self._handle_schedule(events)
+        # 如果地图显示，处理地图相关事件
+        if self.map_system.is_map_showing():
+            for event in events:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    pos = pygame.mouse.get_pos()
+                    # 检测是否点击了关闭按钮
+                    if self.map_system.is_close_button_clicked(pos):
+                        self.map_system.toggle_map()  # 关闭地图
+                        return
+                    # 检测是否点击了地图区域
+                    area_id = self.map_system.get_area_at(pos)
+                    if area_id:
+                        if area_id == 'canteen':
+                            # 切换到食堂场景
+                            self.map_system.toggle_map()  # 确保地图不显示
+                            self.current_state = STATE_CANTEEN
+                        elif area_id == 'teaching':
+                            # 切换到教学区场景
+                            self.map_system.toggle_map()  # 确保地图不显示
+                            self.current_state = STATE_TEACHING
+                        elif area_id == 'sports':
+                            # 切换到操场场景
+                            self.map_system.toggle_map()  # 确保地图不显示
+                            self.current_state = STATE_SPORTS
+                        elif area_id == 'food':
+                            # 切换到超市场景
+                            self.map_system.toggle_map()  # 确保地图不显示
+                            self.current_state = STATE_SUPERMARKET
+                        elif area_id == 'dorm':
+                            # 切换到宿舍场景
+                            self.map_system.toggle_map()  # 确保地图不显示
+                            self.current_state = STATE_DORM
+                        elif area_id == 'supermarket':
+                            # 切换到学生活动中心场景
+                            self.map_system.toggle_map()  # 确保地图不显示
+                            self.current_state = STATE_STUDENT_CENTER
+                        elif area_id == 'hospital':
+                            # 切换到校医院场景
+                            self.map_system.toggle_map()  # 确保地图不显示
+                            self.current_state = STATE_HOSPITAL
+                        else:
+                            self.map_system.set_active_area(area_id)
+                    else:
+                        self.map_system.clear_active_area()
+        else:
+            # 根据状态处理事件
+            if self.current_state == STATE_CREATE_CHARACTER:
+                self._handle_create_character(events)
+                # 更新角色创建场景的窗口大小
+                if self.create_character_scene is not None:
+                    self.create_character_scene.width = SCREEN_WIDTH
+                    self.create_character_scene.height = SCREEN_HEIGHT
+            elif self.current_state == STATE_MAIN_GAME:
+                self._handle_main_game(events)
+            elif self.current_state == STATE_CANTEEN:
+                self.canteen.handle_events(events)
+            elif self.current_state == STATE_TEACHING:
+                self.teaching.handle_events(events)
+            elif self.current_state == STATE_SPORTS:
+                self.sports.handle_events(events)
+            elif self.current_state == STATE_SUPERMARKET:
+                self.supermarket.handle_events(events)
+            elif self.current_state == STATE_DORM:
+                self.dorm.handle_events(events)
+            elif self.current_state == STATE_STUDENT_CENTER:
+                self.student_center.handle_events(events)
+            elif self.current_state == STATE_HOSPITAL:
+                self.hospital.handle_events(events)
+            elif self.current_state == STATE_SCHEDULE:
+                self._handle_schedule(events)
     
     def _handle_create_character(self, events):
         """处理角色创建"""
@@ -473,7 +547,7 @@ class Game:
         if result is not None:
             if isinstance(result, Character):
                 self.character = result
-                self.current_state = STATE_MAIN_GAME
+                self.current_state = STATE_DORM  # 直接切换到宿舍场景
                 self.create_character_scene = None
             else:
                 # 取消创建，退出游戏
@@ -781,8 +855,8 @@ class Game:
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    # 按ESC返回主界面
-                    self.current_state = STATE_MAIN_GAME
+                    # 按ESC返回之前的场景
+                    self.current_state = self.previous_state
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 if confirm_button_rect.collidepoint(pos):
@@ -818,13 +892,13 @@ class Game:
                         print(f"剩余行动力: {self.player.action_points}")
                         print("=====================\n")
                         
-                        # 返回主界面
-                        self.current_state = STATE_MAIN_GAME
+                        # 返回之前的场景
+                        self.current_state = self.previous_state
                 elif cancel_button_rect.collidepoint(pos):
                     # 取消选择
                     self.schedule_selected = []
-                    # 返回主界面
-                    self.current_state = STATE_MAIN_GAME
+                    # 返回之前的场景
+                    self.current_state = self.previous_state
                     
     def do_action(self, action_name):
         if self.player.action_points <= 0:
@@ -938,14 +1012,19 @@ class Game:
     
     def draw_map(self):
         # 绘制地图背景图片
-        if self.map_background:
+        if self.map_system.map_image:
+            # 缩放地图图像以适应设置的大小
+            scaled_map = pygame.transform.scale(self.map_system.map_image, (int(self.map_system.map_width * 0.6), int(self.map_system.map_height * 0.6)))
+            # 计算地图居中位置
+            map_x = (SCREEN_WIDTH - scaled_map.get_width()) // 2
+            map_y = (SCREEN_HEIGHT - scaled_map.get_height()) // 2
+            self.screen.blit(scaled_map, (map_x, map_y))
+        elif self.map_background:
             self.screen.blit(self.map_background, (0, 0))
         else:
             # 如果没有背景图片，使用默认背景色
             self.screen.fill((50, 50, 50))
         
-        # 绘制地图标题
-        self.draw_text("校园地图", SCREEN_WIDTH // 2 - 100, 30, (80, 40, 0), self.large_font)  # 深棕色文字
         
         # 绘制各个区域（使用map_button作为背景）
         for area_id, area in self.map_system.areas.items():
@@ -965,8 +1044,11 @@ class Game:
             text_rect = name_text.get_rect(center=area['rect'].center)
             self.screen.blit(name_text, text_rect)
         
-        # 绘制操作说明
-        self.draw_text("点击区域查看详情，按M返回主界面", 20, SCREEN_HEIGHT - 50, (80, 40, 0))  # 深棕色文字
+        # 绘制关闭按钮
+        if self.map_system.close_button:
+            # 缩放关闭按钮图像以适应设置的大小
+            scaled_close_button = pygame.transform.scale(self.map_system.close_button, (self.map_system.close_button_rect.width, self.map_system.close_button_rect.height))
+            self.screen.blit(scaled_close_button, self.map_system.close_button_rect)
         
         pygame.display.flip()
     
@@ -993,7 +1075,7 @@ class Game:
         elif self.current_state == STATE_STUDENT_CENTER:
             self.student_center.draw()
         elif self.current_state == STATE_HOSPITAL:
-            self._draw_hospital()
+            self.hospital.draw()
         elif self.current_state == STATE_SCHEDULE:
             self._draw_schedule()
         
