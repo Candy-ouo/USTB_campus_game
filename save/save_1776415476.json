@@ -25,29 +25,29 @@
     "aesthetic_cultivation": 0
   },
   "player": {
-    "knowledge": 30,
+    "knowledge": 100,
     "knowledge_level": 1,
-    "charm": 30,
+    "charm": 20,
     "charm_level": 1,
-    "physical": 30,
+    "physical": 45,
     "physical_level": 1,
     "living_expenses": 200,
     "action_points": 5,
-    "mood": 100,
-    "health": 80,
-    "skill": 0,
-    "social": 0,
-    "reputation": 0,
+    "mood": 80,
+    "health": 85,
+    "skill": 27,
+    "social": 12,
+    "reputation": 4,
     "theory_experiment": 0,
     "employment_entrepreneurship": 0,
     "aesthetic_cultivation": 0
   },
   "time_system": {
-    "day": 1,
+    "day": 36,
     "ended": false
   },
   "game_state": {
-    "current_state": "DORM",
+    "current_state": "CANTEEN",
     "has_eaten": false,
     "has_studied": false,
     "has_exercised": false,
@@ -62,12 +62,30 @@
       0,
       0
     ],
-    "course_study_counts": {},
-    "final_scores": [],
-    "final_gpas": [],
+    "course_study_counts": {
+      "数理方法": 12,
+      "大学物理实验": 12,
+      "材料合成与制备": 12,
+      "材料分析技术": 16,
+      "固体物理": 16,
+      "量子力学导论": 16,
+      "专利撰写与申报": 6,
+      "企业实习实践": 6,
+      "科研项目实训": 5,
+      "本科就业指导": 1,
+      "金相分析实验": 3
+    },
+    "final_scores": [
+      100,
+      0
+    ],
+    "final_gpas": [
+      4.0,
+      1.0
+    ],
     "current_final_score": 0,
-    "current_final_grade": "",
-    "current_final_gpa": 0.0,
-    "current_need_makeup": false
+    "current_final_grade": "F",
+    "current_final_gpa": 1.0,
+    "current_need_makeup": true
   }
 }

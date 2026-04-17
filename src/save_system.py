@@ -21,8 +21,10 @@ class SaveSystem:
         if self._initialized:
             return
         self._initialized = True
-        self.save_file = SAVE_FILE
-        self.save_dir = os.path.dirname(self.save_file)
+        # 确保存档文件保存在USTB_campus_game文件夹下的save文件夹中
+        game_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        self.save_dir = os.path.join(game_root, 'save')
+        self.save_file = os.path.join(self.save_dir, 'savegame.json')
         self.max_saves = 5
 
     def save_game(self, game, is_new_game=False, save_file_path=None):
@@ -63,6 +65,9 @@ class SaveSystem:
                 # 新游戏创建新存档
                 # 获取所有存档文件（排除savegame.json）
                 save_files = [f for f in os.listdir(self.save_dir) if f.endswith('.json') and f != 'savegame.json']
+                print(f"Debug: 存档文件列表 = {save_files}")
+                print(f"Debug: 存档数量 = {len(save_files)}")
+                print(f"Debug: 最大存档数量 = {self.max_saves}")
                 
                 # 如果存档数量达到上限，删除最旧的存档
                 if len(save_files) >= self.max_saves:

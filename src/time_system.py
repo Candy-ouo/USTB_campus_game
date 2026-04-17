@@ -38,6 +38,9 @@ class TimeSystem:
     
     def get_year(self):
         # 每过两个期末周（两个学期）才算一个学年
+        if self.ended or self.day > 136:
+            return 4  # 游戏最多4年
+        
         semester = self.get_semester()
         
         # 每两个学期为一个学年
@@ -48,10 +51,16 @@ class TimeSystem:
         return ((semester - 1) // 2) + 1
     
     def get_semester(self):
+        if self.ended or self.day > 136:
+            return 8  # 游戏最多8个学期
+        
         semester = (self.day - 1) // 17 + 1
         return semester
     
     def get_month(self):
+        if self.ended or self.day > 136:
+            return 7  # 游戏结束时显示7月（夏季学期期末）
+        
         semester = self.get_semester()
         week_in_semester = (self.day - 1) % 17  # 每学期17周（16周教学+1周期末）
         
@@ -73,6 +82,9 @@ class TimeSystem:
                 return 7  # 7月期末周
     
     def get_week_in_month(self):
+        if self.ended or self.day > 136:
+            return "期末周"  # 游戏结束时显示期末周
+        
         week_in_semester = (self.day - 1) % 17  # 每学期17周（16周教学+1周期末）
         if week_in_semester == 16:
             return "期末周"

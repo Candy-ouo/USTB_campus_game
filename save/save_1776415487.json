@@ -47,7 +47,7 @@
     "ended": false
   },
   "game_state": {
-    "current_state": "DORM",
+    "current_state": "FILE",
     "has_eaten": false,
     "has_studied": false,
     "has_exercised": false,
