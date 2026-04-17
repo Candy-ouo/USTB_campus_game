@@ -97,11 +97,17 @@ def main():
                 
                 if character:
                     running = False
-                    current_scene = 'GAME_SCENE'
+                    # 直接进入游戏场景
+                    print(f"传递给Game的character参数: {character}")
+                    game = Game(character, screen)
+                    game.run()
+                    break
                 elif not running:
-                    current_scene = 'START_SCENE'
+                    if current_scene != 'GAME_SCENE':
+                        current_scene = 'START_SCENE'
         
         elif current_scene == 'GAME_SCENE':
+            print(f"传递给Game的character参数: {character}")
             game = Game(character, screen)
             game.run()
             break
