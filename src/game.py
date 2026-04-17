@@ -181,6 +181,15 @@ class Game:
         except:
             pass
         
+        # 加载yanbi.png图片
+        yanbi_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'yanbi.png')
+        self.yanbi_image = None
+        try:
+            if os.path.exists(yanbi_path):
+                self.yanbi_image = pygame.image.load(yanbi_path)
+        except Exception as e:
+            print(f"加载yanbi.png失败: {e}")
+        
         # 区域状态
         self.has_eaten = False
         self.has_studied = False
@@ -189,6 +198,10 @@ class Game:
         self.has_read_book = False  # 看书状态
         self.supermarket_purchases = 0
         self.has_rested = False
+        
+        # 游戏结束状态
+        self.game_ended = False
+        self.ending_type = None  # 'yanbi' or 'graduate'
         
         # 其他游戏对象
         self.player = Player()
@@ -218,6 +231,7 @@ class Game:
         self.current_final_grade = ""
         self.current_final_gpa = 0.0
         self.current_need_makeup = False
+        self.current_theory_experiment = 0  # 初始化理论实验值
         
         # 加载地图背景图片
         self.map_background = None
@@ -457,6 +471,17 @@ class Game:
                 elif event.key == pygame.K_m:
                     self.map_system.toggle_map()
                     self.map_system.clear_active_area()
+                # 按F9键强制展示成绩单
+                elif event.key == pygame.K_F9:
+                    # 计算当前成绩
+                    score, grade, gpa, need_makeup = self.calculate_final_score()
+                    # 存储当前期末成绩信息
+                    self.current_final_score = score
+                    self.current_final_grade = grade
+                    self.current_final_gpa = gpa
+                    self.current_need_makeup = need_makeup
+                    # 切换到期末成绩显示状态
+                    self.current_state = STATE_FINAL_EXAM
 
         # 处理UI事件
         ui_event = self.ui_hud.handle_events(events)
@@ -557,6 +582,8 @@ class Game:
                 self.hospital.handle_events(events)
             elif self.current_state == STATE_SCHEDULE:
                 self._handle_schedule(events)
+            elif self.current_state == STATE_FINAL_EXAM:
+                self._handle_final_exam(events)
     
     def _handle_create_character(self, events):
         """处理角色创建"""
@@ -1356,13 +1383,39 @@ class Game:
     
     def draw(self):
         # 检查健康值，如果低于40且当前状态不是宿舍、校医院或日程安排，则跳转到宿舍
-        if self.player.health < 40 and self.current_state not in [STATE_DORM, STATE_HOSPITAL, STATE_CREATE_CHARACTER, STATE_SCHEDULE]:
+        if self.player.health < 40 and self.current_state not in [STATE_DORM, STATE_HOSPITAL, STATE_CREATE_CHARACTER, STATE_SCHEDULE, STATE_FINAL_EXAM]:
             self.current_state = STATE_DORM
             self.message = "你生病了，只能待在宿舍或去校医院！"
             self.message_timer = 90
         
         if self.map_system.is_map_showing():
             self.draw_map()
+            return
+        
+        # 检查游戏是否结束且是延毕结局
+        if hasattr(self, 'game_ended') and self.game_ended and hasattr(self, 'ending_type') and self.ending_type == 'yanbi' and hasattr(self, 'yanbi_image') and self.yanbi_image:
+            # 绘制背景
+            self.screen.fill((0, 0, 0))
+            
+            # 计算图片位置（居中）
+            img_width = self.yanbi_image.get_width()
+            img_height = self.yanbi_image.get_height()
+            img_x = (self.width - img_width) // 2
+            img_y = (self.height - img_height) // 2
+            
+            # 绘制图片
+            self.screen.blit(self.yanbi_image, (img_x, img_y))
+            
+            # 绘制消息
+            if self.message_timer > 0:
+                message_x = self.width // 2 - 150
+                message_y = img_y + img_height + 20
+                message_color = (255, 255, 255)
+                message_font = self.large_font
+                self.draw_text(self.message, message_x, message_y, message_color, message_font)
+                self.message_timer -= 1
+            
+            pygame.display.flip()
             return
         
         # 根据状态绘制
@@ -1450,6 +1503,9 @@ class Game:
         if not can_graduate:
             self.message = "很遗憾，你未能顺利毕业，需要延毕。"
             self.message_timer = 300
+            # 设置游戏结束状态
+            self.game_ended = True
+            self.ending_type = 'yanbi'
             return
         
         # 顺利毕业，进行结局判定
@@ -1541,7 +1597,7 @@ class Game:
         
         # 绘制成绩单边框
         transcript_width = 400
-        transcript_height = 350
+        transcript_height = 500  # 增加高度以容纳补考说明
         transcript_x = self.width // 2 - transcript_width // 2
         transcript_y = self.height // 2 - transcript_height // 2
         
@@ -1593,6 +1649,14 @@ class Game:
         elif self.current_final_grade == "A-":
             self.draw_text("恭喜获得奖学金50！", transcript_x + 50, transcript_y + y_offset + 5 * 40, (0, 150, 0))
         
+        # 绘制补考说明
+        if self.current_need_makeup:
+            self.draw_text("补考说明：", transcript_x + 50, transcript_y + y_offset + 6 * 40, (255, 0, 0))
+            self.draw_text("【心情】-20", transcript_x + 50, transcript_y + y_offset + 7 * 40, (255, 0, 0))
+            self.draw_text("【魅力】-10", transcript_x + 50, transcript_y + y_offset + 8 * 40, (255, 0, 0))
+            self.draw_text("【健康】-10", transcript_x + 50, transcript_y + y_offset + 9 * 40, (255, 0, 0))
+            self.draw_text("无法达成保研结局", transcript_x + 50, transcript_y + y_offset + 10 * 40, (255, 0, 0))
+        
         # 绘制返回按钮
         back_rect = pygame.Rect(self.width // 2 - 50, transcript_y + transcript_height + 20, 100, 50)
         pygame.draw.rect(self.screen, (220, 180, 140), back_rect)
@@ -1603,7 +1667,7 @@ class Game:
         """处理期末成绩单事件"""
         # 定义返回按钮区域
         transcript_width = 400
-        transcript_height = 300
+        transcript_height = 500  # 与_draw_final_exam方法中的高度保持一致
         transcript_y = self.height // 2 - transcript_height // 2
         back_rect = pygame.Rect(self.width // 2 - 50, transcript_y + transcript_height + 20, 100, 50)
         
