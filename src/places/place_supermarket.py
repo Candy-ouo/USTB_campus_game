@@ -252,8 +252,7 @@ class Supermarket:
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    self.game.current_state = "MAIN_GAME"
-                    self.game.map_system.toggle_map()
+                    self.game.return_to_start = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 if self.game.supermarket_purchases < 2:

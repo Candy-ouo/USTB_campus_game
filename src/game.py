@@ -46,6 +46,16 @@ STATE_HOSPITAL = "HOSPITAL"
 STATE_FINAL_EXAM = "FINAL_EXAM"
 STATE_SCHEDULE = "SCHEDULE"
 STATE_FILE = "FILE"
+STATE_ENDING = "ENDING"
+
+# 结局类型
+ENDING_BAOYAN = "baoyan"
+ENDING_CHUANGYE = "chuangye"
+ENDING_NORMALWORK = "normalwork"
+ENDING_GOODWORK = "goodwork"
+ENDING_YANBI = "yanbi"
+ENDING_KAOYAN = "kaoyan"
+ENDING_DEFAULT = "default"
 
 class Game:
     def __init__(self, character=None, screen=None):
@@ -53,7 +63,7 @@ class Game:
             pygame.init()
             # 创建可调整大小的窗口
             self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
-            pygame.display.set_caption("北科校园物语")
+            pygame.display.set_caption("贝壳校园物语")
         else:
             self.screen = screen
         
@@ -107,6 +117,7 @@ class Game:
         # 从存档加载时，即使character为None也应该进入游戏界面
         self.current_state = STATE_DORM
         self.previous_state = self.current_state  # 初始化前一个状态
+        self.return_to_start = False  # 是否返回开始界面
         print(f"游戏状态设置为: {self.current_state}")
         
         # 角色和场景
@@ -227,6 +238,20 @@ class Game:
         self.current_final_gpa = 0.0
         self.current_need_makeup = False
         
+        # 结局相关
+        self.current_ending = None  # 当前结局类型
+        self.ending_images = {}  # 结局图片字典
+        
+        # 加载结局图片
+        ending_names = ["baoyan", "chuangye", "normalwork", "goodwork", "yanbi", "kaoyan"]
+        for name in ending_names:
+            image_path = os.path.join(os.path.dirname(__file__), '..', 'image', f'{name}.png')
+            try:
+                if os.path.exists(image_path):
+                    self.ending_images[name] = pygame.image.load(image_path)
+            except Exception as e:
+                print(f"加载结局图片 {name} 失败: {e}")
+        
         # 加载地图背景图片
         self.map_background = None
         map_image_path = os.path.join(os.path.dirname(__file__), '..', 'image', 'map_background.png')
@@ -272,7 +297,7 @@ class Game:
             self.player.employment_entrepreneurship = character.employment_entrepreneurship
             self.player.aesthetic_cultivation = character.aesthetic_cultivation
         else:
-            self.player.action_points = DAILY_ACTION_POINTS
+            self.player.action_points = self.player.get_max_action_points()
         
         # 日程安排相关属性
         self.schedule_selected = []  # 已选择的日程
@@ -283,7 +308,7 @@ class Game:
     def reset(self):
         self.player.reset()
         self.time_system.reset()
-        self.player.action_points = DAILY_ACTION_POINTS
+        self.player.action_points = self.player.get_max_action_points()
         # 重置日程安排相关属性
         self.schedule_selected = []
         self.has_scheduled = False
@@ -292,6 +317,8 @@ class Game:
         self.message_timer = 120
         self.final_scores = []
         self.final_gpas = []
+        self.current_ending = None
+        self.current_state = STATE_DORM
     
     def save_game(self):
         try:
@@ -313,8 +340,15 @@ class Game:
                     self.course_study_counts = save_data['course_study_counts']
                 else:
                     self.course_study_counts = {}
-                self.message = "游戏已加载！"
-                self.message_timer = 120
+                # 检查游戏是否已结束
+                if self.time_system.is_ended():
+                    self.message = "游戏已结束！"
+                    self.message_timer = 300
+                    # 直接进入结局界面
+                    self.handle_game_end()
+                else:
+                    self.message = "游戏已加载！"
+                    self.message_timer = 120
             else:
                 self.message = "没有找到存档！"
                 self.message_timer = 120
@@ -331,19 +365,28 @@ class Game:
         if current_year is None:
             current_year = self.time_system.get_year()
         
+        current_semester = self.time_system.get_semester()
+        print(f"\n=== 期末成绩结算调试 ===")
+        print(f"current_semester (学期): {current_semester}")
+        print(f"current_year (结算前学年): {current_year}")
+        print(f"knowledge_level: {knowledge_level}")
+        print(f"knowledge: {knowledge}")
+        
         # 检查学识等级是否符合当前学年要求
         if knowledge_level < current_year:
+            print(f"学识等级不足! knowledge_level({knowledge_level}) < current_year({current_year}), 返回0分")
             return 0, "F", 1.0, True
         
         # 检查学识是否低于30
         if knowledge < 30:
+            print(f"学识数值不足! knowledge({knowledge}) < 30, 返回0分")
             return 0, "F", 1.0, True
         
         # 心情影响：心情低于50时，属性效果减半
         mood_multiplier = 0.5 if mood < 50 else 1.0
         
-        # 计算分数
-        score = (knowledge * mood_multiplier / 100) * 60 + (theory_experiment * mood_multiplier / 300) * 40
+        # 计算分数（心情影响只作用于学识）
+        score = (knowledge * mood_multiplier / 100) * 60 + (min(theory_experiment, 200) / 200) * 40
         score = max(0, min(100, score))
         score = round(score, 1)
         
@@ -394,6 +437,8 @@ class Game:
             self.player.add_mood(-20)
             self.player.add_charm(-10)
             self.player.add_health(-10)
+            self.message = "考试不及格！心情-20，魅力-10，健康-10，需要补考，失去保研资格！"
+            self.message_timer = 180
         else:
             # 奖学金机制
             if grade == "A":
@@ -420,13 +465,27 @@ class Game:
         current_day = self.time_system.day
         is_current_final_week = self.time_system.is_final_exam_week()
         current_year = self.time_system.get_year()  # 保存结算前的学年
+        # 检查是否是第4周（新的一个月的开始）
+        week_in_month_before = self.time_system.get_week_in_month()
         
         self.time_system.next_day()
-        # 设置行动点，健康值低于60时减半
-        if self.player.health < 60:
-            self.player.action_points = DAILY_ACTION_POINTS // 2
-        else:
-            self.player.action_points = DAILY_ACTION_POINTS
+        
+        # 月初增加200块生活费（从第4周变成第1周）
+        if week_in_month_before == 4:
+            week_in_month_after = self.time_system.get_week_in_month()
+            if week_in_month_after == 1:
+                self.player.reset_monthly()
+                self.message = "月初到了，生活费+200！"
+                self.message_timer = 120
+        
+        # 每一回合开始时如果生病，跳转到宿舍
+        if self.player.health < 40:
+            self.current_state = STATE_DORM
+            self.message = "你生病了，请及时到校医院治疗！"
+            self.message_timer = 180
+        
+        # 设置行动点
+        self.player.action_points = self.player.get_max_action_points()
         # 重置区域状态
         self.has_eaten = False  # 重置用餐状态
         self.has_studied = False  # 重置学习状态
@@ -444,6 +503,11 @@ class Game:
             self.handle_final_exam_week(current_year)  # 传递结算前的学年
             # 期末周结算后重置理论实验
             self.player.theory_experiment = 0
+            # 更新UIHUD的时间信息（显示新一学期第一周）
+            year = self.time_system.get_year()
+            month = self.time_system.get_month()
+            week = self.time_system.get_week_in_month()
+            self.ui_hud.update_time(year, month, week)
         
         if self.time_system.is_ended():
             # 游戏结束，进行结局判定
@@ -456,12 +520,26 @@ class Game:
     def handle_events(self):
         events = pygame.event.get()
         
+        # 每次循环开始时检查并调整行动点，确保不超过上限
+        self.player.check_action_points()
+        
+        # 检查刚变成生病时，直接跳转宿舍
+        if self.player.consume_just_became_sick():
+            self.current_state = STATE_DORM
+            self.message = "你生病了，请及时到校医院治疗！"
+            self.message_timer = 180
+        
         for event in events:
             if event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
                     self.running = False
+                elif event.key == pygame.K_ESCAPE:
+                    # 只有在非日程安排、非档案和非结局界面时才返回开始界面
+                    # 日程安排、档案和结局界面有自己的ESC处理
+                    if self.current_state not in [STATE_SCHEDULE, STATE_FILE, STATE_ENDING]:
+                        self.return_to_start = True
                 # 无论当前状态是什么，只要按M键就切换地图
                 elif event.key == pygame.K_m:
                     self.map_system.toggle_map()
@@ -473,6 +551,41 @@ class Game:
             # 显示地图
             self.map_system.toggle_map()
         elif ui_event == 'SCHEDULE':
+            # 如果是期末周，直接处理期末周结算
+            if self.time_system.is_final_exam_week():
+                # 记录当前天数、是否是期末周、当前学年
+                current_day = self.time_system.day
+                is_current_final_week = True
+                current_year = self.time_system.get_year()  # 保存结算前的学年
+                # 检查是否是第4周（新的一个月的开始）
+                week_in_month_before = self.time_system.get_week_in_month()
+                
+                # 进入下一回合
+                self.time_system.next_week()
+                
+                # 月初增加200块生活费（从第4周变成第1周）
+                if week_in_month_before == 4:
+                    week_in_month_after = self.time_system.get_week_in_month()
+                    if week_in_month_after == 1:
+                        self.player.reset_monthly()
+                        self.message = "月初到了，生活费+200！"
+                        self.message_timer = 120
+                
+                # 处理期末周结算
+                if is_current_final_week:
+                    self.handle_final_exam_week(current_year)  # 传递结算前的学年
+                    # 期末周结算后重置理论实验
+                    self.player.theory_experiment = 0
+                    # 更新UIHUD的时间信息（显示新一学期第一周）
+                    year = self.time_system.get_year()
+                    month = self.time_system.get_month()
+                    week = self.time_system.get_week_in_month()
+                    self.ui_hud.update_time(year, month, week)
+                    # 检查游戏是否结束
+                    if self.time_system.is_ended():
+                        # 游戏结束，进行结局判定
+                        self.handle_game_end()
+                return
             # 记录当前场景
             self.previous_state = self.current_state
             # 跳转到日程安排页面
@@ -513,40 +626,51 @@ class Game:
                         self.map_system.toggle_map()  # 关闭地图
                         return
                     # 检测是否点击了地图区域
-                    area_id = self.map_system.get_area_at(pos)
+                    area_id = self.map_system.get_area_at(pos, self.player.health < 40)
                     if area_id:
-                        if area_id == 'canteen':
-                            # 切换到食堂场景
-                            self.map_system.toggle_map()  # 确保地图不显示
-                            self.current_state = STATE_CANTEEN
-                        elif area_id == 'teaching':
-                            # 切换到教学区场景
-                            self.map_system.toggle_map()  # 确保地图不显示
-                            self.current_state = STATE_TEACHING
-                        elif area_id == 'sports':
-                            # 切换到操场场景
-                            self.map_system.toggle_map()  # 确保地图不显示
-                            self.current_state = STATE_SPORTS
-                        elif area_id == 'food':
-                            # 切换到超市场景
-                            self.map_system.toggle_map()  # 确保地图不显示
-                            self.current_state = STATE_SUPERMARKET
-                        elif area_id == 'dorm':
-                            # 切换到宿舍场景
-                            self.map_system.toggle_map()  # 确保地图不显示
-                            self.current_state = STATE_DORM
-                        elif area_id == 'supermarket':
-                            # 切换到学生活动中心场景
-                            self.map_system.toggle_map()  # 确保地图不显示
-                            self.current_state = STATE_STUDENT_CENTER
-                        elif area_id == 'hospital':
-                            # 切换到校医院场景
-                            self.map_system.toggle_map()  # 确保地图不显示
-                            self.current_state = STATE_HOSPITAL
+                        if self.player.health < 40:
+                            # 生病时只能去校医院和宿舍
+                            if area_id == 'hospital':
+                                # 切换到校医院场景
+                                self.map_system.toggle_map()
+                                self.current_state = STATE_HOSPITAL
+                            elif area_id == 'dorm':
+                                # 切换到宿舍场景
+                                self.map_system.toggle_map()
+                                self.current_state = STATE_DORM
                         else:
-                            self.map_system.set_active_area(area_id)
+                            if area_id == 'canteen':
+                                # 切换到食堂场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_CANTEEN
+                            elif area_id == 'teaching':
+                                # 切换到教学区场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_TEACHING
+                            elif area_id == 'sports':
+                                # 切换到操场场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_SPORTS
+                            elif area_id == 'food':
+                                # 切换到超市场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_SUPERMARKET
+                            elif area_id == 'dorm':
+                                # 切换到宿舍场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_DORM
+                            elif area_id == 'supermarket':
+                                # 切换到学生活动中心场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_STUDENT_CENTER
+                            elif area_id == 'hospital':
+                                # 切换到校医院场景
+                                self.map_system.toggle_map()  # 确保地图不显示
+                                self.current_state = STATE_HOSPITAL
                     else:
-                        self.map_system.clear_active_area()
+                        self.map_system.set_active_area(area_id)
+                else:
+                    self.map_system.clear_active_area()
         else:
             # 根据状态处理事件
             if self.current_state == STATE_CREATE_CHARACTER:
@@ -581,6 +705,10 @@ class Game:
                 for event in events:
                     if event.type == pygame.MOUSEBUTTONDOWN or (event.type == pygame.KEYDOWN and event.key != pygame.K_m):
                         self.current_state = STATE_DORM
+            elif self.current_state == STATE_ENDING:
+                for event in events:
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                        self.return_to_start = True
     
     def _handle_create_character(self, events):
         """处理角色创建"""
@@ -637,17 +765,21 @@ class Game:
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if self.map_system.is_map_showing():
                     pos = pygame.mouse.get_pos()
-                    area_id = self.map_system.get_area_at(pos, self.player.is_sick)
-                    if area_id:                        # 检查是否生病                        
-                        if self.player.is_sick:                            
-                            if area_id == 'hospital':                                # 切换到校医院场景
-                                self.map_system.toggle_map()  # 确保地图不显示                                
-                                self.current_state = STATE_HOSPITAL                            
-                            else:                                # 生病时只能去校医院                                
-                                self.message = "你生病了，只能去校医院！"                                
-                                self.message_timer = 90                        
-                        else:                            # 点击地图区域时，设置活跃区域，允许在地图界面执行行动                            
-                             self.map_system.set_active_area(area_id)
+                    area_id = self.map_system.get_area_at(pos, self.player.health < 40)
+                    if area_id:
+                        if self.player.health < 40:
+                            # 生病时只能去校医院和宿舍
+                            if area_id == 'hospital':
+                                # 切换到校医院场景
+                                self.map_system.toggle_map()
+                                self.current_state = STATE_HOSPITAL
+                            elif area_id == 'dorm':
+                                # 切换到宿舍场景
+                                self.map_system.toggle_map()
+                                self.current_state = STATE_DORM
+                        else:
+                            # 点击地图区域时，设置活跃区域，允许在地图界面执行行动
+                            self.map_system.set_active_area(area_id)
                     else:
                         self.map_system.clear_active_area()
                 else:
@@ -657,6 +789,41 @@ class Game:
                     # 根据截图，"安排"图标位于界面右侧，地图图标的下方
                     schedule_icon_rect = pygame.Rect(self.width - 100, self.height - 150, 80, 80)
                     if schedule_icon_rect.collidepoint(pos):
+                        # 如果是期末周，直接处理期末周结算
+                        if self.time_system.is_final_exam_week():
+                            # 记录当前天数、是否是期末周、当前学年
+                            current_day = self.time_system.day
+                            is_current_final_week = True
+                            current_year = self.time_system.get_year()  # 保存结算前的学年
+                            # 检查是否是第4周（新的一个月的开始）
+                            week_in_month_before = self.time_system.get_week_in_month()
+                            
+                            # 进入下一回合
+                            self.time_system.next_week()
+                            
+                            # 月初增加200块生活费（从第4周变成第1周）
+                            if week_in_month_before == 4:
+                                week_in_month_after = self.time_system.get_week_in_month()
+                                if week_in_month_after == 1:
+                                    self.player.reset_monthly()
+                                    self.message = "月初到了，生活费+200！"
+                                    self.message_timer = 120
+                            
+                            # 处理期末周结算
+                            if is_current_final_week:
+                                self.handle_final_exam_week(current_year)  # 传递结算前的学年
+                                # 期末周结算后重置理论实验
+                                self.player.theory_experiment = 0
+                                # 更新UIHUD的时间信息（显示新一学期第一周）
+                                year = self.time_system.get_year()
+                                month = self.time_system.get_month()
+                                week = self.time_system.get_week_in_month()
+                                self.ui_hud.update_time(year, month, week)
+                                # 检查游戏是否结束
+                                if self.time_system.is_ended():
+                                    # 游戏结束，进行结局判定
+                                    self.handle_game_end()
+                            return
                         # 跳转到日程安排页面
                         self.current_state = STATE_SCHEDULE
                         # 如果还没有安排日程，重置已选择的日程
@@ -665,6 +832,42 @@ class Game:
     
     def _draw_schedule(self):
         """绘制日程安排页面"""
+        # 如果是期末周，直接处理期末周结算
+        if self.time_system.is_final_exam_week():
+            # 记录当前天数、是否是期末周、当前学年
+            current_day = self.time_system.day
+            is_current_final_week = True
+            current_year = self.time_system.get_year()  # 保存结算前的学年
+            # 检查是否是第4周（新的一个月的开始）
+            week_in_month_before = self.time_system.get_week_in_month()
+            
+            # 进入下一回合
+            self.time_system.next_week()
+            
+            # 月初增加200块生活费（从第4周变成第1周）
+            if week_in_month_before == 4:
+                week_in_month_after = self.time_system.get_week_in_month()
+                if week_in_month_after == 1:
+                    self.player.reset_monthly()
+                    self.message = "月初到了，生活费+200！"
+                    self.message_timer = 120
+            
+            # 处理期末周结算
+            if is_current_final_week:
+                self.handle_final_exam_week(current_year)  # 传递结算前的学年
+                # 期末周结算后重置理论实验
+                self.player.theory_experiment = 0
+                # 更新UIHUD的时间信息（显示新一学期第一周）
+                year = self.time_system.get_year()
+                month = self.time_system.get_month()
+                week = self.time_system.get_week_in_month()
+                self.ui_hud.update_time(year, month, week)
+                # 检查游戏是否结束
+                if self.time_system.is_ended():
+                    # 游戏结束，进行结局判定
+                    self.handle_game_end()
+            return
+        
         # 绘制背景
         if self.schedule_background:
             self.screen.blit(self.schedule_background, (0, 0))
@@ -681,6 +884,12 @@ class Game:
         # 绘制边框
         border_rect = pygame.Rect(50, 100, self.width - 100, self.height - 200)
         pygame.draw.rect(self.screen, (150, 100, 50), border_rect, 3)
+        
+        # 如果生病，只显示提示文字，不显示课程
+        if self.player.health < 40:
+            warning_text = "你生病了，请及时到校医院治疗！"
+            self.draw_text(warning_text, self.width // 2 - len(warning_text) * 12, self.height // 2 - 20, (150, 0, 0), self.large_font)
+            return
         
         # 定义日程数据
         schedules = {
@@ -948,6 +1157,72 @@ class Game:
         drag_start_y = 0
         drag_start_offset = 0
         
+        # 如果生病，任意点击或ESC直接进入下一回合
+        if self.player.health < 40:
+            for event in events:
+                if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
+                    # 检查当前是否是期末周
+                    current_day_before = self.time_system.day
+                    is_current_final_week = self.time_system.is_final_exam_week()
+                    current_year = self.time_system.get_year()  # 保存结算前的学年
+                    # 检查是否是第4周（新的一个月的开始）
+                    week_in_month_before = self.time_system.get_week_in_month()
+                    
+                    # 进入下一回合
+                    self.time_system.next_week()
+                    
+                    # 月初增加200块生活费（从第4周变成第1周）
+                    if week_in_month_before == 4:
+                        week_in_month_after = self.time_system.get_week_in_month()
+                        if week_in_month_after == 1:
+                            self.player.reset_monthly()
+                            self.message = "月初到了，生活费+200！"
+                            self.message_timer = 120
+                    
+                    # 处理期末周结算
+                    if is_current_final_week:
+                        self.handle_final_exam_week(current_year)  # 传递结算前的学年
+                        # 期末周结算后重置理论实验
+                        self.player.theory_experiment = 0
+                        # 重置日程安排相关属性
+                        self.schedule_selected = []
+                        self.has_scheduled = False
+                        # 检查游戏是否结束
+                        if self.time_system.is_ended():
+                            # 游戏结束，进行结局判定
+                            self.handle_game_end()
+                        # 不返回之前的场景，显示成绩单
+                        return
+                    
+                    # 更新UIHUD的时间信息
+                    year = self.time_system.get_year()
+                    month = self.time_system.get_month()
+                    week = self.time_system.get_week_in_month()
+                    self.ui_hud.update_time(year, month, week)
+                    
+                    # 重置行动点
+                    self.player.action_points = self.player.get_max_action_points()
+                    # 重置各种状态
+                    self.supermarket_purchases = 0
+                    self.has_eaten = False
+                    self.has_exercised = False
+                    self.has_rested = False
+                    self.has_studied = False
+                    self.has_played_games = False
+                    self.has_read_book = False
+                    self.schedule_selected = []
+                    self.has_scheduled = False
+                    
+                    # 检查是否生病跳转到宿舍
+                    if self.player.health < 40:
+                        self.current_state = STATE_DORM
+                        self.message = "你生病了，请及时到校医院治疗！"
+                        self.message_timer = 180
+                    else:
+                        self.current_state = self.previous_state
+                    return
+            return
+        
         # 处理所有事件
         for event in events:
             if event.type == pygame.KEYDOWN:
@@ -1026,9 +1301,19 @@ class Game:
                         current_day_before = self.time_system.day
                         is_current_final_week = self.time_system.is_final_exam_week()
                         current_year = self.time_system.get_year()  # 保存结算前的学年
+                        # 检查是否是第4周（新的一个月的开始）
+                        week_in_month_before = self.time_system.get_week_in_month()
                         
                         # 进入下一回合
                         self.time_system.next_week()
+                        
+                        # 月初增加200块生活费（从第4周变成第1周）
+                        if week_in_month_before == 4:
+                            week_in_month_after = self.time_system.get_week_in_month()
+                            if week_in_month_after == 1:
+                                self.player.reset_monthly()
+                                self.message = "月初到了，生活费+200！"
+                                self.message_timer = 120
                         
                         # 处理期末周结算
                         if is_current_final_week:
@@ -1038,6 +1323,11 @@ class Game:
                             # 重置日程安排相关属性
                             self.schedule_selected = []
                             self.has_scheduled = False
+                            # 更新UIHUD的时间信息（显示新一学期第一周）
+                            year = self.time_system.get_year()
+                            month = self.time_system.get_month()
+                            week = self.time_system.get_week_in_month()
+                            self.ui_hud.update_time(year, month, week)
                             # 检查游戏是否结束
                             if self.time_system.is_ended():
                                 # 游戏结束，进行结局判定
@@ -1051,7 +1341,7 @@ class Game:
                         week = self.time_system.get_week_in_month()
                         self.ui_hud.update_time(year, month, week)
                         # 重置行动点
-                        self.player.action_points = DAILY_ACTION_POINTS
+                        self.player.action_points = self.player.get_max_action_points()
                         # 重置超市购买次数
                         self.supermarket_purchases = 0
                         # 重置已用餐状态
@@ -1069,8 +1359,20 @@ class Game:
                         # 重置日程安排相关属性
                         self.schedule_selected = []
                         self.has_scheduled = False
-                        # 返回之前的场景
-                        self.current_state = self.previous_state
+                        
+                        # 调试：检查是否生病
+                        print(f"调试：日程安排完成，健康值={self.player.health}, 生病={self.player.health < 40}")
+                        
+                        # 检查是否生病，如果生病则跳转到宿舍
+                        if self.player.health < 40:
+                            print("调试：检测到生病，跳转到宿舍")
+                            self.current_state = STATE_DORM
+                            self.message = "你生病了，请及时到校医院治疗！"
+                            self.message_timer = 180
+                        else:
+                            print(f"调试：没有生病，返回之前的场景 {self.previous_state}")
+                            # 返回之前的场景
+                            self.current_state = self.previous_state
                 elif cancel_button_rect.collidepoint(pos):
                     # 取消选择
                     self.schedule_selected = []
@@ -1145,7 +1447,8 @@ class Game:
                             visible_end = min(len(visible_items), visible_start + items_per_column)
                             
                             # 检查可见课程的点击
-                            item_y = column_y + 40 + self.schedule_scroll_offsets[i]
+                            # item_y从column_y + 40开始，与绘制时相同
+                            item_y = column_y + 40
                             for j in range(visible_start, visible_end):
                                 item = visible_items[j]
                                 # 计算日程项位置
@@ -1168,6 +1471,7 @@ class Game:
                                         # 添加到选择列表
                                         self.schedule_selected.append(item)
                                 
+                                # 与绘制时相同，每次循环增加item_y
                                 item_y += item_spacing
             elif event.type == pygame.MOUSEBUTTONUP:
                 # 结束拖动滚动条
@@ -1294,16 +1598,18 @@ class Game:
         action = area['actions'][action_index]
         self.player.action_points -= 1
         
+        current_year = self.time_system.get_year()
+        
         # 应用行动效果
         effects = action['effects']
         effect_messages = []
         for attr, value in effects.items():
             if attr == 'knowledge':
-                self.player.add_knowledge(value)
+                self.player.add_knowledge(value, current_year)
             elif attr == 'charm':
-                self.player.add_charm(value)
+                self.player.add_charm(value, current_year)
             elif attr == 'physical':
-                self.player.add_physical(value)
+                self.player.add_physical(value, current_year)
             elif attr == 'living_expenses':
                 self.player.add_living_expenses(value)
             elif attr == 'mood':
@@ -1369,8 +1675,8 @@ class Game:
         
         # 绘制各个区域（使用map_button作为背景）
         for area_id, area in self.map_system.areas.items():
-            # 健康值低于40时只显示校医院
-            if self.player.health < 40 and area_id != 'hospital':
+            # 健康值低于40时只显示宿舍和校医院
+            if self.player.health < 40 and area_id not in ['hospital', 'dorm']:
                 continue
             
             # 绘制区域背景
@@ -1427,6 +1733,8 @@ class Game:
             self._draw_final_exam()
         elif self.current_state == STATE_FILE:
             self.file_scene.draw()
+        elif self.current_state == STATE_ENDING:
+            self._draw_ending()
         
         pygame.display.flip()
     
@@ -1452,10 +1760,18 @@ class Game:
     
     def handle_game_end(self):
         """处理游戏结束，进行结局判定"""
+        # 如果已经有结局（从存档恢复），直接进入结局界面
+        if self.current_ending is not None:
+            self.current_state = STATE_ENDING
+            return
+        
+        # 重置结局状态，确保每次游戏结束都重新判定
+        self.current_ending = None
+        self.current_state = STATE_ENDING
+        
         # 计算平均成绩和平均绩点
         if not self.final_scores or not self.final_gpas:
-            self.message = "游戏结束！但没有期末成绩记录。"
-            self.message_timer = 300
+            self.current_ending = ENDING_DEFAULT
             return
         
         avg_score = sum(self.final_scores) / len(self.final_scores)
@@ -1465,7 +1781,7 @@ class Game:
         can_graduate = False
         if (avg_score >= 60 and avg_gpa >= 1.0 and
             self.player.knowledge_level >= 4 and self.player.knowledge >= 60 and
-            self.player.theory_experiment >= 600 and
+            self.player.total_theory_experiment >= 600 and
             self.player.employment_entrepreneurship >= 200 and
             self.player.aesthetic_cultivation >= 200 and
             self.player.health >= 60 and
@@ -1476,26 +1792,29 @@ class Game:
             can_graduate = True
         
         if not can_graduate:
-            self.message = "很遗憾，你未能顺利毕业，需要延毕。"
-            self.message_timer = 300
+            self.current_ending = ENDING_YANBI
+            self.current_state = STATE_ENDING
             return
         
         # 顺利毕业，进行结局判定
         # 优先级：保研 > 考研 > 优质就业 > 普通就业/创业
         
-        # 1. 保研
-        if (avg_score >= 85 and avg_gpa >= 3.7 and
+        # 检查是否有F等级（需要补考），如果有则不能保研
+        has_f_grade = any(score < 60 for score in self.final_scores)
+        
+        # 1. 保研（不能有F等级）
+        if not has_f_grade and (avg_score >= 85 and avg_gpa >= 3.7 and
             self.player.knowledge_level >= 4 and self.player.knowledge >= 90 and
             self.player.charm_level >= 2 and self.player.charm >= 70 and
             self.player.physical_level >= 4 and self.player.physical >= 50 and
-            self.player.theory_experiment >= 800 and
+            self.player.total_theory_experiment >= 800 and
             self.player.employment_entrepreneurship >= 200 and
             self.player.aesthetic_cultivation >= 200 and
             self.player.skill >= 100 and
             self.player.reputation >= 80 and
             self.player.social >= 70):
-            self.message = "恭喜！你成功保研了！"
-            self.message_timer = 300
+            self.current_ending = ENDING_BAOYAN
+            self.current_state = STATE_ENDING
             return
         
         # 2. 考研上岸
@@ -1503,14 +1822,14 @@ class Game:
             self.player.knowledge_level >= 4 and self.player.knowledge >= 75 and
             self.player.charm_level >= 2 and self.player.charm >= 50 and
             self.player.physical_level >= 4 and self.player.physical >= 60 and
-            self.player.theory_experiment >= 600 and
+            self.player.total_theory_experiment >= 600 and
             self.player.employment_entrepreneurship >= 200 and
             self.player.aesthetic_cultivation >= 200 and
             self.player.skill >= 80 and
             self.player.reputation >= 50 and
             self.player.social >= 40):
-            self.message = "恭喜！你考研上岸了！"
-            self.message_timer = 300
+            self.current_ending = ENDING_KAOYAN
+            self.current_state = STATE_ENDING
             return
         
         # 3. 优质就业
@@ -1518,14 +1837,14 @@ class Game:
             self.player.knowledge_level >= 4 and self.player.knowledge >= 70 and
             self.player.charm_level >= 2 and self.player.charm >= 80 and
             self.player.physical_level >= 4 and self.player.physical >= 50 and
-            self.player.theory_experiment >= 500 and
+            self.player.total_theory_experiment >= 500 and
             self.player.employment_entrepreneurship >= 300 and
             self.player.aesthetic_cultivation >= 200 and
             self.player.skill >= 150 and
             self.player.reputation >= 60 and
             self.player.social >= 100):
-            self.message = "恭喜！你获得了优质就业机会！"
-            self.message_timer = 300
+            self.current_ending = ENDING_GOODWORK
+            self.current_state = STATE_ENDING
             return
         
         # 4. 普通就业
@@ -1533,14 +1852,14 @@ class Game:
             self.player.knowledge_level >= 4 and self.player.knowledge >= 60 and
             self.player.charm_level >= 2 and self.player.charm >= 50 and
             self.player.physical_level >= 4 and self.player.physical >= 50 and
-            self.player.theory_experiment >= 500 and
+            self.player.total_theory_experiment >= 500 and
             self.player.employment_entrepreneurship >= 300 and
             self.player.aesthetic_cultivation >= 200 and
             self.player.skill >= 130 and
             self.player.reputation >= 50 and
             self.player.social >= 60):
-            self.message = "恭喜！你获得了普通就业机会。"
-            self.message_timer = 300
+            self.current_ending = ENDING_NORMALWORK
+            self.current_state = STATE_ENDING
             return
         
         # 5. 创业
@@ -1548,19 +1867,19 @@ class Game:
             self.player.knowledge_level >= 4 and self.player.knowledge >= 60 and
             self.player.charm_level >= 3 and self.player.charm >= 80 and
             self.player.physical_level >= 4 and self.player.physical >= 50 and
-            self.player.theory_experiment >= 500 and
+            self.player.total_theory_experiment >= 500 and
             self.player.employment_entrepreneurship >= 400 and
             self.player.aesthetic_cultivation >= 200 and
             self.player.skill >= 170 and
             self.player.reputation >= 80 and
             self.player.social >= 120):
-            self.message = "恭喜！你成功创业了！"
-            self.message_timer = 300
+            self.current_ending = ENDING_CHUANGYE
+            self.current_state = STATE_ENDING
             return
         
         # 其他情况
-        self.message = "游戏结束！你顺利毕业了。"
-        self.message_timer = 300
+        self.current_ending = ENDING_DEFAULT
+        self.current_state = STATE_ENDING
     
     def _draw_final_exam(self):
         """绘制期末成绩单"""
@@ -1588,22 +1907,19 @@ class Game:
         if mood < 50:
             scores = [
                 int(self.player.knowledge * mood_multiplier),
-                int(self.current_theory_experiment * mood_multiplier)
+                int(min(self.current_theory_experiment, 200))
             ]
         else:
             scores = [
                 int(self.player.knowledge),
-                int(self.current_theory_experiment)
+                int(min(self.current_theory_experiment, 200))
             ]
         
         y_offset = 70
         for i, (subject, score) in enumerate(zip(subjects, scores)):
             self.draw_text(f"{subject}", transcript_x + 50, transcript_y + y_offset + i * 40, (0, 0, 0))
             if subject == "理论实验":
-                if mood < 50:
-                    self.draw_text(f"{score}/150", transcript_x + 250, transcript_y + y_offset + i * 40, (0, 0, 0))
-                else:
-                    self.draw_text(f"{score}/300", transcript_x + 250, transcript_y + y_offset + i * 40, (0, 0, 0))
+                self.draw_text(f"{score}/200", transcript_x + 250, transcript_y + y_offset + i * 40, (0, 0, 0))
             else:
                 if mood < 50:
                     self.draw_text(f"{score}/50", transcript_x + 250, transcript_y + y_offset + i * 40, (0, 0, 0))
@@ -1629,6 +1945,54 @@ class Game:
         
         # 绘制消息
         self.draw_message()
+    
+    def _draw_ending(self):
+        """绘制结局界面"""
+        # 结局文字映射
+        ending_texts = {
+            ENDING_BAOYAN: "恭喜！你成功保研了！",
+            ENDING_CHUANGYE: "恭喜！你成功创业了！",
+            ENDING_NORMALWORK: "恭喜！你获得了普通就业机会。",
+            ENDING_GOODWORK: "恭喜！你获得了优质就业机会！",
+            ENDING_YANBI: "很遗憾，你未能顺利毕业，需要延毕。",
+            ENDING_KAOYAN: "恭喜！你考研上岸了！",
+            ENDING_DEFAULT: "游戏结束！你顺利毕业了。"
+        }
+        
+        # 绘制背景
+        self.screen.fill((240, 240, 240))
+        
+        # 获取结局图片（默认使用普通就业图片）
+        display_ending = self.current_ending
+        if display_ending == ENDING_DEFAULT:
+            display_ending = ENDING_NORMALWORK
+        
+        if display_ending in self.ending_images:
+            ending_image = self.ending_images[display_ending]
+            img_width, img_height = ending_image.get_size()
+            max_display_width = self.width * 0.7
+            max_display_height = self.height * 0.5
+            
+            scale = min(max_display_width / img_width, max_display_height / img_height)
+            scaled_width = int(img_width * scale)
+            scaled_height = int(img_height * scale)
+            scaled_image = pygame.transform.scale(ending_image, (scaled_width, scaled_height))
+            
+            img_x = self.width // 2 - scaled_width // 2
+            img_y = self.height * 0.15
+            self.screen.blit(scaled_image, (img_x, img_y))
+            
+            text_y = img_y + scaled_height + 30
+        else:
+            text_y = self.height // 2 - 50
+        
+        # 绘制结局文字
+        ending_text = ending_texts.get(self.current_ending, ending_texts[ENDING_DEFAULT])
+        self.draw_text(ending_text, self.width // 2 - len(ending_text) * 12, text_y, (0, 0, 0), self.large_font)
+        
+        # 绘制ESC提示文字
+        esc_text = "点击ESC返回主页面"
+        self.draw_text(esc_text, self.width // 2 - len(esc_text) * 9, text_y + 60, (100, 100, 100))
     
     def _handle_final_exam(self, events):
         """处理期末成绩单事件"""
@@ -1656,11 +2020,11 @@ class Game:
                         self.current_state = STATE_MAIN_GAME
     
     def run(self):
-        while self.running:
+        while self.running and not self.return_to_start:
             self.handle_events()
             self.draw()
             self.clock.tick(FPS)
         # 退出游戏时自动保存
         if self.current_save_path:
             self.save_game()
-        pygame.quit()
+        return self.return_to_start

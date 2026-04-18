@@ -1,12 +1,12 @@
 {
   "character": {
-    "name": "啊啊啊",
+    "name": "小延毕",
     "gender": "男",
-    "height": 223,
-    "weight": 333,
+    "height": 178,
+    "weight": 65,
     "birthday": "01-01",
-    "college": "材料",
-    "major": "材料化学",
+    "college": "计通",
+    "major": "通信工程",
     "knowledge": 30,
     "knowledge_level": 1,
     "charm": 30,
@@ -25,29 +25,30 @@
     "aesthetic_cultivation": 0
   },
   "player": {
-    "knowledge": 100,
+    "knowledge": 30,
     "knowledge_level": 1,
     "charm": 20,
     "charm_level": 1,
-    "physical": 45,
+    "physical": 30,
     "physical_level": 1,
     "living_expenses": 200,
     "action_points": 5,
     "mood": 80,
-    "health": 85,
-    "skill": 27,
-    "social": 12,
-    "reputation": 4,
+    "health": 70,
+    "skill": 0,
+    "social": 0,
+    "reputation": 0,
     "theory_experiment": 0,
+    "total_theory_experiment": 0,
     "employment_entrepreneurship": 0,
     "aesthetic_cultivation": 0
   },
   "time_system": {
-    "day": 36,
+    "day": 136,
     "ended": false
   },
   "game_state": {
-    "current_state": "CANTEEN",
+    "current_state": "DORM",
     "has_eaten": false,
     "has_studied": false,
     "has_exercised": false,
@@ -62,30 +63,33 @@
       0,
       0
     ],
-    "course_study_counts": {
-      "数理方法": 12,
-      "大学物理实验": 12,
-      "材料合成与制备": 12,
-      "材料分析技术": 16,
-      "固体物理": 16,
-      "量子力学导论": 16,
-      "专利撰写与申报": 6,
-      "企业实习实践": 6,
-      "科研项目实训": 5,
-      "本科就业指导": 1,
-      "金相分析实验": 3
-    },
+    "course_study_counts": {},
     "final_scores": [
-      100,
+      50,
+      55,
+      48,
+      52,
+      58,
+      45,
+      49,
+      51,
       0
     ],
     "final_gpas": [
-      4.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
+      1.0,
       1.0
     ],
     "current_final_score": 0,
     "current_final_grade": "F",
     "current_final_gpa": 1.0,
-    "current_need_makeup": true
+    "current_need_makeup": true,
+    "current_ending": null
   }
 }

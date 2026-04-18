@@ -135,7 +135,9 @@ def main():
                         print(f"新游戏存档路径: {new_save_path}")
                     else:
                         success, msg = result
-                    game.run()
+                    return_to_start = game.run()
+                    if return_to_start:
+                        current_scene = 'START_SCENE'
                     break
                 elif not running:
                     if current_scene != 'GAME_SCENE':
@@ -181,7 +183,9 @@ def main():
                     print(msg)
                 else:
                     print(f"加载失败: {msg}")
-                game.run()
+                return_to_start = game.run()
+                if return_to_start:
+                    current_scene = 'START_SCENE'
             else:
                 # 常规加载
                 if save_system.has_save_file():
@@ -191,14 +195,16 @@ def main():
                     success, msg = save_system.load_game(game)
                     if success:
                         print(msg)
-                    game.run()
+                    return_to_start = game.run()
+                    if return_to_start:
+                        current_scene = 'START_SCENE'
                 else:
                     print("没有存档，自动进入新游戏")
                     current_scene = 'CREATE_CHARACTER_SCENE'
                     continue
             # 重置save_file_path，避免下次误加载
             save_file_path = None
-            break
+            continue
 
 
 if __name__ == "__main__":
