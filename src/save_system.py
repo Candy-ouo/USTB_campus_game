@@ -51,7 +51,8 @@ class SaveSystem:
                     'current_final_score': game.current_final_score,
                     'current_final_grade': game.current_final_grade,
                     'current_final_gpa': game.current_final_gpa,
-                    'current_need_makeup': game.current_need_makeup
+                    'current_need_makeup': game.current_need_makeup,
+                    'current_ending': game.current_ending
                 }
             }
             os.makedirs(self.save_dir, exist_ok=True)
@@ -118,11 +119,16 @@ class SaveSystem:
                 game.player.from_dict(save_data['player'])
             if 'time_system' in save_data:
                 game.time_system.from_dict(save_data['time_system'])
-                # 更新UIHUD的时间信息
-                year = game.time_system.get_year()
-                month = game.time_system.get_month()
-                week = game.time_system.get_week_in_month()
-                game.ui_hud.update_time(year, month, week)
+                # 检查游戏是否已结束
+                if game.time_system.is_ended():
+                    # 游戏已结束，直接进入结局界面
+                    game.handle_game_end()
+                else:
+                    # 更新UIHUD的时间信息
+                    year = game.time_system.get_year()
+                    month = game.time_system.get_month()
+                    week = game.time_system.get_week_in_month()
+                    game.ui_hud.update_time(year, month, week)
             if 'game_state' in save_data:
                 gs = save_data['game_state']
                 game.current_state = gs.get('current_state', 'MAIN_GAME')
@@ -143,6 +149,7 @@ class SaveSystem:
                 game.current_final_grade = gs.get('current_final_grade', '')
                 game.current_final_gpa = gs.get('current_final_gpa', 0.0)
                 game.current_need_makeup = gs.get('current_need_makeup', False)
+                game.current_ending = gs.get('current_ending', None)
 
             return True, "游戏已加载！"
         except Exception as e:

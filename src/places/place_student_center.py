@@ -222,8 +222,7 @@ class StudentCenter:
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    self.game.current_state = "MAIN_GAME"
-                    self.game.map_system.toggle_map()
+                    self.game.return_to_start = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 if shetuan1_button_rect.collidepoint(pos):
@@ -283,7 +282,8 @@ class StudentCenter:
                         self.game.player.add_social(3)  # 增加人脉
                         self.game.player.add_reputation(2)  # 增加声望
                         self.game.player.add_mood(-10)
-                        self.game.message = "你选择了实习，技能+20，人脉+3，声望+2，心情-10"
+                        self.game.player.add_living_expenses(50)  # 增加生活费
+                        self.game.message = "你选择了实习，技能+20，人脉+3，声望+2，心情-10，生活费+50"
                         self.game.message_timer = 90
                     else:
                         self.game.message = "行动点不足！"

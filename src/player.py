@@ -22,6 +22,7 @@ class Player:
         self.mood = 100  # 心情
         self.health = 80  # 健康值
         self.is_sick = False  # 是否生病
+        self.just_became_sick = False  # 刚变成生病
         
         # 副属性
         self.skill = 0  # 技能
@@ -29,7 +30,8 @@ class Player:
         self.reputation = 0  # 声望
         
         # 学习属性
-        self.theory_experiment = 0  # 理论/实验
+        self.theory_experiment = 0  # 理论/实验（单学期）
+        self.total_theory_experiment = 0  # 理论/实验（累计总值）
         self.employment_entrepreneurship = 0  # 就业/创业
         self.aesthetic_cultivation = 0  # 美育/素养
     
@@ -42,16 +44,19 @@ class Player:
         self.physical = 30  # 第一级初始为30
         self.physical_level = 1
         self.living_expenses = 200
-        self.action_points = 5
         self.mood = 100
         self.health = 80
         self.is_sick = False
+        self.just_became_sick = False
         self.skill = 0
         self.social = 0
         self.reputation = 0
         self.theory_experiment = 0
+        self.total_theory_experiment = 0
         self.employment_entrepreneurship = 0
         self.aesthetic_cultivation = 0
+        # 设置行动点为最大允许值
+        self.action_points = self.get_max_action_points()
     
     def _level_up(self, exp, level, current_year=None):
         """处理等级升级逻辑"""
@@ -94,7 +99,9 @@ class Player:
         
         # 体能升级时增加行动力上限
         if self.physical_level > old_level:
-            self.action_points = 5 + (self.physical_level - 1)
+            max_points = self.get_max_action_points()
+            if self.action_points < max_points:
+                self.action_points = max_points
         
         return self.physical_level
     
@@ -105,12 +112,30 @@ class Player:
             self.living_expenses = 0
         return self.living_expenses
     
-    def add_action_points(self, amount):
-        """增加行动力"""
+    def get_max_action_points(self):
+        """获取最大行动点"""
+        # 健康值低于40时行动点上限为0
+        if self.health < 40:
+            return 0
+        # 正常计算最大行动点
         max_points = 5 + (self.physical_level - 1)
-        # 健康值影响
+        # 健康值低于60时减半
         if self.health < 60:
             max_points = max(1, max_points // 2)
+        return max_points
+
+    def check_action_points(self):
+        """检查并调整行动点，确保不超过上限"""
+        max_points = self.get_max_action_points()
+        if self.action_points > max_points:
+            self.action_points = max_points
+        if self.action_points < 0:
+            self.action_points = 0
+        return self.action_points
+
+    def add_action_points(self, amount):
+        """增加行动力"""
+        max_points = self.get_max_action_points()
         self.action_points += amount
         if self.action_points > max_points:
             self.action_points = max_points
@@ -150,23 +175,44 @@ class Player:
     
     def add_health(self, amount):
         """增加健康值"""
+        old_health = self.health
         self.health += amount
         if self.health > 100:
             self.health = 100
         if self.health < 0:
             self.health = 0
+        
         # 检查是否生病
+        was_sick = self.is_sick
         if self.health < 40:
             self.is_sick = True
+            # 刚变成生病
+            self.just_became_sick = not was_sick
+            # 健康值低于40时，行动点设为0
+            self.action_points = 0
         else:
             self.is_sick = False
+            self.just_became_sick = False
+            # 健康值恢复时，更新行动点到最大
+            max_points = self.get_max_action_points()
+            if self.action_points > max_points:
+                self.action_points = max_points
         return self.health
+    
+    def consume_just_became_sick(self):
+        """消费刚变成生病的标志"""
+        value = self.just_became_sick
+        self.just_became_sick = False
+        return value
     
     def add_theory_experiment(self, amount):
         """增加理论/实验"""
         self.theory_experiment += amount
+        self.total_theory_experiment += amount
         if self.theory_experiment < 0:
             self.theory_experiment = 0
+        if self.total_theory_experiment < 0:
+            self.total_theory_experiment = 0
         return self.theory_experiment
     
     def add_employment_entrepreneurship(self, amount):
@@ -252,6 +298,7 @@ class Player:
             'social': self.social,
             'reputation': self.reputation,
             'theory_experiment': self.theory_experiment,
+            'total_theory_experiment': self.total_theory_experiment,
             'employment_entrepreneurship': self.employment_entrepreneurship,
             'aesthetic_cultivation': self.aesthetic_cultivation
         }
@@ -286,10 +333,18 @@ class Player:
             self.reputation = data['reputation']
         if 'theory_experiment' in data:
             self.theory_experiment = data['theory_experiment']
+        if 'total_theory_experiment' in data:
+            self.total_theory_experiment = data['total_theory_experiment']
         if 'employment_entrepreneurship' in data:
             self.employment_entrepreneurship = data['employment_entrepreneurship']
         if 'aesthetic_cultivation' in data:
             self.aesthetic_cultivation = data['aesthetic_cultivation']
+        
+        # 初始化刚生病标志
+        self.just_became_sick = False
+        
+        # 检查并调整行动点，确保不超过上限
+        self.check_action_points()
     
     def is_sick(self):
         """检查是否生病（健康值低于40）"""
@@ -300,8 +355,8 @@ class Player:
         return self.health >= 40
     
     def reset_monthly(self):
-        """每月重置生活费"""
-        self.living_expenses = 200
+        """每月增加生活费"""
+        self.living_expenses += 200
     
     def reset_daily(self):
         """每天重置行动点"""

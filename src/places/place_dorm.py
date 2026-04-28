@@ -146,8 +146,7 @@ class Dorm:
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    self.game.current_state = "MAIN_GAME"
-                    self.game.map_system.toggle_map()
+                    self.game.return_to_start = True
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pos = pygame.mouse.get_pos()
                 # 只有未玩游戏时才能点击玩游戏选项

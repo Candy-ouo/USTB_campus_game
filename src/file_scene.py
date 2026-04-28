@@ -174,16 +174,19 @@ class FileScene:
         study_attrs_y = 510
         
         theory_experiment = getattr(self.game.player, 'theory_experiment', 0)
+        total_theory_experiment = getattr(self.game.player, 'total_theory_experiment', 0)
         employment_entrepreneurship = getattr(self.game.player, 'employment_entrepreneurship', 0)
         aesthetic_cultivation = getattr(self.game.player, 'aesthetic_cultivation', 0)
         
-        theory_text = self.font.render(f"理论实验: {theory_experiment}", True, (100, 60, 30))
+        theory_text = self.font.render(f"理论实验(本学期): {theory_experiment}", True, (100, 60, 30))
+        total_theory_text = self.font.render(f"理论实验(累计): {total_theory_experiment}", True, (100, 60, 30))
         employment_text = self.font.render(f"创新创业: {employment_entrepreneurship}", True, (100, 60, 30))
         aesthetic_text = self.font.render(f"美育素养: {aesthetic_cultivation}", True, (100, 60, 30))
         
         self.screen.blit(theory_text, (study_attrs_x, study_attrs_y))
-        self.screen.blit(employment_text, (study_attrs_x, study_attrs_y + 30))
-        self.screen.blit(aesthetic_text, (study_attrs_x, study_attrs_y + 60))
+        self.screen.blit(total_theory_text, (study_attrs_x, study_attrs_y + 30))
+        self.screen.blit(employment_text, (study_attrs_x, study_attrs_y + 60))
+        self.screen.blit(aesthetic_text, (study_attrs_x, study_attrs_y + 90))
     
     def _draw_attribute_bar(self, x, y, label, value, max_value):
         """绘制属性条"""

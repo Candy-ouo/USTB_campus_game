@@ -1,13 +1,13 @@
 {
   "character": {
-    "name": "姚春意",
+    "name": "小成绩",
     "gender": "女",
-    "height": 134,
-    "weight": 222,
-    "birthday": "01-01",
-    "college": "材料",
-    "major": "材料化学",
-    "knowledge": 30,
+    "height": 158,
+    "weight": 67,
+    "birthday": "12-24",
+    "college": "计通",
+    "major": "通信工程",
+    "knowledge": 100,
     "knowledge_level": 1,
     "charm": 30,
     "charm_level": 1,
@@ -15,35 +15,36 @@
     "physical_level": 1,
     "living_expenses": 200,
     "action_points": 5,
-    "mood": 100,
+    "mood": 40,
     "health": 80,
     "skill": 0,
     "social": 0,
     "reputation": 0,
-    "theory_experiment": 0,
+    "theory_experiment": 200,
     "employment_entrepreneurship": 0,
     "aesthetic_cultivation": 0
   },
   "player": {
-    "knowledge": 30,
+    "knowledge": 100,
     "knowledge_level": 1,
-    "charm": 30,
+    "charm": 20,
     "charm_level": 1,
     "physical": 30,
     "physical_level": 1,
-    "living_expenses": 200,
-    "action_points": 5,
-    "mood": 100,
-    "health": 80,
+    "living_expenses": 300,
+    "action_points": 4,
+    "mood": 50,
+    "health": 70,
     "skill": 0,
     "social": 0,
     "reputation": 0,
-    "theory_experiment": 0,
+    "theory_experiment": 200,
+    "total_theory_experiment": 200,
     "employment_entrepreneurship": 0,
     "aesthetic_cultivation": 0
   },
   "time_system": {
-    "day": 2,
+    "day": 17,
     "ended": false
   },
   "game_state": {
@@ -51,7 +52,7 @@
     "has_eaten": false,
     "has_studied": false,
     "has_exercised": false,
-    "has_played_games": false,
+    "has_played_games": true,
     "has_read_book": false,
     "supermarket_purchases": 0,
     "has_rested": false,
@@ -63,15 +64,16 @@
       0
     ],
     "course_study_counts": {
-      "专利撰写与申报": 1,
-      "创业大赛指导": 1,
-      "本科就业指导": 1
+      "材料分析技术": 3,
+      "固体物理": 3,
+      "量子力学导论": 2
     },
     "final_scores": [],
     "final_gpas": [],
-    "current_final_score": 0,
-    "current_final_grade": "",
-    "current_final_gpa": 0.0,
-    "current_need_makeup": false
+    "current_final_score": 100,
+    "current_final_grade": "A",
+    "current_final_gpa": 4.0,
+    "current_need_makeup": false,
+    "current_ending": null
   }
 }
