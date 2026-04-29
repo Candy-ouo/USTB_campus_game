@@ -1,0 +1,8 @@
+{
+  "enabled": true,
+  "provider": "volcengine",
+  "api_key": "ark-35cb796c-d09d-41a5-9382-872cdb8f7946-2c209",
+  "secret_key": "123",
+  "endpoint": "ep-20260429154659-stls2",
+  "probability": 0.5
+}

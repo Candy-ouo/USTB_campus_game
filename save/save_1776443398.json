@@ -1,0 +1,96 @@
+{
+  "character": {
+    "name": "kk",
+    "gender": "男",
+    "height": 165,
+    "weight": 55,
+    "birthday": "01-01",
+    "college": "材料",
+    "major": "材料物理",
+    "knowledge": 30,
+    "knowledge_level": 1,
+    "charm": 30,
+    "charm_level": 1,
+    "physical": 30,
+    "physical_level": 1,
+    "living_expenses": 200,
+    "action_points": 5,
+    "mood": 100,
+    "health": 80,
+    "skill": 0,
+    "social": 0,
+    "reputation": 0,
+    "theory_experiment": 0,
+    "employment_entrepreneurship": 0,
+    "aesthetic_cultivation": 0
+  },
+  "player": {
+    "knowledge": 46,
+    "knowledge_level": 1,
+    "charm": 32,
+    "charm_level": 1,
+    "physical": 38,
+    "physical_level": 1,
+    "living_expenses": 1382,
+    "action_points": 2,
+    "mood": 87,
+    "health": 58,
+    "skill": 0,
+    "social": 2,
+    "reputation": 0,
+    "theory_experiment": 0,
+    "total_theory_experiment": 0,
+    "employment_entrepreneurship": 150,
+    "aesthetic_cultivation": 300
+  },
+  "time_system": {
+    "day": 32,
+    "ended": false
+  },
+  "inventory": {
+    "items": {},
+    "item_order": []
+  },
+  "game_state": {
+    "current_state": "DORM",
+    "has_eaten": false,
+    "has_studied": false,
+    "has_exercised": false,
+    "has_played_games": false,
+    "has_read_book": false,
+    "supermarket_purchases": 0,
+    "has_rested": false,
+    "schedule_selected": [],
+    "has_scheduled": false,
+    "schedule_scroll_offsets": [
+      -480,
+      0,
+      -160
+    ],
+    "course_study_counts": {
+      "科技文献检索": 8,
+      "科研伦理与规范": 8,
+      "本科就业指导": 8,
+      "西方哲学史": 16,
+      "影视鉴赏": 16,
+      "国画赏析": 16,
+      "计算机辅助设计": 3,
+      "工程制图": 3,
+      "金相分析实验": 3,
+      "企业实习实践": 3,
+      "专利撰写与申报": 3,
+      "科研项目实训": 3
+    },
+    "final_scores": [
+      21.6
+    ],
+    "final_gpas": [
+      1.0
+    ],
+    "current_final_score": 21.6,
+    "current_final_grade": "F",
+    "current_final_gpa": 1.0,
+    "current_need_makeup": true,
+    "current_ending": null
+  }
+}

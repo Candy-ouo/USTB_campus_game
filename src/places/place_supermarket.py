@@ -2,6 +2,7 @@ import pygame
 import os
 import sys
 from data.config import SCREEN_WIDTH, SCREEN_HEIGHT
+from src.item_system import ItemFactory
 
 class Supermarket:
     def __init__(self, game):
@@ -44,7 +45,7 @@ class Supermarket:
         except:
             pass
         
-        # 加载课外教程按钮图片
+        # 加载课外教材按钮图片
         book_button_path = os.path.join(os.path.dirname(__file__), '..', '..', 'image', 'book_button.png')
         try:
             if os.path.exists(book_button_path):
@@ -257,71 +258,92 @@ class Supermarket:
                 pos = pygame.mouse.get_pos()
                 if self.game.supermarket_purchases < 2:
                     if cake_button_rect.collidepoint(pos):
-                        if self.game.player.living_expenses >= 15:
-                            self.game.player.living_expenses -= 15
-                            self.game.player.add_mood(30)
-                            self.game.player.add_social(2)  # 增加人脉
-                            self.game.supermarket_purchases += 1
-                            self.game.message = "你购买了美味蛋糕，金钱-15，心情+30，人脉+2"
-                            self.game.message_timer = 90
+                        item = ItemFactory.create_item('cake')
+                        if self.game.player.living_expenses >= item.price:
+                            success, msg = self.game.inventory.add_item('cake')
+                            if success:
+                                self.game.player.living_expenses -= item.price
+                                self.game.supermarket_purchases += 1
+                                self.game.message = f"你购买了{item.name}，金钱-{item.price}"
+                                self.game.message_timer = 90
+                            else:
+                                self.game.message = msg
+                                self.game.message_timer = 90
                         else:
                             self.game.message = "金钱不足！"
                             self.game.message_timer = 60
                     elif cloth_button_rect.collidepoint(pos):
-                        if self.game.player.living_expenses >= 30:
-                            self.game.player.living_expenses -= 30
-                            current_year = self.game.time_system.get_year()
-                            self.game.player.add_charm(10, current_year)
-                            self.game.player.add_reputation(2)  # 增加声望
-                            self.game.supermarket_purchases += 1
-                            self.game.message = "你购买了潮流衣服，金钱-30，魅力+10，声望+2"
-                            self.game.message_timer = 90
+                        item = ItemFactory.create_item('cloth')
+                        if self.game.player.living_expenses >= item.price:
+                            success, msg = self.game.inventory.add_item('cloth')
+                            if success:
+                                self.game.player.living_expenses -= item.price
+                                self.game.supermarket_purchases += 1
+                                self.game.message = f"你购买了{item.name}，金钱-{item.price}"
+                                self.game.message_timer = 90
+                            else:
+                                self.game.message = msg
+                                self.game.message_timer = 90
                         else:
                             self.game.message = "金钱不足！"
                             self.game.message_timer = 60
                     elif book_button_rect.collidepoint(pos):
-                        if self.game.player.living_expenses >= 20:
-                            self.game.player.living_expenses -= 20
-                            current_year = self.game.time_system.get_year()
-                            self.game.player.add_knowledge(10, current_year)
-                            self.game.player.add_skill(3)  # 增加技能
-                            self.game.supermarket_purchases += 1
-                            self.game.message = "你购买了课外教材，金钱-20，学识+10，技能+3"
-                            self.game.message_timer = 90
+                        item = ItemFactory.create_item('book')
+                        if self.game.player.living_expenses >= item.price:
+                            success, msg = self.game.inventory.add_item('book')
+                            if success:
+                                self.game.player.living_expenses -= item.price
+                                self.game.supermarket_purchases += 1
+                                self.game.message = f"你购买了{item.name}，金钱-{item.price}"
+                                self.game.message_timer = 90
+                            else:
+                                self.game.message = msg
+                                self.game.message_timer = 90
                         else:
                             self.game.message = "金钱不足！"
                             self.game.message_timer = 60
                     elif jianshen_button_rect.collidepoint(pos):
-                        if self.game.player.living_expenses >= 30:
-                            self.game.player.living_expenses -= 30
-                            current_year = self.game.time_system.get_year()
-                            self.game.player.add_physical(10, current_year)
-                            self.game.player.add_reputation(2)  # 增加声望
-                            self.game.supermarket_purchases += 1
-                            self.game.message = "你购买了健身器材，金钱-30，体能+10，声望+2"
-                            self.game.message_timer = 90
+                        item = ItemFactory.create_item('fitness')
+                        if self.game.player.living_expenses >= item.price:
+                            success, msg = self.game.inventory.add_item('fitness')
+                            if success:
+                                self.game.player.living_expenses -= item.price
+                                self.game.supermarket_purchases += 1
+                                self.game.message = f"你购买了{item.name}，金钱-{item.price}"
+                                self.game.message_timer = 90
+                            else:
+                                self.game.message = msg
+                                self.game.message_timer = 90
                         else:
                             self.game.message = "金钱不足！"
                             self.game.message_timer = 60
                     elif unhealth_button_rect.collidepoint(pos):
-                        if self.game.player.living_expenses >= 15:
-                            self.game.player.living_expenses -= 15
-                            self.game.player.add_mood(40)
-                            self.game.player.add_health(-5)
-                            self.game.player.add_social(1)  # 增加人脉
-                            self.game.supermarket_purchases += 1
-                            self.game.message = "你购买了不健康的零食，金钱-15，心情+40，健康-5，人脉+1"
-                            self.game.message_timer = 90
+                        item = ItemFactory.create_item('snack')
+                        if self.game.player.living_expenses >= item.price:
+                            success, msg = self.game.inventory.add_item('snack')
+                            if success:
+                                self.game.player.living_expenses -= item.price
+                                self.game.supermarket_purchases += 1
+                                self.game.message = f"你购买了{item.name}，金钱-{item.price}"
+                                self.game.message_timer = 90
+                            else:
+                                self.game.message = msg
+                                self.game.message_timer = 90
                         else:
                             self.game.message = "金钱不足"
                             self.game.message_timer = 90
                     elif tili_button_rect.collidepoint(pos):
-                        if self.game.player.living_expenses >= 30:
-                            self.game.player.living_expenses -= 30
-                            self.game.player.add_action_points(1)
-                            self.game.supermarket_purchases += 1
-                            self.game.message = "你购买了体力药水，金钱-30，行动点+1"
-                            self.game.message_timer = 90
+                        item = ItemFactory.create_item('potion')
+                        if self.game.player.living_expenses >= item.price:
+                            success, msg = self.game.inventory.add_item('potion')
+                            if success:
+                                self.game.player.living_expenses -= item.price
+                                self.game.supermarket_purchases += 1
+                                self.game.message = f"你购买了{item.name}，金钱-{item.price}"
+                                self.game.message_timer = 90
+                            else:
+                                self.game.message = msg
+                                self.game.message_timer = 90
                         else:
                             self.game.message = "金钱不足"
                             self.game.message_timer = 90

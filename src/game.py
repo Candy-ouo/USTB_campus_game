@@ -23,6 +23,10 @@ from src.places.place_dorm import Dorm
 from src.places.place_student_center import StudentCenter
 from src.places.place_hospital import Hospital
 from src.file_scene import FileScene
+from src.event_manager import EventManager
+from src.popup_ui import PixelPopup
+from src.inventory import Inventory
+from src.inventory_ui import InventoryUI
 
 # 时间季节面板类
 class TimeSeasonPanel:
@@ -213,6 +217,15 @@ class Game:
         self.time_season_panel = TimeSeasonPanel(self.screen)
         self.save_system = SaveSystem()
         self.current_save_path = None  # 当前加载的存档文件路径
+        
+        # 事件系统
+        self.event_manager = EventManager()
+        self.popup_ui = PixelPopup(self.screen, self)
+        
+        # 背包系统
+        self.inventory = Inventory()
+        self.inventory_ui = InventoryUI(self.screen, self)
+        
         # 初始化场景对象
         self.canteen = Canteen(self)
         self.teaching = Teaching(self)
@@ -498,6 +511,9 @@ class Game:
         
         self.player.add_mood(-2)
         
+        # 触发随机事件（每回合开始时）
+        self.trigger_random_event()
+        
         # 处理期末周结算（在期末周结束后显示）
         if is_current_final_week:
             self.handle_final_exam_week(current_year)  # 传递结算前的学年
@@ -517,6 +533,38 @@ class Game:
             self.message = "新的一天开始了！"
             self.message_timer = 120
     
+    def trigger_random_event(self):
+        """触发随机事件"""
+        if self.player.health < 40:
+            return
+        
+        game_event = self.event_manager.generate_random_event()
+        choice_index = self.popup_ui.show_event_popup(game_event)
+        
+        if choice_index is not None and choice_index < len(game_event.options):
+            selected_option = game_event.options[choice_index]
+            
+            for attr, value in selected_option.effects.items():
+                if attr == 'knowledge':
+                    self.player.add_knowledge(value)
+                elif attr == 'charm':
+                    self.player.add_charm(value)
+                elif attr == 'physical':
+                    self.player.add_physical(value)
+                elif attr == 'living_expenses':
+                    self.player.add_living_expenses(value)
+                elif attr == 'action_points':
+                    self.player.add_action_points(value)
+                elif attr == 'mood':
+                    self.player.add_mood(value)
+                elif attr == 'health':
+                    self.player.add_health(value)
+                elif attr == 'social':
+                    self.player.add_social(value)
+            
+            if selected_option.effects:
+                self.popup_ui.show_attribute_change(selected_option.effects)
+    
     def handle_events(self):
         events = pygame.event.get()
         
@@ -533,17 +581,21 @@ class Game:
             if event.type == pygame.QUIT:
                 self.running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_q:
-                    self.running = False
-                elif event.key == pygame.K_ESCAPE:
-                    # 只有在非日程安排、非档案和非结局界面时才返回开始界面
-                    # 日程安排、档案和结局界面有自己的ESC处理
-                    if self.current_state not in [STATE_SCHEDULE, STATE_FILE, STATE_ENDING]:
+                if event.key == pygame.K_ESCAPE:
+                    if self.inventory_ui.is_visible():
+                        self.inventory_ui.hide()
+                    elif self.current_state not in [STATE_SCHEDULE, STATE_FILE, STATE_ENDING]:
                         self.return_to_start = True
-                # 无论当前状态是什么，只要按M键就切换地图
+                elif event.key == pygame.K_i:
+                    if not self.map_system.is_map_showing():
+                        if self.inventory_ui.is_visible():
+                            self.inventory_ui.hide()
+                        else:
+                            self.inventory_ui.show()
                 elif event.key == pygame.K_m:
-                    self.map_system.toggle_map()
-                    self.map_system.clear_active_area()
+                    if not self.inventory_ui.is_visible():
+                        self.map_system.toggle_map()
+                        self.map_system.clear_active_area()
 
         # 处理UI事件
         ui_event = self.ui_hud.handle_events(events)
@@ -601,10 +653,9 @@ class Game:
             # 跳转到档案界面
             self.current_state = STATE_FILE
         elif ui_event == 'BAG':
-            # 记录当前场景
-            self.previous_state = self.current_state
-            # 处理背包事件
-            pass
+            # 打开背包界面
+            if not self.map_system.is_map_showing():
+                self.inventory_ui.show()
         elif ui_event == 'RELATIONSHIP':
             # 记录当前场景
             self.previous_state = self.current_state
@@ -672,43 +723,44 @@ class Game:
                 else:
                     self.map_system.clear_active_area()
         else:
-            # 根据状态处理事件
-            if self.current_state == STATE_CREATE_CHARACTER:
-                self._handle_create_character(events)
-                # 更新角色创建场景的窗口大小
-                if self.create_character_scene is not None:
-                    self.create_character_scene.width = SCREEN_WIDTH
-                    self.create_character_scene.height = SCREEN_HEIGHT
-            elif self.current_state == STATE_MAIN_GAME:
-                self._handle_main_game(events)
-            elif self.current_state == STATE_CANTEEN:
-                self.canteen.handle_events(events)
-            elif self.current_state == STATE_TEACHING:
-                self.teaching.handle_events(events)
-            elif self.current_state == STATE_SPORTS:
-                self.sports.handle_events(events)
-            elif self.current_state == STATE_SUPERMARKET:
-                self.supermarket.handle_events(events)
-            elif self.current_state == STATE_DORM:
-                self.dorm.handle_events(events)
-            elif self.current_state == STATE_STUDENT_CENTER:
-                self.student_center.handle_events(events)
-            elif self.current_state == STATE_HOSPITAL:
-                self.hospital.handle_events(events)
-            elif self.current_state == STATE_SCHEDULE:
-                self._handle_schedule(events)
-            elif self.current_state == STATE_FILE:
-                result = self.file_scene.handle_events(events)
-                if result:
-                    self.current_state = result
-            elif self.current_state == STATE_FINAL_EXAM:
-                for event in events:
-                    if event.type == pygame.MOUSEBUTTONDOWN or (event.type == pygame.KEYDOWN and event.key != pygame.K_m):
-                        self.current_state = STATE_DORM
-            elif self.current_state == STATE_ENDING:
-                for event in events:
-                    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                        self.return_to_start = True
+            if self.inventory_ui.is_visible():
+                self.inventory_ui.handle_events(events)
+            else:
+                if self.current_state == STATE_CREATE_CHARACTER:
+                    self._handle_create_character(events)
+                    if self.create_character_scene is not None:
+                        self.create_character_scene.width = SCREEN_WIDTH
+                        self.create_character_scene.height = SCREEN_HEIGHT
+                elif self.current_state == STATE_MAIN_GAME:
+                    self._handle_main_game(events)
+                elif self.current_state == STATE_CANTEEN:
+                    self.canteen.handle_events(events)
+                elif self.current_state == STATE_TEACHING:
+                    self.teaching.handle_events(events)
+                elif self.current_state == STATE_SPORTS:
+                    self.sports.handle_events(events)
+                elif self.current_state == STATE_SUPERMARKET:
+                    self.supermarket.handle_events(events)
+                elif self.current_state == STATE_DORM:
+                    self.dorm.handle_events(events)
+                elif self.current_state == STATE_STUDENT_CENTER:
+                    self.student_center.handle_events(events)
+                elif self.current_state == STATE_HOSPITAL:
+                    self.hospital.handle_events(events)
+                elif self.current_state == STATE_SCHEDULE:
+                    self._handle_schedule(events)
+                elif self.current_state == STATE_FILE:
+                    result = self.file_scene.handle_events(events)
+                    if result:
+                        self.current_state = result
+                elif self.current_state == STATE_FINAL_EXAM:
+                    for event in events:
+                        if event.type == pygame.MOUSEBUTTONDOWN or (event.type == pygame.KEYDOWN and event.key != pygame.K_m):
+                            self.current_state = STATE_DORM
+                elif self.current_state == STATE_ENDING:
+                    for event in events:
+                        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                            self.return_to_start = True
     
     def _handle_create_character(self, events):
         """处理角色创建"""
@@ -1213,6 +1265,9 @@ class Game:
                     self.schedule_selected = []
                     self.has_scheduled = False
                     
+                    # 触发随机事件（进入下一回合时）
+                    self.trigger_random_event()
+                    
                     # 检查是否生病跳转到宿舍
                     if self.player.health < 40:
                         self.current_state = STATE_DORM
@@ -1359,6 +1414,9 @@ class Game:
                         # 重置日程安排相关属性
                         self.schedule_selected = []
                         self.has_scheduled = False
+                        
+                        # 触发随机事件（进入下一回合时）
+                        self.trigger_random_event()
                         
                         # 调试：检查是否生病
                         print(f"调试：日程安排完成，健康值={self.player.health}, 生病={self.player.health < 40}")
@@ -1706,6 +1764,8 @@ class Game:
     def draw(self):
         if self.map_system.is_map_showing():
             self.draw_map()
+            if self.inventory_ui.is_visible():
+                self.inventory_ui.draw()
             return
         
         # 根据状态绘制
@@ -1735,6 +1795,9 @@ class Game:
             self.file_scene.draw()
         elif self.current_state == STATE_ENDING:
             self._draw_ending()
+        
+        if self.inventory_ui.is_visible():
+            self.inventory_ui.draw()
         
         pygame.display.flip()
     

@@ -1,0 +1,98 @@
+{
+  "character": {
+    "name": "qq",
+    "gender": "男",
+    "height": 170,
+    "weight": 60,
+    "birthday": "01-01",
+    "college": "材料",
+    "major": "材料科学与工程",
+    "knowledge": 30,
+    "knowledge_level": 1,
+    "charm": 30,
+    "charm_level": 1,
+    "physical": 30,
+    "physical_level": 1,
+    "living_expenses": 200,
+    "action_points": 5,
+    "mood": 100,
+    "health": 80,
+    "skill": 0,
+    "social": 0,
+    "reputation": 0,
+    "theory_experiment": 0,
+    "employment_entrepreneurship": 0,
+    "aesthetic_cultivation": 0
+  },
+  "player": {
+    "knowledge": 33,
+    "knowledge_level": 1,
+    "charm": 30,
+    "charm_level": 1,
+    "physical": 30,
+    "physical_level": 1,
+    "living_expenses": 60,
+    "action_points": 3,
+    "mood": 100,
+    "health": 77,
+    "skill": 0,
+    "social": 2,
+    "reputation": 0,
+    "theory_experiment": 0,
+    "total_theory_experiment": 0,
+    "employment_entrepreneurship": 0,
+    "aesthetic_cultivation": 0
+  },
+  "time_system": {
+    "day": 4,
+    "ended": false
+  },
+  "inventory": {
+    "items": {
+      "cloth": 1,
+      "snack": 2,
+      "potion": 1,
+      "book": 1,
+      "cake": 2
+    },
+    "item_order": [
+      "cloth",
+      "snack",
+      "potion",
+      "book",
+      "cake"
+    ]
+  },
+  "game_state": {
+    "current_state": "SUPERMARKET",
+    "has_eaten": false,
+    "has_studied": false,
+    "has_exercised": false,
+    "has_played_games": false,
+    "has_read_book": false,
+    "supermarket_purchases": 2,
+    "has_rested": false,
+    "schedule_selected": [],
+    "has_scheduled": false,
+    "schedule_scroll_offsets": [
+      0,
+      0,
+      0
+    ],
+    "course_study_counts": {
+      "专利撰写与申报": 1,
+      "企业实习实践": 1,
+      "科研项目实训": 1,
+      "中国书法艺术": 2,
+      "国画赏析": 2,
+      "交响乐团鉴赏": 2
+    },
+    "final_scores": [],
+    "final_gpas": [],
+    "current_final_score": 0,
+    "current_final_grade": "",
+    "current_final_gpa": 0.0,
+    "current_need_makeup": false,
+    "current_ending": null
+  }
+}

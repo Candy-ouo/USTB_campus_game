@@ -31,20 +31,20 @@
     "charm_level": 1,
     "physical": 30,
     "physical_level": 1,
-    "living_expenses": 300,
+    "living_expenses": 400,
     "action_points": 4,
     "mood": 50,
     "health": 70,
     "skill": 0,
     "social": 0,
     "reputation": 0,
-    "theory_experiment": 200,
+    "theory_experiment": 0,
     "total_theory_experiment": 200,
     "employment_entrepreneurship": 0,
     "aesthetic_cultivation": 0
   },
   "time_system": {
-    "day": 17,
+    "day": 18,
     "ended": false
   },
   "game_state": {
@@ -68,8 +68,12 @@
       "固体物理": 3,
       "量子力学导论": 2
     },
-    "final_scores": [],
-    "final_gpas": [],
+    "final_scores": [
+      100
+    ],
+    "final_gpas": [
+      4.0
+    ],
     "current_final_score": 100,
     "current_final_grade": "A",
     "current_final_gpa": 4.0,

@@ -33,6 +33,7 @@ class SaveSystem:
                 'character': self._get_character_data(game),
                 'player': game.player.to_dict(),
                 'time_system': game.time_system.to_dict(),
+                'inventory': game.inventory.to_dict() if hasattr(game, 'inventory') else {},
                 'game_state': {
                     'current_state': game.current_state,
                     'has_eaten': game.has_eaten,
@@ -129,6 +130,9 @@ class SaveSystem:
                     month = game.time_system.get_month()
                     week = game.time_system.get_week_in_month()
                     game.ui_hud.update_time(year, month, week)
+            if 'inventory' in save_data and hasattr(game, 'inventory'):
+                game.inventory.from_dict(save_data['inventory'])
+            
             if 'game_state' in save_data:
                 gs = save_data['game_state']
                 game.current_state = gs.get('current_state', 'MAIN_GAME')
