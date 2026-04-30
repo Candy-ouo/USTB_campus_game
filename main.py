@@ -48,7 +48,7 @@ def main():
         print("music 文件夹不存在")
     # 创建不可调整大小的窗口（默认就是不可调整的）
     screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
-    pygame.display.set_caption("北科校园物语")
+    pygame.display.set_caption("贝壳校园物语")
 
     # 字体初始化
     font = None
