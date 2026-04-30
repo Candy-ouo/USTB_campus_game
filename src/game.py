@@ -943,46 +943,81 @@ class Game:
             self.draw_text(warning_text, self.width // 2 - len(warning_text) * 12, self.height // 2 - 20, (150, 0, 0), self.large_font)
             return
         
-        # 定义日程数据
         schedules = {
             "理论实验": [
+                # 16学时｜单门+100
                 {"name": "固体物理", "hours": 16, "attribute": "theory_experiment", "value": 100},
                 {"name": "材料分析技术", "hours": 16, "attribute": "theory_experiment", "value": 100},
                 {"name": "量子力学导论", "hours": 16, "attribute": "theory_experiment", "value": 100},
                 {"name": "大学物理实验", "hours": 16, "attribute": "theory_experiment", "value": 100},
                 {"name": "数理方法", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "材料物理基础", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "材料力学", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "热力学与统计物理", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "凝聚态物理导论", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "半导体物理基础", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "电磁学与光学", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "原子物理与量子物理", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "材料表征与检测", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "功能材料概论", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                # 12学时｜单门+75
                 {"name": "材料合成与制备", "hours": 12, "attribute": "theory_experiment", "value": 75},
                 {"name": "金相分析实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
                 {"name": "工程制图", "hours": 12, "attribute": "theory_experiment", "value": 75},
                 {"name": "计算机辅助设计", "hours": 12, "attribute": "theory_experiment", "value": 75},
                 {"name": "材料性能实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "晶体缺陷与相变", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "表面与界面物理", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "纳米材料导论", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "金属热处理技术", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "复合材料基础", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "无损检测技术", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "高分子材料基础", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "陶瓷材料工艺", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "材料腐蚀与防护", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                # 8学时｜单门+50
                 {"name": "大学英语", "hours": 8, "attribute": "theory_experiment", "value": 50},
                 {"name": "思修与法律基础", "hours": 8, "attribute": "theory_experiment", "value": 50},
-                {"name": "大学体育", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "专业前沿讲座", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "学术论文写作", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "科技文献检索", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "专业英语阅读", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "学科导论入门", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "实验室安全规范", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "交叉学科概论", "hours": 8, "attribute": "theory_experiment", "value": 50},
             ],
             "创新创业": [
+                # 16学时｜单门+100
                 {"name": "科研项目实训", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
                 {"name": "企业实习实践", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
                 {"name": "专利撰写与申报", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
                 {"name": "创业大赛指导", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                # 12学时｜单门+75
+                {"name": "商业模式设计", "hours": 12, "attribute": "employment_entrepreneurship", "value": 75},
+                {"name": "投融资基础", "hours": 12, "attribute": "employment_entrepreneurship", "value": 75},
+                # 8学时｜单门+50
                 {"name": "本科就业指导", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
                 {"name": "科研伦理与规范", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
                 {"name": "科技文献检索", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
             ],
             "美育素养": [
+                # 16学时｜单门+100
                 {"name": "交响乐团鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
                 {"name": "中国书法艺术", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
                 {"name": "国画赏析", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
                 {"name": "影视鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
                 {"name": "西方哲学史", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                # 12学时｜单门+75
                 {"name": "演讲与口才", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
                 {"name": "摄影技术", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
                 {"name": "舞蹈基础", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
                 {"name": "茶文化", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
                 {"name": "中外民俗", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
                 {"name": "心理健康", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                # 8学时｜单门+50
                 {"name": "安全教育", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
                 {"name": "通识课任选", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
+                {"name": "大学体育", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
             ]
         }
         
@@ -1152,44 +1187,78 @@ class Game:
     
     def _handle_schedule(self, events):
         """处理日程安排页面事件"""
-        # 定义日程数据
         schedules = {
             "理论实验": [
+                # 16学时｜单门+100
                 {"name": "固体物理", "hours": 16, "attribute": "theory_experiment", "value": 100},
                 {"name": "材料分析技术", "hours": 16, "attribute": "theory_experiment", "value": 100},
                 {"name": "量子力学导论", "hours": 16, "attribute": "theory_experiment", "value": 100},
                 {"name": "大学物理实验", "hours": 16, "attribute": "theory_experiment", "value": 100},
                 {"name": "数理方法", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "材料物理基础", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "材料力学", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "热力学与统计物理", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "凝聚态物理导论", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "半导体物理基础", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "电磁学与光学", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "原子物理与量子物理", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "材料表征与检测", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                {"name": "功能材料概论", "hours": 16, "attribute": "theory_experiment", "value": 100},
+                # 12学时｜单门+75
                 {"name": "材料合成与制备", "hours": 12, "attribute": "theory_experiment", "value": 75},
                 {"name": "金相分析实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
                 {"name": "工程制图", "hours": 12, "attribute": "theory_experiment", "value": 75},
                 {"name": "计算机辅助设计", "hours": 12, "attribute": "theory_experiment", "value": 75},
                 {"name": "材料性能实验", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "晶体缺陷与相变", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "表面与界面物理", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "纳米材料导论", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "金属热处理技术", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "复合材料基础", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "无损检测技术", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "高分子材料基础", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "陶瓷材料工艺", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                {"name": "材料腐蚀与防护", "hours": 12, "attribute": "theory_experiment", "value": 75},
+                # 8学时｜单门+50
                 {"name": "大学英语", "hours": 8, "attribute": "theory_experiment", "value": 50},
                 {"name": "思修与法律基础", "hours": 8, "attribute": "theory_experiment", "value": 50},
-                
+                {"name": "专业前沿讲座", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "学术论文写作", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "科技文献检索", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "专业英语阅读", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "学科导论入门", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "实验室安全规范", "hours": 8, "attribute": "theory_experiment", "value": 50},
+                {"name": "交叉学科概论", "hours": 8, "attribute": "theory_experiment", "value": 50},
             ],
             "创新创业": [
+                # 16学时｜单门+100
                 {"name": "科研项目实训", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
                 {"name": "企业实习实践", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
                 {"name": "专利撰写与申报", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
                 {"name": "创业大赛指导", "hours": 16, "attribute": "employment_entrepreneurship", "value": 100},
+                # 12学时｜单门+75
+                {"name": "商业模式设计", "hours": 12, "attribute": "employment_entrepreneurship", "value": 75},
+                {"name": "投融资基础", "hours": 12, "attribute": "employment_entrepreneurship", "value": 75},
+                # 8学时｜单门+50
                 {"name": "本科就业指导", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
                 {"name": "科研伦理与规范", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
                 {"name": "科技文献检索", "hours": 8, "attribute": "employment_entrepreneurship", "value": 50},
             ],
             "美育素养": [
+                # 16学时｜单门+100
                 {"name": "交响乐团鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
                 {"name": "中国书法艺术", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
                 {"name": "国画赏析", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
                 {"name": "影视鉴赏", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
                 {"name": "西方哲学史", "hours": 16, "attribute": "aesthetic_cultivation", "value": 100},
+                # 12学时｜单门+75
                 {"name": "演讲与口才", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
                 {"name": "摄影技术", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
                 {"name": "舞蹈基础", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
                 {"name": "茶文化", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
                 {"name": "中外民俗", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
                 {"name": "心理健康", "hours": 12, "attribute": "aesthetic_cultivation", "value": 75},
+                # 8学时｜单门+50
                 {"name": "安全教育", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
                 {"name": "通识课任选", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
                 {"name": "大学体育", "hours": 8, "attribute": "aesthetic_cultivation", "value": 50},
@@ -1840,107 +1909,110 @@ class Game:
         avg_score = sum(self.final_scores) / len(self.final_scores)
         avg_gpa = sum(self.final_gpas) / len(self.final_gpas)
         
-        # 检查是否能顺利毕业
-        can_graduate = False
-        if (avg_score >= 60 and avg_gpa >= 1.0 and
-            self.player.knowledge_level >= 4 and self.player.knowledge >= 60 and
-            self.player.total_theory_experiment >= 600 and
-            self.player.employment_entrepreneurship >= 200 and
-            self.player.aesthetic_cultivation >= 200 and
-            self.player.health >= 60 and
-            self.player.mood >= 60 and
-            self.player.skill >= 50 and
-            self.player.social >= 30 and
-            self.player.reputation >= 20):
-            can_graduate = True
+        # 检查是否有不及格科目
+        has_f_grade = any(score < 60 for score in self.final_scores)
         
-        if not can_graduate:
+        # ========== 优先级1：延毕 ==========
+        yanbi_condition = (
+            avg_score < 60 or avg_gpa < 1.0 or
+            self.player.knowledge_level < 4 or 
+            self.player.knowledge < 60 or
+            self.player.health < 60 or
+            self.player.mood < 60 or
+            self.player.total_theory_experiment < 700 or
+            self.player.aesthetic_cultivation < 200 or
+            self.player.employment_entrepreneurship < 200
+        )
+        if yanbi_condition:
             self.current_ending = ENDING_YANBI
             self.current_state = STATE_ENDING
             return
         
-        # 顺利毕业，进行结局判定
-        # 优先级：保研 > 考研 > 优质就业 > 普通就业/创业
-        
-        # 检查是否有F等级（需要补考），如果有则不能保研
-        has_f_grade = any(score < 60 for score in self.final_scores)
-        
-        # 1. 保研（不能有F等级）
-        if not has_f_grade and (avg_score >= 85 and avg_gpa >= 3.7 and
+        # ========== 优先级2：保研 ==========
+        baoyan_condition = (
+            not has_f_grade and
+            avg_score >= 85 and avg_gpa >= 3.7 and
             self.player.knowledge_level >= 4 and self.player.knowledge >= 90 and
-            self.player.charm_level >= 2 and self.player.charm >= 70 and
-            self.player.physical_level >= 4 and self.player.physical >= 50 and
-            self.player.total_theory_experiment >= 800 and
-            self.player.employment_entrepreneurship >= 200 and
-            self.player.aesthetic_cultivation >= 200 and
-            self.player.skill >= 100 and
-            self.player.reputation >= 80 and
-            self.player.social >= 70):
+            self.player.charm_level >= 4 and self.player.charm >= 90 and
+            self.player.physical_level >= 4 and self.player.physical >= 90 and
+            self.player.total_theory_experiment >= 1400 and
+            self.player.aesthetic_cultivation >= 400 and
+            self.player.employment_entrepreneurship >= 400 and
+            self.player.skill >= 200 and
+            self.player.social >= 150 and
+            self.player.reputation >= 150
+        )
+        if baoyan_condition:
             self.current_ending = ENDING_BAOYAN
             self.current_state = STATE_ENDING
             return
         
-        # 2. 考研上岸
-        if (avg_score >= 75 and avg_gpa >= 3.0 and
+        # ========== 优先级3：考研上岸 ==========
+        kaoyan_condition = (
+            avg_score >= 75 and avg_gpa >= 3.0 and
             self.player.knowledge_level >= 4 and self.player.knowledge >= 75 and
-            self.player.charm_level >= 2 and self.player.charm >= 50 and
             self.player.physical_level >= 4 and self.player.physical >= 60 and
-            self.player.total_theory_experiment >= 600 and
-            self.player.employment_entrepreneurship >= 200 and
-            self.player.aesthetic_cultivation >= 200 and
-            self.player.skill >= 80 and
-            self.player.reputation >= 50 and
-            self.player.social >= 40):
+            self.player.total_theory_experiment >= 1100 and
+            self.player.aesthetic_cultivation >= 300 and
+            self.player.employment_entrepreneurship >= 300 and
+            self.player.skill >= 150 and
+            self.player.social >= 80 and
+            self.player.reputation >= 80
+        )
+        if kaoyan_condition:
             self.current_ending = ENDING_KAOYAN
             self.current_state = STATE_ENDING
             return
         
-        # 3. 优质就业
-        if (avg_score >= 70 and avg_gpa >= 2.4 and
-            self.player.knowledge_level >= 4 and self.player.knowledge >= 70 and
-            self.player.charm_level >= 2 and self.player.charm >= 80 and
-            self.player.physical_level >= 4 and self.player.physical >= 50 and
-            self.player.total_theory_experiment >= 500 and
-            self.player.employment_entrepreneurship >= 300 and
-            self.player.aesthetic_cultivation >= 200 and
-            self.player.skill >= 150 and
-            self.player.reputation >= 60 and
-            self.player.social >= 100):
+        # ========== 优先级4：优质就业 ==========
+        goodwork_condition = (
+            avg_score >= 70 and avg_gpa >= 2.4 and
+            self.player.charm_level >= 4 and self.player.charm >= 85 and
+            self.player.social >= 120 and
+            self.player.total_theory_experiment >= 1000 and
+            self.player.employment_entrepreneurship >= 450 and
+            self.player.skill >= 180 and
+            self.player.aesthetic_cultivation >= 250 and
+            self.player.reputation >= 100
+        )
+        if goodwork_condition:
             self.current_ending = ENDING_GOODWORK
             self.current_state = STATE_ENDING
             return
         
-        # 4. 普通就业
-        if (avg_score >= 60 and avg_gpa >= 1.0 and
-            self.player.knowledge_level >= 4 and self.player.knowledge >= 60 and
-            self.player.charm_level >= 2 and self.player.charm >= 50 and
-            self.player.physical_level >= 4 and self.player.physical >= 50 and
-            self.player.total_theory_experiment >= 500 and
-            self.player.employment_entrepreneurship >= 300 and
-            self.player.aesthetic_cultivation >= 200 and
-            self.player.skill >= 130 and
-            self.player.reputation >= 50 and
-            self.player.social >= 60):
-            self.current_ending = ENDING_NORMALWORK
-            self.current_state = STATE_ENDING
-            return
-        
-        # 5. 创业
-        if (avg_score >= 65 and avg_gpa >= 2.0 and
-            self.player.knowledge_level >= 4 and self.player.knowledge >= 60 and
-            self.player.charm_level >= 3 and self.player.charm >= 80 and
-            self.player.physical_level >= 4 and self.player.physical >= 50 and
-            self.player.total_theory_experiment >= 500 and
-            self.player.employment_entrepreneurship >= 400 and
-            self.player.aesthetic_cultivation >= 200 and
-            self.player.skill >= 170 and
-            self.player.reputation >= 80 and
-            self.player.social >= 120):
+        # ========== 优先级5：创业 ==========
+        chuangye_condition = (
+            avg_score >= 65 and avg_gpa >= 2.0 and
+            self.player.charm_level >= 4 and self.player.charm >= 90 and
+            self.player.total_theory_experiment >= 900 and
+            self.player.employment_entrepreneurship >= 550 and
+            self.player.social >= 140 and
+            self.player.reputation >= 120 and
+            self.player.skill >= 200
+        )
+        if chuangye_condition:
             self.current_ending = ENDING_CHUANGYE
             self.current_state = STATE_ENDING
             return
         
-        # 其他情况
+        # ========== 优先级6：普通就业 ==========
+        normalwork_condition = (
+            avg_score >= 60 and avg_gpa >= 1.0 and
+            self.player.knowledge_level >= 4 and self.player.knowledge >= 60 and
+            self.player.charm_level >= 4 and self.player.charm >= 50 and
+            self.player.physical_level >= 4 and self.player.physical >= 50 and
+            self.player.total_theory_experiment >= 800 and
+            self.player.aesthetic_cultivation >= 200 and
+            self.player.employment_entrepreneurship >= 200 and
+            self.player.skill >= 100 and
+            self.player.social >= 50
+        )
+        if normalwork_condition:
+            self.current_ending = ENDING_NORMALWORK
+            self.current_state = STATE_ENDING
+            return
+        
+        # ========== 优先级7：默认平凡结局 ==========
         self.current_ending = ENDING_DEFAULT
         self.current_state = STATE_ENDING
     
